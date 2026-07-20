@@ -32,7 +32,7 @@ final class CLI {
     private static function file_action(array $args, bool $apply): void {
         $path = $args[0] ?? '';
         if ('' === $path || !is_readable($path)) {
-            \WP_CLI::error('Provide a readable digitalogic.product-sync JSON file.');
+            \WP_CLI::error('Provide a readable patris.product-sync JSON file.');
         }
         $json = file_get_contents($path);
         $service = new Sync_Service();

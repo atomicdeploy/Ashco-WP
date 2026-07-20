@@ -10,7 +10,7 @@ use WP_Error;
 /**
  * Transformed-only Patris product-sync receiver.
  *
- * The payload is one living, versionless standard. Optional product keys are
+ * The payload is one living standard. Optional product keys are
  * sparse: an absent key means that no source/reference value was supplied,
  * while an explicit JSON null remains a distinct, hashed value.
  */
@@ -237,7 +237,7 @@ final class Product_Sync_JSON_Decoder {
 
 class Product_Sync_Receiver {
     public const STATE_OPTION = 'ashko_product_sync_state';
-    public const CONTRACT_NAME = 'digitalogic.product-sync';
+    public const CONTRACT_NAME = 'patris.product-sync';
     public const FORMULA_ID = 'landed_price';
 
     private const STATE_VERSION = 5;
@@ -916,15 +916,20 @@ class Product_Sync_Receiver {
             }
         }
         if (self::CONTRACT_NAME !== $payload['schema']) {
-            return $this->error('ashko_product_sync_schema_unsupported', 'Only digitalogic.product-sync envelopes are accepted.', 422);
+            return $this->error('ashko_product_sync_schema_unsupported', 'Only patris.product-sync envelopes are accepted.', 422);
         }
         if (!in_array($payload['event_type'], array('snapshot', 'update'), true)) {
             return $this->field_error('event_type', 'must be snapshot or update');
         }
-        if (array_key_exists('local_currency', $payload) && (!is_string($payload['local_currency']) || 'IRT' !== $payload['local_currency'])) {
+        $has_currency = array_key_exists('local_currency', $payload);
+        $has_formula = array_key_exists('formula_id', $payload);
+        if ($has_currency !== $has_formula) {
+            return $this->field_error('formula_id', 'must be present exactly when local_currency is present');
+        }
+        if ($has_currency && (!is_string($payload['local_currency']) || 'IRT' !== $payload['local_currency'])) {
             return $this->error('ashko_product_sync_currency_unsupported', 'The receiver currently supports IRT output only.', 422);
         }
-        if (array_key_exists('formula_id', $payload) && (!is_string($payload['formula_id']) || self::FORMULA_ID !== $payload['formula_id'])) {
+        if ($has_formula && (!is_string($payload['formula_id']) || self::FORMULA_ID !== $payload['formula_id'])) {
             return $this->error('ashko_product_sync_formula_unsupported', 'The landed_price formula is required when formula_id is supplied.', 422);
         }
         if (!$this->is_hash($payload['event_id'])) {
@@ -1152,8 +1157,8 @@ class Product_Sync_Receiver {
         if (array_key_exists('markup_percent', $product) && null !== $product['markup_percent'] && $this->number_compare_zero($product['markup_percent']) < 0) {
             return $this->field_error($path . '.markup_percent', 'must not be negative');
         }
-        if (array_key_exists('final_price', $product) && null !== $product['final_price'] && !$this->is_nonnegative_integer($product['final_price'])) {
-            return $this->field_error($path . '.final_price', 'must be a non-negative integer or null');
+        if (array_key_exists('final_price', $product) && (null === $product['final_price'] || !$this->is_nonnegative_integer($product['final_price']))) {
+            return $this->field_error($path . '.final_price', 'must be a non-negative integer when present; omit it when unavailable');
         }
         if (array_key_exists('warehouse_stock', $product) && null !== $product['warehouse_stock']) {
             if (
@@ -2043,15 +2048,15 @@ class Product_Sync_Receiver {
         }
 
         if (!empty($missing)) {
-            if (!array_key_exists('final_price', $product) || null === $product['final_price']) {
+            if (!array_key_exists('final_price', $product)) {
                 return true;
             }
 
             return $this->error(
                 'ashko_product_sync_final_price_mismatch',
-                'final_price must be absent or explicitly null when landed_price inputs are incomplete.',
+                'final_price must be absent when landed_price inputs are incomplete.',
                 422,
-                array('path' => $path . '.final_price', 'expected' => null, 'missing' => $missing)
+                array('path' => $path . '.final_price', 'missing' => $missing)
             );
         }
 
@@ -2079,11 +2084,15 @@ class Product_Sync_Receiver {
             : $this->number_to_storage($product['final_price']);
         $expected = (int) $rounded;
         if (!is_int($actual) || $actual !== $expected) {
+            $data = array('path' => $path . '.final_price', 'expected' => $expected);
+            if (array_key_exists('final_price', $product)) {
+                $data['actual'] = $actual;
+            }
             return $this->error(
                 'ashko_product_sync_final_price_mismatch',
                 'final_price does not match independently evaluated landed_price.',
                 422,
-                array('path' => $path . '.final_price', 'expected' => $expected, 'actual' => $actual)
+                $data
             );
         }
 

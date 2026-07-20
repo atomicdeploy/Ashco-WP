@@ -10,7 +10,7 @@ final class ProductSyncContractTest extends TestCase {
         $GLOBALS['ashko_test_products'] = array();
     }
 
-    public function test_versionless_sparse_contract_is_accepted(): void {
+    public function test_living_sparse_contract_is_accepted(): void {
         $preview = Product_Sync_Receiver::instance()->preview_json($this->fixture());
         self::assertFalse(is_wp_error($preview), is_wp_error($preview) ? $preview->get_error_message() : '');
         self::assertArrayNotHasKey('schema_version', $preview['envelope']);
@@ -74,6 +74,37 @@ final class ProductSyncContractTest extends TestCase {
         self::assertFalse(is_wp_error($preview), is_wp_error($preview) ? $preview->get_error_message() : '');
         self::assertArrayNotHasKey('local_currency', $preview['envelope']);
         self::assertArrayNotHasKey('formula_id', $preview['envelope']);
+    }
+
+    public function test_currency_and_formula_identifiers_must_be_supplied_together(): void {
+        $without_formula = json_decode($this->fixture(), true);
+        unset($without_formula['formula_id']);
+        $result = Product_Sync_Receiver::instance()->receive($without_formula);
+        self::assertSame('ashko_product_sync_field_invalid', $result->get_error_code());
+        self::assertSame('formula_id', $result->get_error_data()['field']);
+
+        $without_currency = json_decode($this->fixture(), true);
+        unset($without_currency['local_currency']);
+        $result = Product_Sync_Receiver::instance()->receive($without_currency);
+        self::assertSame('ashko_product_sync_field_invalid', $result->get_error_code());
+        self::assertSame('formula_id', $result->get_error_data()['field']);
+    }
+
+    public function test_explicit_null_final_price_is_rejected_and_absence_remains_valid(): void {
+        $payload = json_decode($this->fixture(), true);
+        $product = $payload['products'][0];
+        $product['final_price'] = null;
+
+        $validate = new ReflectionMethod(Product_Sync_Receiver::class, 'validate_product');
+        $result = $validate->invoke(Product_Sync_Receiver::instance(), $product, 0);
+
+        self::assertSame('ashko_product_sync_field_invalid', $result->get_error_code());
+        self::assertSame('products[0].final_price', $result->get_error_data()['field']);
+        self::assertStringContainsString('omit it when unavailable', $result->get_error_data()['reason']);
+
+        $preview = Product_Sync_Receiver::instance()->preview_json($this->fixture());
+        self::assertFalse(is_wp_error($preview), is_wp_error($preview) ? $preview->get_error_message() : '');
+        self::assertArrayNotHasKey('final_price', $preview['envelope']['products'][1]);
     }
 
     public function test_removed_contract_fields_are_rejected(): void {

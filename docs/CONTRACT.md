@@ -1,8 +1,8 @@
 # Patris contract boundary
 
-Ashco-WP accepts one living `digitalogic.product-sync` standard. It has no schema, formula, or route version selector and no compatibility branch for older payload shapes. Ashco and Digitalogic share the same payload semantics; site identity remains in each site's route, credentials, options, tables, PHP namespace, text domain, matching policy, and metadata prefix.
+Ashco-WP accepts one living `patris.product-sync` standard with one current schema, formula, and stable route shape. It has no compatibility branch for retired payload shapes. Ashco and others share the same payload semantics; site identity remains in each site's route, credentials, options, tables, PHP namespace, text domain, matching policy, and metadata prefix.
 
-The required envelope keys are `schema`, `event_type`, `event_id`, `source`, `generated_at`, `products`, `categories`, `excluded_codes`, `quarantined_codes`, and `warnings`. The five collection keys are present even when empty. `local_currency`, `formula_id`, and `deleted_codes` are optional; when supplied, currency is `IRT` and the formula identifier is `landed_price`.
+The required envelope keys are `schema`, `event_type`, `event_id`, `source`, `generated_at`, `products`, `categories`, `excluded_codes`, `quarantined_codes`, and `warnings`. The five collection keys are present even when empty. `local_currency`, `formula_id`, and `deleted_codes` are optional; `local_currency` and `formula_id` must either both be absent or both be present, with currency `IRT` and formula identifier `landed_price`.
 
 Every product requires `product_code`, `warnings`, and `record_hash`. Other approved product keys are sparse. A missing key means Patris supplied no source/reference value. A present key with JSON `null` means the source explicitly supplied null. Empty strings and empty warehouse objects are also explicit values. Ashco preserves all four states for hashing and receiver storage instead of filling missing keys with null.
 
@@ -14,4 +14,6 @@ Only `shipping_method_id` and `shipping_price_per_kg_cny` are accepted for sourc
 
 Raw Paradox/Patris fields are rejected. Only transformed fields can reach WooCommerce. Application identity on Ashco is `serial`, never `product_code`; exact case-sensitive matches from the configured meta key and `_ashko_patris_serial` are unioned by Woo ID, and any collision is reported as ambiguous.
 
-Ashco routes are `/wp-json/ashko/patris/product-sync/dry-run`, `/apply`, and `/status`. No versioned route alias is registered.
+Ashco routes are `/wp-json/ashko/patris/product-sync/dry-run`, `/apply`, and `/status`. No compatibility route alias is registered.
+
+Every successful POST response is wrapped as `{success:true,data:{...}}`. The `data` object always contains non-null `status`, `event_id`, `retryable`, `pending_products`, and `deferred_products` fields. Apply work that needs another identical request uses `retry_pending` (or receiver-emitted `partially_applied`) with `retryable: true` and a positive pending count; terminal states have no pending work and are not retryable. Dry-run report progress uses `report_pending`, and a completed dry run uses `dry_run_complete`.
