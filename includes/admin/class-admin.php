@@ -98,8 +98,8 @@ final class Admin {
         $scopes = get_option(Config::SOURCE_SCOPES_OPTION, array());
         $scopes_json = wp_json_encode(is_array($scopes) ? $scopes : array(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         echo '<h2>' . esc_html__('وضعیت یکپارچه‌سازی', 'ashko-wp') . '</h2>';
-        echo '<p>' . esc_html__('Ashko-WP نرخ مرجع CNY و متادیتای محصول را مستقیماً مدیریت می‌کند؛ افزونه تبدیل ارز برای فروشگاه پایه IRR لازم نیست.', 'ashko-wp') . '</p>';
-        echo '<p><strong>ACF:</strong> ' . esc_html(Integration_Status::acf_available() ? __('در دسترس؛ همگام‌سازی دوطرفه فعال است.', 'ashko-wp') : __('در دسترس نیست؛ متادیتای استاندارد Ashko-WP بدون اختلال کار می‌کند.', 'ashko-wp')) . '</p>';
+        echo '<p>' . esc_html__('Ashco-WP نرخ مرجع CNY و متادیتای محصول را مستقیماً مدیریت می‌کند؛ افزونه تبدیل ارز برای فروشگاه پایه IRR لازم نیست.', 'ashko-wp') . '</p>';
+        echo '<p><strong>ACF:</strong> ' . esc_html(Integration_Status::acf_available() ? __('در دسترس؛ همگام‌سازی دوطرفه فعال است.', 'ashko-wp') : __('در دسترس نیست؛ متادیتای استاندارد Ashco-WP بدون اختلال کار می‌کند.', 'ashko-wp')) . '</p>';
         $switchers = Integration_Status::currency_switchers();
         if (array() === $switchers) {
             echo '<p>' . esc_html__('افزونه تغییر ارز شناسایی نشد.', 'ashko-wp') . '</p>';
@@ -122,7 +122,7 @@ final class Admin {
         self::checkbox('show_exact_stock', __('نمایش تعداد موجودی در سایت', 'ashko-wp'), $settings['show_exact_stock']);
         self::checkbox('keep_out_of_stock_visible', __('نمایش کالاهای ناموجود', 'ashko-wp'), $settings['keep_out_of_stock_visible']);
         echo '<tr><th>' . esc_html__('محدوده منبع مجاز (JSON)', 'ashko-wp') . '</th><td><textarea name="source_scopes" rows="6" cols="70" dir="ltr">' . esc_textarea($scopes_json) . '</textarea><p class="description">[{"id":"patris-office","dataset":"kala.db"}] — [] یعنی راه‌اندازی اولیه بدون محدودیت.</p></td></tr>';
-        echo '<tr><th>' . esc_html__('کلید محرمانه REST', 'ashko-wp') . '</th><td><input type="password" readonly class="regular-text" value="' . esc_attr(Config::secret()) . '"><p class="description">Patris Export: X-Digitalogic-Product-Sync-Secret — alias: X-Ashko-Product-Sync-Secret</p></td></tr>';
+        echo '<tr><th>' . esc_html__('کلید محرمانه REST', 'ashko-wp') . '</th><td><input type="password" readonly class="regular-text" value="' . esc_attr(Config::secret()) . '"><p class="description">Patris Export: X-Digitalogic-Product-Sync-Secret — alias: X-Ashco-Product-Sync-Secret</p></td></tr>';
         echo '<tr><th>' . esc_html__('نشانی اجرای خشک', 'ashko-wp') . '</th><td><code dir="ltr">' . esc_html(rest_url('ashko/patris/product-sync/dry-run')) . '</code></td></tr>';
         echo '<tr><th>' . esc_html__('نشانی اعمال', 'ashko-wp') . '</th><td><code dir="ltr">' . esc_html(rest_url('ashko/patris/product-sync/apply')) . '</code></td></tr>';
         echo '</tbody></table>';

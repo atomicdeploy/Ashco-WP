@@ -1,7 +1,7 @@
 <?php
 namespace Ashko\Patris;
 
-/** Exact non-negative decimal arithmetic for Ashko pricing and stock policy. */
+/** Exact non-negative decimal arithmetic for Ashco pricing and stock policy. */
 final class Decimal_Calculator {
     /** Calculate the approved expression in IRR and round once, at the end. */
     public static function price($foreign_cny, $weight_grams, $fx_irr, $shipping_irr_per_kg, $margin_percent): ?array {

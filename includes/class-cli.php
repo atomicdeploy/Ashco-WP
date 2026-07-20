@@ -24,7 +24,7 @@ final class CLI {
 
     public static function apply(array $args, array $assoc): void {
         if (empty($assoc['yes'])) {
-            \WP_CLI::error('Use --yes after reviewing an Ashko dry-run report.');
+            \WP_CLI::error('Use --yes after reviewing an Ashco dry-run report.');
         }
         self::file_action($args, true);
     }

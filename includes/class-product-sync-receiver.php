@@ -395,7 +395,7 @@ class Product_Sync_Receiver {
     /**
      * Validate a document and its complete source projection without writing.
      *
-     * The returned transition is intentionally internal to Ashko's dry-run
+     * The returned transition is intentionally internal to Ashco's dry-run
      * coordinator. REST responses only expose aggregate/report identifiers.
      *
      * @param string $json Request body.
@@ -2553,7 +2553,7 @@ class Product_Sync_Receiver {
         }
         return $this->error(
             'ashko_product_sync_store_currency_mismatch',
-            'WooCommerce must use IRR before Ashko product mutations are allowed.',
+            'WooCommerce must use IRR before Ashco product mutations are allowed.',
             409,
             array(
                 'woocommerce_base_currency' => $currency_status['code'],

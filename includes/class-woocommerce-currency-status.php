@@ -3,7 +3,7 @@ namespace Ashko\Patris;
 
 final class WooCommerce_Currency_Status {
     public const REQUIRED_CURRENCY = 'IRR';
-    public const INCOMPATIBLE_WARNING = 'Ashko stores WooCommerce prices in IRR; Patris contract IRT values are converted by multiplying by 10.';
+    public const INCOMPATIBLE_WARNING = 'Ashco stores WooCommerce prices in IRR; Patris contract IRT values are converted by multiplying by 10.';
 
     private static ?self $instance = null;
 

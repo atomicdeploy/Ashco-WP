@@ -1,6 +1,6 @@
 {
   "name": "atomicdeploy/ashko-wp",
-  "description": "Ashko WooCommerce receiver for the Patris Export product-sync contract",
+  "description": "Ashco WooCommerce receiver for the Patris Export product-sync contract",
   "type": "wordpress-plugin",
   "license": "GPL-2.0-or-later",
   "require": {

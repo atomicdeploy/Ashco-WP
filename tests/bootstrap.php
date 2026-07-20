@@ -11,6 +11,7 @@ $GLOBALS['ashko_test_products'] = array();
 $GLOBALS['ashko_test_currency'] = 'IRR';
 $GLOBALS['ashko_test_hooks'] = array();
 $GLOBALS['ashko_test_current_actions'] = array();
+$GLOBALS['ashko_test_current_user_can'] = false;
 
 class WP_Error {
     private $code;
@@ -26,8 +27,21 @@ class WP_Error {
     public function get_error_data() { return $this->data; }
 }
 
+class WP_REST_Request {
+    private array $headers;
+
+    public function __construct(array $headers = array()) {
+        $this->headers = array_change_key_case($headers, CASE_LOWER);
+    }
+
+    public function get_header($name) {
+        return $this->headers[strtolower((string) $name)] ?? '';
+    }
+}
+
 function is_wp_error($value) { return $value instanceof WP_Error; }
 function __($value, $domain = null) { return $value; }
+function current_user_can($capability) { return (bool) $GLOBALS['ashko_test_current_user_can']; }
 function get_option($key, $default = false) { return $GLOBALS['ashko_test_options'][$key] ?? $default; }
 function update_option($key, $value, $autoload = null) { $GLOBALS['ashko_test_options'][$key] = $value; return true; }
 function add_option($key, $value, $deprecated = '', $autoload = null) { if (!array_key_exists($key, $GLOBALS['ashko_test_options'])) { $GLOBALS['ashko_test_options'][$key] = $value; } return true; }
@@ -61,6 +75,10 @@ function get_post_type($post_id) { return 'product'; }
 function get_post_meta($post_id, $key, $single = false) {
     $product = $GLOBALS['ashko_test_products'][(int) $post_id] ?? null;
     return $product ? $product->get_meta($key, $single, 'edit') : '';
+}
+function delete_post_meta($post_id, $key, $value = '') {
+    $product = $GLOBALS['ashko_test_products'][(int) $post_id] ?? null;
+    return $product ? $product->delete_meta_data_exact($key, $value) : false;
 }
 function wc_get_product($post_id) { return $GLOBALS['ashko_test_products'][(int) $post_id] ?? null; }
 
@@ -117,6 +135,12 @@ final class Ashko_Test_Product {
     public function set_stock_quantity($value) { $this->core['stock_quantity'] = (int) $value; }
     public function set_stock_status($value) { $this->core['stock_status'] = (string) $value; }
     public function update_meta_data($key, $value) { $this->meta[$key] = (string) $value; }
+    public function delete_meta_data_exact($key, $value = '') {
+        if (!array_key_exists($key, $this->meta)) { return false; }
+        if ('' !== $value && (string) $this->meta[$key] !== (string) $value) { return false; }
+        unset($this->meta[$key]);
+        return true;
+    }
     public function save() { $this->save_count++; $GLOBALS['ashko_test_products'][$this->id] = $this; return $this->id; }
 }
 
