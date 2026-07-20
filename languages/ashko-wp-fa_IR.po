@@ -1,0 +1,51 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Ashko-WP Patris Sync 1.0.0\n"
+"PO-Revision-Date: 2026-07-20 19:45+0330\n"
+"Last-Translator: AtomicDeploy\n"
+"Language-Team: Persian\n"
+"Language: fa_IR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Domain: ashko-wp\n"
+
+msgid "This exact Patris source is not allowed."
+msgstr "این منبع دقیق پاتریس در فهرست مجاز نیست."
+
+msgid "The durable sync report did not pass creation readback."
+msgstr "بازخوانی ایجاد گزارش پایدار همگام‌سازی موفق نبود."
+
+msgid "The durable report cannot resume because this event projection differs from its first request."
+msgstr "گزارش پایدار نمی‌تواند ادامه یابد، زیرا نمای این رویداد با نخستین درخواست آن متفاوت است."
+
+msgid "No WooCommerce product has that exact Serial."
+msgstr "هیچ کالای ووکامرس با این Serial دقیق پیدا نشد."
+
+msgid "The durable sync report checkpoint could not be saved."
+msgstr "نقطه ذخیره گزارش پایدار همگام‌سازی ثبت نشد."
+
+msgid "Serial must be supplied as a string."
+msgstr "Serial باید به‌صورت رشته ارسال شود."
+
+msgid "More than one product shares that exact Serial."
+msgstr "بیش از یک کالا همین Serial دقیق را دارد."
+
+msgid "The exact Serial lookup could not be completed."
+msgstr "جست‌وجوی دقیق Serial کامل نشد."
+
+msgid "The durable sync report could not be started."
+msgstr "گزارش پایدار همگام‌سازی آغاز نشد."
+
+msgid "A per-product report row could not be saved."
+msgstr "ردیف گزارش هر کالا ذخیره نشد."
+
+msgid "The Ashko sync receiver needs at least 192 MiB of PHP memory for a complete Patris envelope."
+msgstr "گیرنده همگام‌سازی اشکو برای بسته کامل پاتریس حداقل به ۱۹۲ مگابایت حافظه PHP نیاز دارد."
+
+msgid "A valid Ashko sync credential is required."
+msgstr "برای همگام‌سازی، اعتبارنامه معتبر اشکو لازم است."
+
+msgid "A Patris contract header does not match the JSON document."
+msgstr "یکی از سرآیندهای قرارداد پاتریس با سند JSON مطابقت ندارد."

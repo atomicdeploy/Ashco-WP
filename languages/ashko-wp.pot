@@ -1,0 +1,309 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR AtomicDeploy
+# This file is distributed under the same license as the Ashko-WP Patris Sync package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Ashko-WP Patris Sync 1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-20 19:44+0330\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: includes\class-sync-service.php:35
+msgid "This exact Patris source is not allowed."
+msgstr ""
+
+#: includes\class-sync-service.php:56
+msgid "The durable sync report did not pass creation readback."
+msgstr ""
+
+#: includes\class-sync-service.php:70
+msgid ""
+"The durable report cannot resume because this event projection differs from "
+"its first request."
+msgstr ""
+
+#: includes\class-sync-service.php:86 includes\class-serial-resolver.php:140
+#: includes\class-product-sync-receiver.php:1699
+msgid "No WooCommerce product has that exact Serial."
+msgstr ""
+
+#: includes\class-sync-service.php:105
+msgid "The durable sync report checkpoint could not be saved."
+msgstr ""
+
+#: includes\class-serial-resolver.php:77
+msgid "Serial must be supplied as a string."
+msgstr ""
+
+#: includes\class-serial-resolver.php:132
+msgid "More than one product shares that exact Serial."
+msgstr ""
+
+#: includes\class-serial-resolver.php:148
+msgid "The exact Serial lookup could not be completed."
+msgstr ""
+
+#: includes\class-report-repository.php:91
+msgid "The durable sync report could not be started."
+msgstr ""
+
+#: includes\class-report-repository.php:123
+msgid "A per-product report row could not be saved."
+msgstr ""
+
+#: includes\class-plugin.php:47
+msgid "Ashko-WP برای همگام‌سازی کالا به WooCommerce نیاز دارد."
+msgstr ""
+
+#: includes\class-plugin.php:52
+#, php-format
+msgid ""
+"ارز پایه WooCommerce باید IRR باشد؛ مقدار فعلی %s است. هیچ قیمت IRT بدون "
+"تبدیل روی اشکو نوشته نمی‌شود."
+msgstr ""
+
+#: includes\class-plugin.php:56
+msgid ""
+"یک افزونه تغییر ارز فعال است. Ashko-WP نرخ CNY مرجع را خود مدیریت می‌کند؛ "
+"برای جلوگیری از تغییر قیمت IRR، وضعیت افزونه ارزی را بررسی کنید."
+msgstr ""
+
+#: includes\class-memory-guard.php:18
+msgid ""
+"The Ashko sync receiver needs at least 192 MiB of PHP memory for a complete "
+"Patris envelope."
+msgstr ""
+
+#: includes\class-frontend-stock.php:23
+#, php-format
+msgid "موجودی قابل فروش اشکو: %s"
+msgstr ""
+
+#: includes\class-acf-integration.php:21
+msgid "قیمت‌گذاری پاتریس اشکو"
+msgstr ""
+
+#: includes\class-acf-integration.php:25
+msgid "قیمت خرید (یوان چین)"
+msgstr ""
+
+#: includes\class-acf-integration.php:33
+msgid "تاریخ مؤثر نرخ ارز"
+msgstr ""
+
+#: includes\class-acf-integration.php:38
+msgid ""
+"مقدار مرجع به‌صورت میلادی ISO ذخیره می‌شود؛ پنل اشکو معادل جلالی را نیز نمایش "
+"می‌دهد."
+msgstr ""
+
+#: includes\admin\class-admin.php:17
+msgid "هماهنگ‌سازی پاتریس اشکو"
+msgstr ""
+
+#: includes\admin\class-admin.php:18
+msgid "پاتریس اشکو"
+msgstr ""
+
+#: includes\admin\class-admin.php:29 includes\admin\class-admin.php:135
+#: includes\admin\class-admin.php:151
+msgid "دسترسی کافی ندارید."
+msgstr ""
+
+#: includes\admin\class-admin.php:32
+msgid "هماهنگ‌سازی کالا و قیمت پاتریس — اشکو"
+msgstr ""
+
+#: includes\admin\class-admin.php:34
+msgid "گزارش‌ها و هشدارها"
+msgstr ""
+
+#: includes\admin\class-admin.php:35
+msgid "تنظیمات قیمت و اتصال"
+msgstr ""
+
+#: includes\admin\class-admin.php:49
+msgid "هنوز اجرای خشک یا اعمال ثبت نشده است."
+msgstr ""
+
+#: includes\admin\class-admin.php:54
+msgid "اجرای اخیر"
+msgstr ""
+
+#: includes\admin\class-admin.php:77
+#, php-format
+msgid "جزئیات اجرای شماره %d"
+msgstr ""
+
+#: includes\admin\class-admin.php:78
+msgid "دانلود گزارش کامل CSV"
+msgstr ""
+
+#: includes\admin\class-admin.php:79
+msgid "تغییرات فیلدهای ووکامرس"
+msgstr ""
+
+#: includes\admin\class-admin.php:80
+msgid "تغییرات متادیتا"
+msgstr ""
+
+#: includes\admin\class-admin.php:81
+msgid "گروه‌های هشدار"
+msgstr ""
+
+#: includes\admin\class-admin.php:84
+msgid "فهرست کالا/قیمت (۲۰۰ ردیف نخست)"
+msgstr ""
+
+#: includes\admin\class-admin.php:85
+msgid "نتیجه"
+msgstr ""
+
+#: includes\admin\class-admin.php:85
+msgid "قیمت منبع IRT"
+msgstr ""
+
+#: includes\admin\class-admin.php:85
+msgid "قیمت نهایی IRR"
+msgstr ""
+
+#: includes\admin\class-admin.php:85
+msgid "مغایرت IRR"
+msgstr ""
+
+#: includes\admin\class-admin.php:85
+msgid "تاریخ نرخ (میلادی/جلالی)"
+msgstr ""
+
+#: includes\admin\class-admin.php:85
+msgid "فیلدها"
+msgstr ""
+
+#: includes\admin\class-admin.php:85
+msgid "هشدارها"
+msgstr ""
+
+#: includes\admin\class-admin.php:100
+msgid "وضعیت یکپارچه‌سازی"
+msgstr ""
+
+#: includes\admin\class-admin.php:101
+msgid ""
+"Ashko-WP نرخ مرجع CNY و متادیتای محصول را مستقیماً مدیریت می‌کند؛ افزونه تبدیل "
+"ارز برای فروشگاه پایه IRR لازم نیست."
+msgstr ""
+
+#: includes\admin\class-admin.php:102
+msgid "در دسترس؛ همگام‌سازی دوطرفه فعال است."
+msgstr ""
+
+#: includes\admin\class-admin.php:102
+msgid "در دسترس نیست؛ متادیتای استاندارد Ashko-WP بدون اختلال کار می‌کند."
+msgstr ""
+
+#: includes\admin\class-admin.php:105
+msgid "افزونه تغییر ارز شناسایی نشد."
+msgstr ""
+
+#: includes\admin\class-admin.php:109
+msgid "فعال (احتمال تعارض)"
+msgstr ""
+
+#: includes\admin\class-admin.php:109
+msgid "غیرفعال (وضعیت توصیه‌شده)"
+msgstr ""
+
+#: includes\admin\class-admin.php:116
+msgid "کلید متای دقیق Serial"
+msgstr ""
+
+#: includes\admin\class-admin.php:116
+msgid "پیش‌فرض و مقدار تأییدشده سایت: _sku. تطبیق Code مجاز نیست."
+msgstr ""
+
+#: includes\admin\class-admin.php:117
+msgid "نرخ هر CNY به ریال"
+msgstr ""
+
+#: includes\admin\class-admin.php:118
+msgid "هزینه هوایی/اکسپرس هر کیلو (ریال)"
+msgstr ""
+
+#: includes\admin\class-admin.php:119
+msgid "حاشیه سود (درصد)"
+msgstr ""
+
+#: includes\admin\class-admin.php:120
+msgid "درصد موجودی ALLANBAR قابل فروش"
+msgstr ""
+
+#: includes\admin\class-admin.php:121
+msgid "روش پیش‌فرض حمل"
+msgstr ""
+
+#: includes\admin\class-admin.php:122
+msgid "نمایش تعداد موجودی در سایت"
+msgstr ""
+
+#: includes\admin\class-admin.php:123
+msgid "نمایش کالاهای ناموجود"
+msgstr ""
+
+#: includes\admin\class-admin.php:124
+msgid "محدوده منبع مجاز (JSON)"
+msgstr ""
+
+#: includes\admin\class-admin.php:125
+msgid "کلید محرمانه REST"
+msgstr ""
+
+#: includes\admin\class-admin.php:126
+msgid "نشانی اجرای خشک"
+msgstr ""
+
+#: includes\admin\class-admin.php:127
+msgid "نشانی اعمال"
+msgstr ""
+
+#: includes\admin\class-admin.php:129
+msgid "ذخیره تنظیمات"
+msgstr ""
+
+#: includes\admin\class-admin.php:130
+msgid ""
+"اتصال به سرویس‌های خارجی به‌طور پیش‌فرض غیرفعال است و این نسخه هیچ داده‌ای را "
+"بدون پیکربندی صریح ارسال نمی‌کند."
+msgstr ""
+
+#: includes\admin\class-admin.php:157
+msgid "گزارش پیدا نشد."
+msgstr ""
+
+#: includes\admin\class-admin.php:187
+msgid "فیلد/هشدار"
+msgstr ""
+
+#: includes\admin\class-admin.php:187
+msgid "تعداد کالا"
+msgstr ""
+
+#: includes\admin\class-admin.php:203
+msgid "فعال"
+msgstr ""
+
+#: includes\api\class-rest-controller.php:45
+msgid "A valid Ashko sync credential is required."
+msgstr ""
+
+#: includes\api\class-rest-controller.php:90
+msgid "A Patris contract header does not match the JSON document."
+msgstr ""
