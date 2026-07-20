@@ -3,7 +3,7 @@
  * Plugin Name: Ashko-WP Patris Sync
  * Plugin URI: https://github.com/AtomicDeploy/Ashko-WP
  * Description: هماهنگ‌سازی امن و قابل گزارش کالا، قیمت و موجودی پاتریس با WooCommerce اشکو.
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: AtomicDeploy
  * Text Domain: ashko-wp
  * Domain Path: /languages
@@ -18,7 +18,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('ASHKO_WP_VERSION', '1.0.0');
+define('ASHKO_WP_VERSION', '1.0.1');
 define('ASHKO_WP_FILE', __FILE__);
 define('ASHKO_WP_DIR', plugin_dir_path(__FILE__));
 

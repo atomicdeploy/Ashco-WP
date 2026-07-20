@@ -6,7 +6,7 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Ashko-WP Patris Sync 1.0.0\n"
+"Project-Id-Version: Ashko-WP Patris Sync 1.0.1\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-20 19:44+0330\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
@@ -83,7 +83,7 @@ msgid ""
 "Patris envelope."
 msgstr ""
 
-#: includes\class-frontend-stock.php:23
+#: includes\class-frontend-stock.php:67
 #, php-format
 msgid "موجودی قابل فروش اشکو: %s"
 msgstr ""

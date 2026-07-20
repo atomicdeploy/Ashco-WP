@@ -30,7 +30,7 @@ Production Woo price is evaluated natively in IRR and rounded half-up once, at t
 
 The producer's independently validated `final_price` remains IRT. Reports retain `final_price × 10`, the native IRR result, their IRR difference, and the independently rounded native IRT comparison. This avoids routing Woo pricing through an IRT rounding boundary. For example, the native prices for the three known half-ties are 65,585; 36,855; and 12,415 IRR.
 
-Full source stock is stored in `_ashko_patris_allanbar_full`; only the floored 30% quantity is written to Woo stock. Ashko products remain visible when out of stock, and exact saleable quantity is shown on the storefront when enabled.
+Full source stock is stored in `_ashko_patris_allanbar_full`; only the floored 30% quantity is written to Woo stock. Ashko products remain visible when out of stock, and exact saleable quantity is shown on the storefront when enabled. The normal WooCommerce stock-HTML filter is authoritative; a duplicate-safe single-product fallback runs immediately after the standard add-to-cart slot so catalog-mode themes cannot silently remove synchronized quantities, including zero stock.
 
 ## REST endpoints
 
