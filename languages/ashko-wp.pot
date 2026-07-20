@@ -1,12 +1,12 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR AtomicDeploy
-# This file is distributed under the same license as the Ashko-WP Patris Sync package.
+# This file is distributed under the same license as the Ashco-WP Patris Sync package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Ashko-WP Patris Sync 1.1.0\n"
+"Project-Id-Version: Ashco-WP Patris Sync 1.1.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-20 19:44+0330\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
@@ -61,7 +61,7 @@ msgid "A per-product report row could not be saved."
 msgstr ""
 
 #: includes\class-plugin.php:47
-msgid "Ashko-WP برای همگام‌سازی کالا به WooCommerce نیاز دارد."
+msgid "Ashco-WP برای همگام‌سازی کالا به WooCommerce نیاز دارد."
 msgstr ""
 
 #: includes\class-plugin.php:52
@@ -73,13 +73,13 @@ msgstr ""
 
 #: includes\class-plugin.php:56
 msgid ""
-"یک افزونه تغییر ارز فعال است. Ashko-WP نرخ CNY مرجع را خود مدیریت می‌کند؛ "
+"یک افزونه تغییر ارز فعال است. Ashco-WP نرخ CNY مرجع را خود مدیریت می‌کند؛ "
 "برای جلوگیری از تغییر قیمت IRR، وضعیت افزونه ارزی را بررسی کنید."
 msgstr ""
 
 #: includes\class-memory-guard.php:18
 msgid ""
-"The Ashko sync receiver needs at least 192 MiB of PHP memory for a complete "
+"The Ashco sync receiver needs at least 192 MiB of PHP memory for a complete "
 "Patris envelope."
 msgstr ""
 
@@ -198,7 +198,7 @@ msgstr ""
 
 #: includes\admin\class-admin.php:101
 msgid ""
-"Ashko-WP نرخ مرجع CNY و متادیتای محصول را مستقیماً مدیریت می‌کند؛ افزونه تبدیل "
+"Ashco-WP نرخ مرجع CNY و متادیتای محصول را مستقیماً مدیریت می‌کند؛ افزونه تبدیل "
 "ارز برای فروشگاه پایه IRR لازم نیست."
 msgstr ""
 
@@ -207,7 +207,7 @@ msgid "در دسترس؛ همگام‌سازی دوطرفه فعال است."
 msgstr ""
 
 #: includes\admin\class-admin.php:102
-msgid "در دسترس نیست؛ متادیتای استاندارد Ashko-WP بدون اختلال کار می‌کند."
+msgid "در دسترس نیست؛ متادیتای استاندارد Ashco-WP بدون اختلال کار می‌کند."
 msgstr ""
 
 #: includes\admin\class-admin.php:105
@@ -301,7 +301,7 @@ msgid "فعال"
 msgstr ""
 
 #: includes\api\class-rest-controller.php:45
-msgid "A valid Ashko sync credential is required."
+msgid "A valid Ashco sync credential is required."
 msgstr ""
 
 #: includes\api\class-rest-controller.php:90

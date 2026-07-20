@@ -34,14 +34,18 @@ final class REST_Controller {
         if (current_user_can('manage_woocommerce')) {
             return true;
         }
-        $provided = (string) $request->get_header('x-ashko-product-sync-secret');
+        $provided = (string) $request->get_header('x-ashco-product-sync-secret');
         if ('' === $provided) {
             $provided = (string) $request->get_header('x-digitalogic-product-sync-secret');
+        }
+        if ('' === $provided) {
+            // Compatibility identifier: keep accepting the deployed misspelled alias.
+            $provided = (string) $request->get_header('x-ashko-product-sync-secret');
         }
         if ('' !== $provided && hash_equals(Config::secret(), $provided)) {
             return true;
         }
-        return new WP_Error('ashko_product_sync_unauthorized', __('A valid Ashko sync credential is required.', 'ashko-wp'), array('status' => 401));
+        return new WP_Error('ashko_product_sync_unauthorized', __('A valid Ashco sync credential is required.', 'ashko-wp'), array('status' => 401));
     }
 
     public static function dry_run(WP_REST_Request $request) {

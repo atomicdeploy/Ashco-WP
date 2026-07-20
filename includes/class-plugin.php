@@ -44,7 +44,7 @@ final class Plugin {
             return;
         }
         if (!class_exists('WooCommerce')) {
-            echo '<div class="notice notice-error"><p>' . esc_html__('Ashko-WP برای همگام‌سازی کالا به WooCommerce نیاز دارد.', 'ashko-wp') . '</p></div>';
+            echo '<div class="notice notice-error"><p>' . esc_html__('Ashco-WP برای همگام‌سازی کالا به WooCommerce نیاز دارد.', 'ashko-wp') . '</p></div>';
             return;
         }
         $status = WooCommerce_Currency_Status::instance()->get_status();
@@ -53,7 +53,7 @@ final class Plugin {
         }
         $active_switchers = array_filter(Integration_Status::currency_switchers(), static fn($plugin) => !empty($plugin['active']));
         if ($active_switchers) {
-            echo '<div class="notice notice-warning"><p>' . esc_html__('یک افزونه تغییر ارز فعال است. Ashko-WP نرخ CNY مرجع را خود مدیریت می‌کند؛ برای جلوگیری از تغییر قیمت IRR، وضعیت افزونه ارزی را بررسی کنید.', 'ashko-wp') . '</p></div>';
+            echo '<div class="notice notice-warning"><p>' . esc_html__('یک افزونه تغییر ارز فعال است. Ashco-WP نرخ CNY مرجع را خود مدیریت می‌کند؛ برای جلوگیری از تغییر قیمت IRR، وضعیت افزونه ارزی را بررسی کنید.', 'ashko-wp') . '</p></div>';
         }
     }
 }

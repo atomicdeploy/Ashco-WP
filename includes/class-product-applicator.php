@@ -89,7 +89,7 @@ final class Product_Applicator {
         $expected_hash = (string) ($data['record_hash'] ?? '');
         $stored_hash = (string) get_post_meta($product->get_id(), '_ashko_patris_record_hash', true);
         if ('' === $expected_hash || !hash_equals($expected_hash, $stored_hash)) {
-            throw new RuntimeException('Ashko Patris record hash readback failed.');
+            throw new RuntimeException('Ashco Patris record hash readback failed.');
         }
         return $plan;
     }

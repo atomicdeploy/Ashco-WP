@@ -1,6 +1,8 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: Ashko-WP Patris Sync 1.1.0\n"
+"Project-Id-Version: Ashco-WP Patris Sync 1.1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-20 19:44+0330\n"
 "PO-Revision-Date: 2026-07-20 23:30+0330\n"
 "Last-Translator: AtomicDeploy\n"
 "Language-Team: Persian\n"
@@ -11,184 +13,279 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "X-Domain: ashko-wp\n"
 
+#: includes\class-sync-service.php:35
 msgid "This exact Patris source is not allowed."
 msgstr "این منبع دقیق پاتریس در فهرست مجاز نیست."
 
+#: includes\class-sync-service.php:56
 msgid "The durable sync report did not pass creation readback."
 msgstr "بازخوانی ایجاد گزارش پایدار همگام‌سازی موفق نبود."
 
+#: includes\class-sync-service.php:70
 msgid "The durable report cannot resume because this event projection differs from its first request."
 msgstr "گزارش پایدار نمی‌تواند ادامه یابد، زیرا نمای این رویداد با نخستین درخواست آن متفاوت است."
 
+#: includes\class-sync-service.php:86 includes\class-serial-resolver.php:140
+#: includes\class-product-sync-receiver.php:1699
 msgid "No WooCommerce product has that exact Serial."
 msgstr "هیچ کالای ووکامرس با این Serial دقیق پیدا نشد."
 
+#: includes\class-sync-service.php:105
 msgid "The durable sync report checkpoint could not be saved."
 msgstr "نقطه ذخیره گزارش پایدار همگام‌سازی ثبت نشد."
 
+#: includes\class-serial-resolver.php:77
 msgid "Serial must be supplied as a string."
 msgstr "Serial باید به‌صورت رشته ارسال شود."
 
+#: includes\class-serial-resolver.php:132
 msgid "More than one product shares that exact Serial."
 msgstr "بیش از یک کالا همین Serial دقیق را دارد."
 
+#: includes\class-serial-resolver.php:148
 msgid "The exact Serial lookup could not be completed."
 msgstr "جست‌وجوی دقیق Serial کامل نشد."
 
+#: includes\class-report-repository.php:91
 msgid "The durable sync report could not be started."
 msgstr "گزارش پایدار همگام‌سازی آغاز نشد."
 
+#: includes\class-report-repository.php:123
 msgid "A per-product report row could not be saved."
 msgstr "ردیف گزارش هر کالا ذخیره نشد."
 
-msgid "The Ashko sync receiver needs at least 192 MiB of PHP memory for a complete Patris envelope."
+#: includes\class-plugin.php:47
+msgid "Ashco-WP برای همگام‌سازی کالا به WooCommerce نیاز دارد."
+msgstr "Ashco-WP برای همگام‌سازی کالا به WooCommerce نیاز دارد."
+
+#: includes\class-plugin.php:52
+#, php-format
+msgid "ارز پایه WooCommerce باید IRR باشد؛ مقدار فعلی %s است. هیچ قیمت IRT بدون تبدیل روی اشکو نوشته نمی‌شود."
+msgstr "ارز پایه WooCommerce باید IRR باشد؛ مقدار فعلی %s است. هیچ قیمت IRT بدون تبدیل روی اشکو نوشته نمی‌شود."
+
+#: includes\class-plugin.php:56
+msgid "یک افزونه تغییر ارز فعال است. Ashco-WP نرخ CNY مرجع را خود مدیریت می‌کند؛ برای جلوگیری از تغییر قیمت IRR، وضعیت افزونه ارزی را بررسی کنید."
+msgstr "یک افزونه تغییر ارز فعال است. Ashco-WP نرخ CNY مرجع را خود مدیریت می‌کند؛ برای جلوگیری از تغییر قیمت IRR، وضعیت افزونه ارزی را بررسی کنید."
+
+#: includes\class-memory-guard.php:18
+msgid "The Ashco sync receiver needs at least 192 MiB of PHP memory for a complete Patris envelope."
 msgstr "گیرنده همگام‌سازی اشکو برای بسته کامل پاتریس حداقل به ۱۹۲ مگابایت حافظه PHP نیاز دارد."
 
-msgid "A valid Ashko sync credential is required."
-msgstr "برای همگام‌سازی، اعتبارنامه معتبر اشکو لازم است."
-
-msgid "A Patris contract header does not match the JSON document."
-msgstr "یکی از سرآیندهای قرارداد پاتریس با سند JSON مطابقت ندارد."
-
-msgid "A category does not match the product-sync category shape."
-msgstr "ساختار یکی از دسته‌ها با قالب همگام‌سازی کالا مطابقت ندارد."
-
-msgid "A category record_hash does not match its typed category."
-msgstr "هش رکورد یکی از دسته‌ها با داده دسته مطابقت ندارد."
-
-msgid "A Code cannot be both a category and an excluded record."
-msgstr "یک Code نمی‌تواند هم‌زمان دسته و رکورد مستثنا باشد."
-
-msgid "A code cannot be both a product and a tombstone or quarantine entry."
-msgstr "یک کد نمی‌تواند هم‌زمان کالا و رکورد حذف یا قرنطینه باشد."
-
-msgid "A Code cannot be both a sellable product and a structural catalog record."
-msgstr "یک Code نمی‌تواند هم‌زمان کالای قابل فروش و رکورد ساختاری فهرست باشد."
-
-msgid "A different event already occupies this source timestamp."
-msgstr "رویداد دیگری پیش‌تر برای این زمان منبع ثبت شده است."
-
-msgid "A JSON request body is required."
-msgstr "بدنه درخواست JSON الزامی است."
-
-msgid "A product category_code must reference the complete category projection."
-msgstr "category_code کالا باید به یکی از دسته‌های نمای کامل اشاره کند."
-
-msgid "A product does not match the sparse product-sync shape."
-msgstr "ساختار یکی از کالاها با قالب کم‌تراکم همگام‌سازی مطابقت ندارد."
-
-msgid "A product-sync field is invalid."
-msgstr "یکی از فیلدهای همگام‌سازی کالا نامعتبر است."
-
-msgid "A record_hash does not match its typed product."
-msgstr "هش رکورد با داده کالای مربوطه مطابقت ندارد."
-
-msgid "An update event cannot be applied before its source snapshot."
-msgstr "رویداد به‌روزرسانی پیش از تصویر کامل منبع قابل اعمال نیست."
-
-msgid "An update event cannot be validated before its source snapshot."
-msgstr "رویداد به‌روزرسانی پیش از تصویر کامل منبع قابل اعتبارسنجی نیست."
-
-msgid "Another product-sync event is being applied. Please retry."
-msgstr "رویداد همگام‌سازی دیگری در حال اعمال است؛ دوباره تلاش کنید."
-
-msgid "Category codes must be unique inside an event."
-msgstr "کدهای دسته در هر رویداد باید یکتا باشند."
-
-msgid "Deferred product reconciliation failed."
-msgstr "تطبیق دوباره کالاهای به‌تعویق‌افتاده ناموفق بود."
-
-msgid "final_price does not match independently evaluated landed_price."
-msgstr "final_price با landed_price محاسبه‌شده مستقل مطابقت ندارد."
-
-msgid "final_price must be absent or explicitly null when landed_price inputs are incomplete."
-msgstr "وقتی ورودی‌های landed_price کامل نیست، final_price باید حذف شده یا به‌صراحت null باشد."
-
-msgid "Only digitalogic.product-sync envelopes are accepted."
-msgstr "فقط بسته‌های digitalogic.product-sync پذیرفته می‌شوند."
-
-msgid "Product codes must be unique inside an event."
-msgstr "کدهای کالا در هر رویداد باید یکتا باشند."
-
-msgid "Quarantined codes cannot be tombstoned."
-msgstr "کدهای قرنطینه‌شده نمی‌توانند هم‌زمان برای حذف علامت‌گذاری شوند."
-
-msgid "Raw Patris fields are forbidden on the transformed product-sync endpoint."
-msgstr "فیلدهای خام پاتریس در درگاه داده تبدیل‌شده همگام‌سازی مجاز نیستند."
-
-msgid "Source id and dataset must be provided together."
-msgstr "شناسه منبع و مجموعه‌داده باید با هم ارائه شوند."
-
-msgid "Stored receiver state did not pass readback verification."
-msgstr "بازخوانی و تأیید وضعیت ذخیره‌شده گیرنده موفق نبود."
-
-msgid "The combined receiver state is too large."
-msgstr "حجم مجموع وضعیت گیرنده بیش از حد مجاز است."
-
-msgid "The configured source limit has been reached."
-msgstr "تعداد منابع به حد پیکربندی‌شده رسیده است."
-
-msgid "The database lock service is unavailable."
-msgstr "سرویس قفل پایگاه داده در دسترس نیست."
-
-msgid "The envelope contains unsupported fields."
-msgstr "بسته شامل فیلدهای پشتیبانی‌نشده است."
-
-msgid "The envelope is missing required fields."
-msgstr "برخی فیلدهای الزامی بسته وجود ندارند."
-
-msgid "The event contains too many categories."
-msgstr "تعداد دسته‌های رویداد بیش از حد مجاز است."
-
-msgid "The event contains too many products."
-msgstr "تعداد کالاهای رویداد بیش از حد مجاز است."
-
-msgid "The event is older than the stored source state."
-msgstr "این رویداد از وضعیت ذخیره‌شده منبع قدیمی‌تر است."
-
-msgid "The event_id does not match the canonical event contents."
-msgstr "event_id با محتوای معیار رویداد مطابقت ندارد."
-
-msgid "The landed_price formula is required when formula_id is supplied."
-msgstr "در صورت ارائه formula_id، فرمول باید landed_price باشد."
-
-msgid "The product-sync event could not be applied."
-msgstr "رویداد همگام‌سازی کالا قابل اعمال نبود."
-
-msgid "The product-sync payload is too large."
-msgstr "حجم داده همگام‌سازی کالا بیش از حد مجاز است."
-
-msgid "The product-sync payload must be an object."
-msgstr "داده همگام‌سازی کالا باید یک شیء JSON باشد."
-
-msgid "The product-sync request is not valid JSON."
-msgstr "درخواست همگام‌سازی کالا JSON معتبر نیست."
-
-msgid "The receiver could not start a storage transaction."
-msgstr "گیرنده نتوانست تراکنش ذخیره‌سازی را آغاز کند."
-
-msgid "The receiver currently supports IRT output only."
-msgstr "گیرنده در حال حاضر فقط خروجی IRT را می‌پذیرد."
-
-msgid "The receiver state could not be stored."
-msgstr "وضعیت گیرنده ذخیره نشد."
-
-msgid "The receiver state transaction could not be committed."
-msgstr "تراکنش وضعیت گیرنده نهایی نشد."
-
-msgid "The receiver storage service is unavailable."
-msgstr "سرویس ذخیره‌سازی گیرنده در دسترس نیست."
-
-msgid "The requested product-sync source was not found."
-msgstr "منبع همگام‌سازی درخواستی پیدا نشد."
-
-msgid "The source revision does not match the resulting source snapshot."
-msgstr "بازبینی منبع با تصویر کامل حاصل از آن مطابقت ندارد."
-
-msgid "WooCommerce must use IRR before Ashko product mutations are allowed."
-msgstr "پیش از تغییر کالاهای اشکو، ارز پایه ووکامرس باید IRR باشد."
-
-#: includes/class-frontend-stock.php:67
+#: includes\class-frontend-stock.php:67
 #, php-format
 msgid "موجودی قابل فروش اشکو: %s"
 msgstr "موجودی قابل فروش اشکو: %s"
+
+#: includes\class-acf-integration.php:21
+msgid "قیمت‌گذاری پاتریس اشکو"
+msgstr "قیمت‌گذاری پاتریس اشکو"
+
+#: includes\class-acf-integration.php:25
+msgid "قیمت خرید (یوان چین)"
+msgstr "قیمت خرید (یوان چین)"
+
+#: includes\class-acf-integration.php:33
+msgid "تاریخ مؤثر نرخ ارز"
+msgstr "تاریخ مؤثر نرخ ارز"
+
+#: includes\class-acf-integration.php:38
+msgid "مقدار مرجع به‌صورت میلادی ISO ذخیره می‌شود؛ پنل اشکو معادل جلالی را نیز نمایش می‌دهد."
+msgstr "مقدار مرجع به‌صورت میلادی ISO ذخیره می‌شود؛ پنل اشکو معادل جلالی را نیز نمایش می‌دهد."
+
+#: includes\admin\class-admin.php:17
+msgid "هماهنگ‌سازی پاتریس اشکو"
+msgstr "هماهنگ‌سازی پاتریس اشکو"
+
+#: includes\admin\class-admin.php:18
+msgid "پاتریس اشکو"
+msgstr "پاتریس اشکو"
+
+#: includes\admin\class-admin.php:29 includes\admin\class-admin.php:135
+#: includes\admin\class-admin.php:151
+msgid "دسترسی کافی ندارید."
+msgstr "دسترسی کافی ندارید."
+
+#: includes\admin\class-admin.php:32
+msgid "هماهنگ‌سازی کالا و قیمت پاتریس — اشکو"
+msgstr "هماهنگ‌سازی کالا و قیمت پاتریس — اشکو"
+
+#: includes\admin\class-admin.php:34
+msgid "گزارش‌ها و هشدارها"
+msgstr "گزارش‌ها و هشدارها"
+
+#: includes\admin\class-admin.php:35
+msgid "تنظیمات قیمت و اتصال"
+msgstr "تنظیمات قیمت و اتصال"
+
+#: includes\admin\class-admin.php:49
+msgid "هنوز اجرای خشک یا اعمال ثبت نشده است."
+msgstr "هنوز اجرای خشک یا اعمال ثبت نشده است."
+
+#: includes\admin\class-admin.php:54
+msgid "اجرای اخیر"
+msgstr "اجرای اخیر"
+
+#: includes\admin\class-admin.php:77
+#, php-format
+msgid "جزئیات اجرای شماره %d"
+msgstr "جزئیات اجرای شماره %d"
+
+#: includes\admin\class-admin.php:78
+msgid "دانلود گزارش کامل CSV"
+msgstr "دانلود گزارش کامل CSV"
+
+#: includes\admin\class-admin.php:79
+msgid "تغییرات فیلدهای ووکامرس"
+msgstr "تغییرات فیلدهای ووکامرس"
+
+#: includes\admin\class-admin.php:80
+msgid "تغییرات متادیتا"
+msgstr "تغییرات متادیتا"
+
+#: includes\admin\class-admin.php:81
+msgid "گروه‌های هشدار"
+msgstr "گروه‌های هشدار"
+
+#: includes\admin\class-admin.php:84
+msgid "فهرست کالا/قیمت (۲۰۰ ردیف نخست)"
+msgstr "فهرست کالا/قیمت (۲۰۰ ردیف نخست)"
+
+#: includes\admin\class-admin.php:85
+msgid "نتیجه"
+msgstr "نتیجه"
+
+#: includes\admin\class-admin.php:85
+msgid "قیمت منبع IRT"
+msgstr "قیمت منبع IRT"
+
+#: includes\admin\class-admin.php:85
+msgid "قیمت نهایی IRR"
+msgstr "قیمت نهایی IRR"
+
+#: includes\admin\class-admin.php:85
+msgid "مغایرت IRR"
+msgstr "مغایرت IRR"
+
+#: includes\admin\class-admin.php:85
+msgid "تاریخ نرخ (میلادی/جلالی)"
+msgstr "تاریخ نرخ (میلادی/جلالی)"
+
+#: includes\admin\class-admin.php:85
+msgid "فیلدها"
+msgstr "فیلدها"
+
+#: includes\admin\class-admin.php:85
+msgid "هشدارها"
+msgstr "هشدارها"
+
+#: includes\admin\class-admin.php:100
+msgid "وضعیت یکپارچه‌سازی"
+msgstr "وضعیت یکپارچه‌سازی"
+
+#: includes\admin\class-admin.php:101
+msgid "Ashco-WP نرخ مرجع CNY و متادیتای محصول را مستقیماً مدیریت می‌کند؛ افزونه تبدیل ارز برای فروشگاه پایه IRR لازم نیست."
+msgstr "Ashco-WP نرخ مرجع CNY و متادیتای محصول را مستقیماً مدیریت می‌کند؛ افزونه تبدیل ارز برای فروشگاه پایه IRR لازم نیست."
+
+#: includes\admin\class-admin.php:102
+msgid "در دسترس؛ همگام‌سازی دوطرفه فعال است."
+msgstr "در دسترس؛ همگام‌سازی دوطرفه فعال است."
+
+#: includes\admin\class-admin.php:102
+msgid "در دسترس نیست؛ متادیتای استاندارد Ashco-WP بدون اختلال کار می‌کند."
+msgstr "در دسترس نیست؛ متادیتای استاندارد Ashco-WP بدون اختلال کار می‌کند."
+
+#: includes\admin\class-admin.php:105
+msgid "افزونه تغییر ارز شناسایی نشد."
+msgstr "افزونه تغییر ارز شناسایی نشد."
+
+#: includes\admin\class-admin.php:109
+msgid "فعال (احتمال تعارض)"
+msgstr "فعال (احتمال تعارض)"
+
+#: includes\admin\class-admin.php:109
+msgid "غیرفعال (وضعیت توصیه‌شده)"
+msgstr "غیرفعال (وضعیت توصیه‌شده)"
+
+#: includes\admin\class-admin.php:116
+msgid "کلید متای دقیق Serial"
+msgstr "کلید متای دقیق Serial"
+
+#: includes\admin\class-admin.php:116
+msgid "پیش‌فرض و مقدار تأییدشده سایت: _sku. تطبیق Code مجاز نیست."
+msgstr "پیش‌فرض و مقدار تأییدشده سایت: _sku. تطبیق Code مجاز نیست."
+
+#: includes\admin\class-admin.php:117
+msgid "نرخ هر CNY به ریال"
+msgstr "نرخ هر CNY به ریال"
+
+#: includes\admin\class-admin.php:118
+msgid "هزینه هوایی/اکسپرس هر کیلو (ریال)"
+msgstr "هزینه هوایی/اکسپرس هر کیلو (ریال)"
+
+#: includes\admin\class-admin.php:119
+msgid "حاشیه سود (درصد)"
+msgstr "حاشیه سود (درصد)"
+
+#: includes\admin\class-admin.php:120
+msgid "درصد موجودی ALLANBAR قابل فروش"
+msgstr "درصد موجودی ALLANBAR قابل فروش"
+
+#: includes\admin\class-admin.php:121
+msgid "روش پیش‌فرض حمل"
+msgstr "روش پیش‌فرض حمل"
+
+#: includes\admin\class-admin.php:122
+msgid "نمایش تعداد موجودی در سایت"
+msgstr "نمایش تعداد موجودی در سایت"
+
+#: includes\admin\class-admin.php:123
+msgid "نمایش کالاهای ناموجود"
+msgstr "نمایش کالاهای ناموجود"
+
+#: includes\admin\class-admin.php:124
+msgid "محدوده منبع مجاز (JSON)"
+msgstr "محدوده منبع مجاز (JSON)"
+
+#: includes\admin\class-admin.php:125
+msgid "کلید محرمانه REST"
+msgstr "کلید محرمانه REST"
+
+#: includes\admin\class-admin.php:126
+msgid "نشانی اجرای خشک"
+msgstr "نشانی اجرای خشک"
+
+#: includes\admin\class-admin.php:127
+msgid "نشانی اعمال"
+msgstr "نشانی اعمال"
+
+#: includes\admin\class-admin.php:129
+msgid "ذخیره تنظیمات"
+msgstr "ذخیره تنظیمات"
+
+#: includes\admin\class-admin.php:130
+msgid "اتصال به سرویس‌های خارجی به‌طور پیش‌فرض غیرفعال است و این نسخه هیچ داده‌ای را بدون پیکربندی صریح ارسال نمی‌کند."
+msgstr "اتصال به سرویس‌های خارجی به‌طور پیش‌فرض غیرفعال است و این نسخه هیچ داده‌ای را بدون پیکربندی صریح ارسال نمی‌کند."
+
+#: includes\admin\class-admin.php:157
+msgid "گزارش پیدا نشد."
+msgstr "گزارش پیدا نشد."
+
+#: includes\admin\class-admin.php:187
+msgid "فیلد/هشدار"
+msgstr "فیلد/هشدار"
+
+#: includes\admin\class-admin.php:187
+msgid "تعداد کالا"
+msgstr "تعداد کالا"
+
+#: includes\admin\class-admin.php:203
+msgid "فعال"
+msgstr "فعال"
+
+#: includes\api\class-rest-controller.php:45
+msgid "A valid Ashco sync credential is required."
+msgstr "برای همگام‌سازی، اعتبارنامه معتبر اشکو لازم است."
+
+#: includes\api\class-rest-controller.php:90
+msgid "A Patris contract header does not match the JSON document."
+msgstr "یکی از سرآیندهای قرارداد پاتریس با سند JSON مطابقت ندارد."

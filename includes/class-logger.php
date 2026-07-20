@@ -14,7 +14,7 @@ final class Logger {
 
     public function log($event, $channel = '', $object_id = null, $user_id = null, $context = '', $message = ''): void {
         if (defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
-            error_log('[Ashko Patris] ' . sanitize_key((string) $event) . ' ' . sanitize_text_field((string) $message));
+            error_log('[Ashco Patris] ' . sanitize_key((string) $event) . ' ' . sanitize_text_field((string) $message));
         }
     }
 }

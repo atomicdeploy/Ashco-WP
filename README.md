@@ -1,6 +1,6 @@
-# Ashko-WP Patris Sync
+# Ashco-WP Patris Sync
 
-Ashko-WP is the Ashko-specific WooCommerce receiver for Patris Export. It accepts the living, versionless `digitalogic.product-sync` standard while keeping Ashko branding, settings, storage, REST routes, reports, and product matching independent from Digitalogic.
+Ashco-WP is the Ashco-specific WooCommerce receiver for Patris Export. It accepts the living, versionless `digitalogic.product-sync` standard while keeping Ashco branding, settings, storage, REST routes, reports, and product matching independent from Digitalogic.
 
 ## Safety model
 
@@ -13,7 +13,7 @@ Ashko-WP is the Ashko-specific WooCommerce receiver for Patris Export. It accept
 - WooCommerce base currency must be `IRR`. The source contract remains canonical `IRT` for interoperability.
 - External-service delivery is off unless separately implemented and explicitly configured. This release makes no outbound requests.
 
-## Approved Ashko policy
+## Approved Ashco policy
 
 Defaults are installed as editable settings:
 
@@ -31,7 +31,7 @@ Production Woo price is evaluated natively in IRR and rounded half-up once, at t
 
 The producer's independently validated `final_price` remains IRT. Reports retain `final_price × 10`, the native IRR result, their IRR difference, and the independently rounded native IRT comparison. This avoids routing Woo pricing through an IRT rounding boundary. For example, the native prices for the three known half-ties are 65,585; 36,855; and 12,415 IRR.
 
-Full source stock is stored in `_ashko_patris_allanbar_full`; only the floored 30% quantity is written to Woo stock. Ashko products remain visible when out of stock, and exact saleable quantity is shown on the storefront when enabled. The normal WooCommerce stock-HTML filter is authoritative; a duplicate-safe single-product fallback runs immediately after the standard add-to-cart slot so catalog-mode themes cannot silently remove synchronized quantities, including zero stock.
+Full source stock is stored in `_ashko_patris_allanbar_full`; only the floored 30% quantity is written to Woo stock. Ashco products remain visible when out of stock, and exact saleable quantity is shown on the storefront when enabled. The normal WooCommerce stock-HTML filter is authoritative; a duplicate-safe single-product fallback runs immediately after the standard add-to-cart slot so catalog-mode themes cannot silently remove synchronized quantities, including zero stock.
 
 ## REST endpoints
 
@@ -41,13 +41,13 @@ POST /wp-json/ashko/patris/product-sync/apply
 GET  /wp-json/ashko/patris/product-sync/status
 ```
 
-Authenticate with a user/application password that has `manage_woocommerce`, or the Ashko-only generated secret. Patris Export's shared secret header is accepted:
+Authenticate with a user/application password that has `manage_woocommerce`, or the Ashco-only generated secret. Patris Export's shared secret header is accepted:
 
 ```text
-X-Digitalogic-Product-Sync-Secret: <Ashko-only secret>
+X-Digitalogic-Product-Sync-Secret: <Ashco-only secret>
 ```
 
-`X-Ashko-Product-Sync-Secret` is an equivalent branded alias. Secrets are never accepted in query strings. Optional `X-Patris-Contract` and `X-Patris-Event-ID` headers must match the JSON document exactly.
+`X-Ashco-Product-Sync-Secret` is the equivalent branded alias. Secrets are never accepted in query strings. Optional `X-Patris-Contract` and `X-Patris-Event-ID` headers must match the JSON document exactly.
 
 Source scoping is stored as an exact list of `{id,dataset}` pairs. An empty list is intended only for initial setup.
 
@@ -80,7 +80,7 @@ Each dry-run/apply has a durable run record and per-product rows with old/new va
 
 ## ACF and currency integration
 
-Ashko-WP owns the CNY reference rate and canonical product meta integration; a third-party currency switcher is not required and should remain inactive on the IRR storefront. If ACF is available, Ashko-WP registers and bidirectionally mirrors CNY and effective-date fields. Without ACF, canonical product meta and all pricing/report functionality continue to work.
+Ashco-WP owns the CNY reference rate and canonical product meta integration; a third-party currency switcher is not required and should remain inactive on the IRR storefront. If ACF is available, Ashco-WP registers and bidirectionally mirrors CNY and effective-date fields. Without ACF, canonical product meta and all pricing/report functionality continue to work.
 
 ## Installation and commands
 
@@ -94,6 +94,10 @@ wp ashko patris reconcile
 ```
 
 Do not place production JSON, databases, reports, or credentials inside the plugin directory or repository.
+
+### Compatibility identifiers
+
+Ashco is the public brand and the required spelling for new user-facing text and integrations. Existing runtime identifiers remain unchanged until a coordinated migration is approved: the `ashko-wp` plugin/text-domain slug, `Ashko\Patris` PHP namespace, `/ashko/` REST namespace, `wp ashko` CLI prefix, `_ashko_*` storage keys, and the previously deployed `X-Ashko-Product-Sync-Secret` fallback. New clients should use `X-Ashco-Product-Sync-Secret`.
 
 ## Development
 

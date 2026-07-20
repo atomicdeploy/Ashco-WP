@@ -15,7 +15,7 @@ final class Memory_Guard {
         if ($bytes > 0 && $bytes < self::MINIMUM_BYTES) {
             return new WP_Error(
                 'ashko_product_sync_memory_limit',
-                __('The Ashko sync receiver needs at least 192 MiB of PHP memory for a complete Patris envelope.', 'ashko-wp'),
+                __('The Ashco sync receiver needs at least 192 MiB of PHP memory for a complete Patris envelope.', 'ashko-wp'),
                 array('status' => 503, 'memory_limit' => $raw, 'retryable' => false)
             );
         }
