@@ -1,0 +1,8 @@
+/vendor/
+/.phpunit.cache/
+/build/
+/dist/*.zip
+*.db
+*.sql
+*.csv
+*.log
