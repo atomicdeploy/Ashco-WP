@@ -18,7 +18,8 @@ Ashco-WP is the Ashco-specific WooCommerce receiver for Patris Export. It accept
 Defaults are installed as editable settings:
 
 - CNY reference rate: `300,000 IRR`
-- Air/Express shipping: `22,000,000 IRR/kg`
+- Air/Express shipping amount: `22,000,000` per kilogram
+- shipping currency: `IRR` by default; the administrator must explicitly choose `IRR` or `CNY`
 - profit margin: `30%`
 - saleable stock: `floor(ALLANBAR × 30%)`
 - default shipping method for records with CNY: `air_express`
@@ -28,6 +29,8 @@ Production Woo price is evaluated natively in IRR and rounded half-up once, at t
 ```text
 ((CNY × 300000) + ((weight_g / 1000) × 22000000)) × 1.30
 ```
+
+When shipping is configured in `CNY`, the freight component is converted with the same CNY-to-IRR rate before markup. When it is configured in `IRR`, it is added directly. Goods and freight are combined before markup, and the result is rounded only once in IRR.
 
 The producer's independently validated `final_price` remains IRT. Reports retain `final_price × 10`, the native IRR result, their IRR difference, and the independently rounded native IRT comparison. This avoids routing Woo pricing through an IRT rounding boundary. For example, the native prices for the three known half-ties are 65,585; 36,855; and 12,415 IRR.
 
@@ -72,11 +75,11 @@ Core Woo fields are changed only when their desired value differs: regular/activ
 
 - CNY, exact grams, unit, Woodmart `woodmart_price_unit_of_measure`;
 - full ALLANBAR and applied stock;
-- effective/source shipping, margin, FX, and formula values;
+- effective/source shipping amounts and their explicit currencies, margin, FX, and formula values;
 - canonical IRT, native IRR, both discrepancy measures;
 - category, effective-date, catalog, source timestamp, Serial, Code, and record hash.
 
-Each dry-run/apply has a durable run record and per-product rows with old/new values. The Persian admin page groups warnings for missing CNY, weight, unit, Serial, shipping, margin, FX, or final price; duplicate Serial; negative stock; unmatched/ambiguous Woo targets; source warnings; and formula discrepancies. CSV downloads are UTF-8 and include Gregorian and Jalali effective dates.
+Each dry-run/apply has a durable run record and per-product rows with old/new values. The Persian admin page groups warnings for missing CNY, weight, unit, Serial, shipping amount/currency, margin, FX, or final price; duplicate Serial; negative stock; unmatched/ambiguous Woo targets; source warnings; and formula discrepancies. CSV downloads are UTF-8 and include Gregorian and Jalali effective dates.
 
 ## ACF and currency integration
 

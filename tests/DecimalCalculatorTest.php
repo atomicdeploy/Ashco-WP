@@ -10,15 +10,29 @@ final class DecimalCalculatorTest extends TestCase {
             array('0.03', '0.025', '12415', '1242'),
         );
         foreach ($cases as [$cny, $weight, $expected_irr, $expected_irt]) {
-            $result = Decimal_Calculator::price($cny, $weight, '300000', '22000000', '30');
+            $result = Decimal_Calculator::price($cny, $weight, '300000', '22000000', 'IRR', '30');
             self::assertSame($expected_irr, $result['woo_final_irr']);
             self::assertSame($expected_irt, $result['native_final_irt']);
         }
     }
 
     public function test_price_uses_approved_native_irr_formula(): void {
-        $result = Decimal_Calculator::price('24.5', '240', '300000', '22000000', '30');
+        $result = Decimal_Calculator::price('24.5', '240', '300000', '22000000', 'IRR', '30');
         self::assertSame('16419000', $result['woo_final_irr']);
+    }
+
+    public function test_equivalent_cny_and_irr_shipping_rates_produce_the_same_price(): void {
+        $irr = Decimal_Calculator::price('24.5', '240', '300000', '30000000', 'IRR', '30');
+        $cny = Decimal_Calculator::price('24.5', '240', '300000', '100', 'CNY', '30');
+
+        self::assertSame('18915000', $irr['woo_final_irr']);
+        self::assertSame($irr['woo_final_irr'], $cny['woo_final_irr']);
+        self::assertSame($irr['native_final_irt'], $cny['native_final_irt']);
+    }
+
+    public function test_shipping_currency_is_required_and_limited_to_cny_or_irr(): void {
+        self::assertNull(Decimal_Calculator::price('24.5', '240', '300000', '100', '', '30'));
+        self::assertNull(Decimal_Calculator::price('24.5', '240', '300000', '100', 'IRT', '30'));
     }
 
     public function test_stock_is_floor_of_thirty_percent(): void {

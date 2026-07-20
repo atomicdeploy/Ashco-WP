@@ -11,7 +11,8 @@ final class Config {
         return array(
             'serial_meta_key' => '_sku',
             'fx_irr_per_cny' => '300000',
-            'shipping_irr_per_kg' => '22000000',
+            'shipping_price_per_kg' => '22000000',
+            'shipping_price_per_kg_currency' => 'IRR',
             'profit_margin_percent' => '30',
             'stock_percent' => '30',
             'default_shipping_method' => 'air_express',
@@ -24,7 +25,25 @@ final class Config {
 
     public static function all(): array {
         $stored = get_option(self::OPTION, array());
-        return array_merge(self::defaults(), is_array($stored) ? $stored : array());
+        $stored = is_array($stored) ? $stored : array();
+        $migrated = false;
+
+        // Preserve an already configured production rate while moving the internal
+        // option to the currency-explicit setting. This is not a payload alias.
+        if (!array_key_exists('shipping_price_per_kg', $stored) && array_key_exists('shipping_irr_per_kg', $stored)) {
+            $stored['shipping_price_per_kg'] = $stored['shipping_irr_per_kg'];
+            $stored['shipping_price_per_kg_currency'] = 'IRR';
+            $migrated = true;
+        }
+        if (array_key_exists('shipping_irr_per_kg', $stored)) {
+            unset($stored['shipping_irr_per_kg']);
+            $migrated = true;
+        }
+        if ($migrated) {
+            update_option(self::OPTION, $stored, false);
+        }
+
+        return array_merge(self::defaults(), $stored);
     }
 
     public static function get(string $key, $fallback = null) {
@@ -42,7 +61,10 @@ final class Config {
         return array(
             'serial_meta_key' => $meta_key,
             'fx_irr_per_cny' => self::decimal($input['fx_irr_per_cny'] ?? $defaults['fx_irr_per_cny']),
-            'shipping_irr_per_kg' => self::decimal($input['shipping_irr_per_kg'] ?? $defaults['shipping_irr_per_kg']),
+            'shipping_price_per_kg' => self::decimal($input['shipping_price_per_kg'] ?? $defaults['shipping_price_per_kg']),
+            'shipping_price_per_kg_currency' => self::shipping_currency(
+                $input['shipping_price_per_kg_currency'] ?? $defaults['shipping_price_per_kg_currency']
+            ),
             'profit_margin_percent' => self::decimal($input['profit_margin_percent'] ?? $defaults['profit_margin_percent']),
             'stock_percent' => self::decimal($input['stock_percent'] ?? $defaults['stock_percent']),
             'default_shipping_method' => sanitize_key((string) ($input['default_shipping_method'] ?? 'air_express')),
@@ -87,6 +109,11 @@ final class Config {
     private static function decimal($value): string {
         $value = str_replace(array(',', '٬', '،', ' '), '', (string) $value);
         return preg_match('/^(?:0|[1-9][0-9]*)(?:\.[0-9]+)?$/', $value) ? $value : '';
+    }
+
+    private static function shipping_currency($value): string {
+        $currency = strtoupper(trim((string) $value));
+        return in_array($currency, array('CNY', 'IRR'), true) ? $currency : '';
     }
 
     private static function yes_no($value): string {

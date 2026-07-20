@@ -3,12 +3,21 @@ use Ashko\Patris\Product_Applicator;
 use PHPUnit\Framework\TestCase;
 
 final class ProductApplicatorTest extends TestCase {
+    protected function setUp(): void {
+        unset($GLOBALS['ashko_test_options'][Ashko\Patris\Config::OPTION]);
+    }
+
+    protected function tearDown(): void {
+        unset($GLOBALS['ashko_test_options'][Ashko\Patris\Config::OPTION]);
+    }
+
     private function data(): array {
         return array(
             'product_code' => '101023', 'category_code' => '101', 'name' => 'Part', 'serial' => 'B 32', 'unit' => 'عدد',
             'warehouse_stock' => array('1' => 10), 'total_stock' => 10, 'foreign_currency' => 'CNY',
             'foreign_price' => 0.0215, 'weight_grams' => 2, 'shipping_method_id' => 'air_express',
-            'shipping_price_per_kg_cny' => 73.333333333333, 'markup_percent' => 30, 'irt_per_cny' => 30000,
+            'shipping_price_per_kg' => 73.333333333333, 'shipping_price_per_kg_currency' => 'CNY',
+            'markup_percent' => 30, 'irt_per_cny' => 30000,
             'pricing_catalog_revision' => 'test', 'pricing_catalog_status' => 'static',
             'currency_effective_date' => '2026-07-20', 'final_price' => 6558,
             'source_updated_at' => '', 'warnings' => array(),
@@ -26,8 +35,36 @@ final class ProductApplicatorTest extends TestCase {
         self::assertSame(3, $plan['core_changes']['stock_quantity']['new']);
         self::assertSame('2', $plan['core_changes']['weight']['new']);
         self::assertSame('عدد', $plan['meta_changes']['woodmart_price_unit_of_measure']['new']);
+        self::assertSame('IRR', $plan['meta_changes']['_ashko_patris_shipping_price_per_kg_currency']['new']);
+        self::assertSame('CNY', $plan['meta_changes']['_ashko_patris_source_shipping_price_per_kg_currency']['new']);
         self::assertSame('5', $plan['meta_changes']['_ashko_patris_formula_discrepancy_irr']['new']);
         self::assertContains('formula_discrepancy', $plan['warnings']);
+    }
+
+    public function test_plan_supports_cny_shipping_configuration(): void {
+        $GLOBALS['ashko_test_options'][Ashko\Patris\Config::OPTION] = array(
+            'shipping_price_per_kg' => '73.333333333333333333',
+            'shipping_price_per_kg_currency' => 'CNY',
+        );
+        $product = new Ashko_Test_Product(101);
+
+        $plan = Product_Applicator::instance()->plan($product, $this->data());
+
+        self::assertSame('65585', $plan['core_changes']['regular_price']['new']);
+        self::assertSame('CNY', $plan['meta_changes']['_ashko_patris_shipping_price_per_kg_currency']['new']);
+        self::assertNotContains('missing_shipping', $plan['warnings']);
+    }
+
+    public function test_missing_shipping_currency_blocks_price_calculation_and_warns(): void {
+        $GLOBALS['ashko_test_options'][Ashko\Patris\Config::OPTION] = array(
+            'shipping_price_per_kg' => '22000000',
+            'shipping_price_per_kg_currency' => '',
+        );
+        $analysis = Product_Applicator::instance()->analyze_source($this->data());
+
+        self::assertNull($analysis['calculation']);
+        self::assertContains('missing_shipping', $analysis['warnings']);
+        self::assertContains('missing_final_price', $analysis['warnings']);
     }
 
     public function test_stale_sale_price_is_an_explicit_change_and_second_apply_is_idempotent(): void {

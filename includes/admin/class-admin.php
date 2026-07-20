@@ -115,7 +115,14 @@ final class Admin {
         echo '<table class="form-table"><tbody>';
         self::input('serial_meta_key', __('کلید متای دقیق Serial', 'ashko-wp'), $settings['serial_meta_key'], __('پیش‌فرض و مقدار تأییدشده سایت: _sku. تطبیق Code مجاز نیست.', 'ashko-wp'));
         self::input('fx_irr_per_cny', __('نرخ هر CNY به ریال', 'ashko-wp'), $settings['fx_irr_per_cny']);
-        self::input('shipping_irr_per_kg', __('هزینه هوایی/اکسپرس هر کیلو (ریال)', 'ashko-wp'), $settings['shipping_irr_per_kg']);
+        self::input('shipping_price_per_kg', __('هزینه هوایی/اکسپرس هر کیلو', 'ashko-wp'), $settings['shipping_price_per_kg']);
+        self::select(
+            'shipping_price_per_kg_currency',
+            __('ارز هزینه حمل هر کیلو', 'ashko-wp'),
+            $settings['shipping_price_per_kg_currency'],
+            array('IRR' => __('ریال ایران (IRR)', 'ashko-wp'), 'CNY' => __('یوان چین (CNY)', 'ashko-wp')),
+            __('انتخاب ارز الزامی است و مبلغ حمل بر اساس همین ارز محاسبه می‌شود.', 'ashko-wp')
+        );
         self::input('profit_margin_percent', __('حاشیه سود (درصد)', 'ashko-wp'), $settings['profit_margin_percent']);
         self::input('stock_percent', __('درصد موجودی ALLANBAR قابل فروش', 'ashko-wp'), $settings['stock_percent']);
         self::input('default_shipping_method', __('روش پیش‌فرض حمل', 'ashko-wp'), $settings['default_shipping_method']);
@@ -201,5 +208,17 @@ final class Admin {
 
     private static function checkbox(string $name, string $label, string $value): void {
         echo '<tr><th>' . esc_html($label) . '</th><td><label><input type="checkbox" name="' . esc_attr($name) . '" value="yes" ' . checked('yes', $value, false) . '> ' . esc_html__('فعال', 'ashko-wp') . '</label></td></tr>';
+    }
+
+    private static function select(string $name, string $label, string $value, array $options, string $description = ''): void {
+        echo '<tr><th><label for="' . esc_attr($name) . '">' . esc_html($label) . '</label></th><td><select required dir="ltr" id="' . esc_attr($name) . '" name="' . esc_attr($name) . '">';
+        foreach ($options as $option_value => $option_label) {
+            echo '<option value="' . esc_attr($option_value) . '" ' . selected($option_value, $value, false) . '>' . esc_html($option_label) . '</option>';
+        }
+        echo '</select>';
+        if ('' !== $description) {
+            echo '<p class="description">' . esc_html($description) . '</p>';
+        }
+        echo '</td></tr>';
     }
 }

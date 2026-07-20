@@ -5,12 +5,13 @@
 - Corrected the public brand spelling to Ashco across plugin display text, runtime messages, translations, and documentation.
 - Standardized product-sync authentication on the neutral `X-Patris-Product-Sync-Secret` credential header.
 - Added an exact-match Rank Math maintenance repair for malformed product title/description defaults and known bad product overrides.
+- Made shipping rates currency-explicit throughout the living product-sync contract and Ashco settings, with exact CNY/IRR conversion and one final rounding step.
 
 ## 1.1.0 — 2026-07-20
 
-- Replaced schema/formula feature levels with one living `patris.product-sync` standard and stable Ashco REST routes.
+- Established one living `patris.product-sync` standard with stable Ashco REST routes.
 - Merged products and catalog projection into one shape, with sparse optional product keys and exact absent/null/empty-value hashing semantics.
-- Standardized source shipping on `shipping_method_id` and `shipping_price_per_kg_cny`; removed duplicate and legacy payload fields.
+- Standardized source shipping fields and removed duplicate payload members.
 - Removed contract level data from receiver state, reports, request headers, actions, logs, fixtures, and public documentation.
 
 ## 1.0.1 — 2026-07-20

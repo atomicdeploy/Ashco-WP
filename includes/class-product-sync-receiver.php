@@ -290,7 +290,8 @@ class Product_Sync_Receiver {
         'weight_grams',
         'location',
         'shipping_method_id',
-        'shipping_price_per_kg_cny',
+        'shipping_price_per_kg',
+        'shipping_price_per_kg_currency',
         'markup_percent',
         'irt_per_cny',
         'pricing_catalog_revision',
@@ -318,6 +319,7 @@ class Product_Sync_Receiver {
         'unit',
         'location',
         'shipping_method_id',
+        'shipping_price_per_kg_currency',
         'pricing_catalog_revision',
         'pricing_catalog_status',
         'currency_effective_date',
@@ -331,7 +333,7 @@ class Product_Sync_Receiver {
         'minimum_stock',
         'foreign_price',
         'weight_grams',
-        'shipping_price_per_kg_cny',
+        'shipping_price_per_kg',
         'markup_percent',
         'irt_per_cny',
     );
@@ -339,7 +341,7 @@ class Product_Sync_Receiver {
     private const PRODUCT_DECIMAL_FIELDS = array(
         'foreign_price',
         'weight_grams',
-        'shipping_price_per_kg_cny',
+        'shipping_price_per_kg',
         'markup_percent',
         'irt_per_cny',
     );
@@ -1134,6 +1136,27 @@ class Product_Sync_Receiver {
         ) {
             return $this->field_error($path . '.foreign_currency', 'must be CNY or null');
         }
+        $has_shipping_price = array_key_exists('shipping_price_per_kg', $product);
+        $has_shipping_currency = array_key_exists('shipping_price_per_kg_currency', $product);
+        if ($has_shipping_price !== $has_shipping_currency) {
+            $missing_shipping_field = $has_shipping_price
+                ? 'shipping_price_per_kg_currency'
+                : 'shipping_price_per_kg';
+            return $this->field_error(
+                $path . '.' . $missing_shipping_field,
+                'must be present whenever the paired shipping field is present'
+            );
+        }
+        if (
+            $has_shipping_currency
+            && null !== $product['shipping_price_per_kg_currency']
+            && (
+                !is_string($product['shipping_price_per_kg_currency'])
+                || !in_array($product['shipping_price_per_kg_currency'], array('CNY', 'IRR'), true)
+            )
+        ) {
+            return $this->field_error($path . '.shipping_price_per_kg_currency', 'must be CNY, IRR, or null');
+        }
         foreach (self::PRODUCT_NULLABLE_NUMBER_FIELDS as $field) {
             if (!array_key_exists($field, $product)) {
                 continue;
@@ -1149,7 +1172,7 @@ class Product_Sync_Receiver {
                 return $this->field_error($path . '.' . $field, 'must be a base-10 decimal without exponent notation');
             }
         }
-        foreach (array('foreign_price', 'weight_grams', 'shipping_price_per_kg_cny', 'irt_per_cny') as $field) {
+        foreach (array('foreign_price', 'weight_grams', 'shipping_price_per_kg', 'irt_per_cny') as $field) {
             if (array_key_exists($field, $product) && null !== $product[$field] && $this->number_compare_zero($product[$field]) <= 0) {
                 return $this->field_error($path . '.' . $field, 'must be greater than zero when provided');
             }
@@ -2019,7 +2042,7 @@ class Product_Sync_Receiver {
      * the only rounding is one half-up step to the final IRT integer.
      */
     private function validate_final_price_formula($product, $path) {
-        $required = array('foreign_price', 'weight_grams', 'shipping_price_per_kg_cny', 'markup_percent', 'irt_per_cny');
+        $required = array('foreign_price', 'weight_grams', 'shipping_price_per_kg', 'markup_percent', 'irt_per_cny');
         $missing = array();
         $decimals = array();
         foreach ($required as $field) {
@@ -2046,6 +2069,12 @@ class Product_Sync_Receiver {
         ) {
             $missing[] = 'shipping_method_id';
         }
+        if (
+            !array_key_exists('shipping_price_per_kg_currency', $product)
+            || null === $product['shipping_price_per_kg_currency']
+        ) {
+            $missing[] = 'shipping_price_per_kg_currency';
+        }
 
         if (!empty($missing)) {
             if (!array_key_exists('final_price', $product)) {
@@ -2064,17 +2093,23 @@ class Product_Sync_Receiver {
             return $this->field_error($path . '.markup_percent', 'must not exceed ' . self::MAX_MARKUP_PERCENT);
         }
 
-        $shipping = $this->decimal_multiply($decimals['weight_grams'], $decimals['shipping_price_per_kg_cny']);
+        $shipping = $this->decimal_multiply($decimals['weight_grams'], $decimals['shipping_price_per_kg']);
         $shipping['scale'] += 3; // grams to kilograms, exactly.
-        $landed_cny = $this->decimal_add($decimals['foreign_price'], $shipping);
+        $goods_irt = $this->decimal_multiply($decimals['foreign_price'], $decimals['irt_per_cny']);
+        if ('CNY' === $product['shipping_price_per_kg_currency']) {
+            $shipping_irt = $this->decimal_multiply($shipping, $decimals['irt_per_cny']);
+        } else {
+            $shipping_irt = $shipping;
+            $shipping_irt['scale'] += 1; // IRR to IRT, exactly.
+        }
+        $landed_irt = $this->decimal_add($goods_irt, $shipping_irt);
         $markup_multiplier = $this->decimal_add(
             $this->formula_decimal_parts('100'),
             $decimals['markup_percent']
         );
-        $marked_up = $this->decimal_multiply($landed_cny, $markup_multiplier);
+        $marked_up = $this->decimal_multiply($landed_irt, $markup_multiplier);
         $marked_up['scale'] += 2; // percent to multiplier, exactly.
-        $irt = $this->decimal_multiply($marked_up, $decimals['irt_per_cny']);
-        $rounded = $this->decimal_round_half_up_integer($irt);
+        $rounded = $this->decimal_round_half_up_integer($marked_up);
         if ($this->big_integer_compare($rounded, (string) PHP_INT_MAX) > 0) {
             return $this->field_error($path . '.final_price', 'landed_price exceeds the supported IRT integer range');
         }
