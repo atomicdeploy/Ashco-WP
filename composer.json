@@ -12,6 +12,6 @@
   "scripts": {
     "test": "phpunit",
     "lint": "php scripts/lint.php",
-    "check-package": "php scripts/check-public-tree.php"
+    "check-package": "pwsh -NoProfile -File scripts/build-plugin.ps1"
   }
 }

@@ -7,11 +7,11 @@ final class ProductApplicatorTest extends TestCase {
         return array(
             'product_code' => '101023', 'category_code' => '101', 'name' => 'Part', 'serial' => 'B 32', 'unit' => 'عدد',
             'warehouse_stock' => array('1' => 10), 'total_stock' => 10, 'foreign_currency' => 'CNY',
-            'foreign_price' => 0.0215, 'weight_grams' => 2, 'import_freight_method_id' => 'air_express',
-            'freight_cny_per_kg' => 73.333333333333, 'markup_percent' => 30, 'irt_per_cny' => 30000,
+            'foreign_price' => 0.0215, 'weight_grams' => 2, 'shipping_method_id' => 'air_express',
+            'shipping_price_per_kg_cny' => 73.333333333333, 'markup_percent' => 30, 'irt_per_cny' => 30000,
             'pricing_catalog_revision' => 'test', 'pricing_catalog_status' => 'static',
             'currency_effective_date' => '2026-07-20', 'final_price' => 6558,
-            'formula_version' => 'landed_price_v1', 'source_updated_at' => '', 'warnings' => array(),
+            'source_updated_at' => '', 'warnings' => array(),
             'record_hash' => 'sha256:' . str_repeat('a', 64),
         );
     }

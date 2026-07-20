@@ -20,11 +20,11 @@ final class ReceiverBatchTest extends TestCase {
                 'product_code' => $code, 'category_code' => '', 'name' => 'Part ' . $index,
                 'serial' => $serial, 'unit' => 'عدد', 'warehouse_stock' => array('1' => 10),
                 'total_stock' => 10, 'foreign_currency' => 'CNY', 'foreign_price' => 1,
-                'weight_grams' => 1, 'import_freight_method_id' => 'air_express',
-                'freight_cny_per_kg' => 73.333333333333, 'markup_percent' => 30, 'irt_per_cny' => 30000,
+                'weight_grams' => 1, 'shipping_method_id' => 'air_express',
+                'shipping_price_per_kg_cny' => 73.333333333333, 'markup_percent' => 30, 'irt_per_cny' => 30000,
                 'pricing_catalog_revision' => 'test', 'pricing_catalog_status' => 'static',
                 'currency_effective_date' => '2026-07-20', 'final_price' => 32860,
-                'formula_version' => 'landed_price_v1', 'source_updated_at' => '', 'warnings' => array(),
+                'source_updated_at' => '', 'warnings' => array(),
                 'record_hash' => $hash,
             );
             $pending[$code] = array('product_code' => $code, 'record_hash' => $hash, 'attempts' => 0);

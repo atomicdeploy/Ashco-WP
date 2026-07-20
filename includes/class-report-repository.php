@@ -14,7 +14,6 @@ final class Report_Repository {
             id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
             mode varchar(16) NOT NULL,
             event_id varchar(80) NOT NULL,
-            schema_version varchar(16) NOT NULL,
             source_id varchar(191) NOT NULL,
             dataset varchar(191) NOT NULL,
             status varchar(32) NOT NULL,
@@ -73,7 +72,6 @@ final class Report_Repository {
             array(
                 'mode' => (string) $context['mode'],
                 'event_id' => (string) $context['event_id'],
-                'schema_version' => (string) $context['schema_version'],
                 'source_id' => (string) $context['source_id'],
                 'dataset' => (string) $context['dataset'],
                 'status' => 'planning',
@@ -85,7 +83,7 @@ final class Report_Repository {
                 'result_json' => '{}',
                 'created_at' => current_time('mysql', true),
             ),
-            array('%s', '%s', '%s', '%s', '%s', '%s', '%d', '%d', '%s', '%s', '%s', '%s', '%s')
+            array('%s', '%s', '%s', '%s', '%s', '%d', '%d', '%s', '%s', '%s', '%s', '%s')
         );
         if (false === $ok) {
             return new WP_Error('ashko_report_unavailable', __('The durable sync report could not be started.', 'ashko-wp'), array('status' => 503));
@@ -236,11 +234,11 @@ final class Report_Repository {
 
     private static function runs_table(): string {
         global $wpdb;
-        return $wpdb->prefix . 'ashko_patris_sync_runs';
+        return $wpdb->prefix . 'ashko_patris_runs';
     }
 
     private static function rows_table(): string {
         global $wpdb;
-        return $wpdb->prefix . 'ashko_patris_sync_report_rows';
+        return $wpdb->prefix . 'ashko_patris_report_rows';
     }
 }

@@ -10,7 +10,7 @@ use WP_REST_Request;
 use WP_REST_Response;
 
 final class REST_Controller {
-    public const NAMESPACE = 'ashko/v1';
+    public const NAMESPACE = 'ashko';
 
     public static function register(): void {
         register_rest_route(self::NAMESPACE, '/patris/product-sync/dry-run', array(
@@ -36,7 +36,6 @@ final class REST_Controller {
         }
         $provided = (string) $request->get_header('x-ashko-product-sync-secret');
         if ('' === $provided) {
-            // Patris Export v1 currently emits this fixed compatibility name.
             $provided = (string) $request->get_header('x-digitalogic-product-sync-secret');
         }
         if ('' !== $provided && hash_equals(Config::secret(), $provided)) {
@@ -72,7 +71,6 @@ final class REST_Controller {
     private static function validate_headers(WP_REST_Request $request) {
         $headers = array(
             'x-patris-contract' => 'schema',
-            'x-patris-contract-version' => 'schema_version',
             'x-patris-event-id' => 'event_id',
         );
         $body = null;

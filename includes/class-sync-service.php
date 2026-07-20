@@ -41,7 +41,6 @@ final class Sync_Service {
             $run_id = $this->reports->start(array(
                 'mode' => $mode,
                 'event_id' => $envelope['event_id'],
-                'schema_version' => $envelope['schema_version'],
                 'source_id' => $envelope['source']['id'],
                 'dataset' => $envelope['source']['dataset'],
                 'received_products' => count($products),

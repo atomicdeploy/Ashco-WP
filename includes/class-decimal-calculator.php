@@ -4,20 +4,20 @@ namespace Ashko\Patris;
 /** Exact non-negative decimal arithmetic for Ashko pricing and stock policy. */
 final class Decimal_Calculator {
     /** Calculate the approved expression in IRR and round once, at the end. */
-    public static function price($foreign_cny, $weight_grams, $fx_irr, $freight_irr_per_kg, $margin_percent): ?array {
+    public static function price($foreign_cny, $weight_grams, $fx_irr, $shipping_irr_per_kg, $margin_percent): ?array {
         $cny = self::parts($foreign_cny);
         $weight = self::parts($weight_grams);
         $fx = self::parts($fx_irr);
-        $freight_rate = self::parts($freight_irr_per_kg);
+        $shipping_rate = self::parts($shipping_irr_per_kg);
         $margin = self::parts($margin_percent);
-        if (null === $cny || null === $weight || null === $fx || null === $freight_rate || null === $margin) {
+        if (null === $cny || null === $weight || null === $fx || null === $shipping_rate || null === $margin) {
             return null;
         }
 
         $goods_irr = self::multiply($cny, $fx);
-        $freight_irr = self::multiply($weight, $freight_rate);
-        $freight_irr['scale'] += 3;
-        $landed_irr = self::add($goods_irr, $freight_irr);
+        $shipping_irr = self::multiply($weight, $shipping_rate);
+        $shipping_irr['scale'] += 3;
+        $landed_irr = self::add($goods_irr, $shipping_irr);
         $multiplier = self::add(self::parts('100'), $margin);
         $sale_irr = self::multiply($landed_irr, $multiplier);
         $sale_irr['scale'] += 2;
@@ -30,7 +30,7 @@ final class Decimal_Calculator {
         return array(
             'native_final_irt' => $native_irt,
             'woo_final_irr' => $woo_irr,
-            'formula' => '((CNY × FX_IRR) + ((weight_g ÷ 1000) × freight_IRR_per_kg)) × (1 + margin ÷ 100), one final half-up round in IRR',
+            'formula' => '((CNY × FX_IRR) + ((weight_g ÷ 1000) × shipping_IRR_per_kg)) × (1 + margin ÷ 100), one final half-up round in IRR',
         );
     }
 
