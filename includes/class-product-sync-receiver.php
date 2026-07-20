@@ -8,12 +8,11 @@ use Throwable;
 use WP_Error;
 
 /**
- * Versioned, transformed-only Patris product-sync receiver.
+ * Transformed-only Patris product-sync receiver.
  *
- * This service deliberately does not share the legacy /patris/push storage
- * semantics. It accepts the typed digitalogic.product-sync v1 contract,
- * verifies its deterministic identities, and maintains an ordered snapshot
- * per Patris source.
+ * The payload is one living, versionless standard. Optional product keys are
+ * sparse: an absent key means that no source/reference value was supplied,
+ * while an explicit JSON null remains a distinct, hashed value.
  */
 
 if (!defined('ABSPATH')) {
@@ -23,7 +22,7 @@ if (!defined('ABSPATH')) {
 /**
  * JSON number token retained exactly as it appeared on the wire.
  *
- * Go's canonical contract hashes decimal JSON lexemes before transport. PHP's
+ * Patris Export hashes decimal JSON lexemes before transport. PHP's
  * normal JSON decoder converts them to IEEE-754 values, which can silently
  * change high-precision inputs. Keeping the token lets the receiver reproduce
  * Go encoding/json byte-for-byte while still converting validated values for
@@ -37,6 +36,9 @@ final class Product_Sync_JSON_Number {
         $this->value = (string) $value;
     }
 }
+
+/** Marker that keeps an empty JSON object distinct from an empty JSON array. */
+final class Product_Sync_JSON_Empty_Object {}
 
 /**
  * Strict JSON decoder with duplicate-key rejection and exact number tokens.
@@ -107,7 +109,7 @@ final class Product_Sync_JSON_Decoder {
         $this->position++;
         $this->skip_whitespace();
         if ($this->consume_character('}')) {
-            return $result;
+            return new Product_Sync_JSON_Empty_Object();
         }
 
         while (true) {
@@ -234,12 +236,12 @@ final class Product_Sync_JSON_Decoder {
 }
 
 class Product_Sync_Receiver {
-    public const STATE_OPTION = 'ashko_product_sync_v1_state';
+    public const STATE_OPTION = 'ashko_product_sync_state';
     public const CONTRACT_NAME = 'digitalogic.product-sync';
-    public const FORMULA_ID = 'landed_price_v1';
+    public const FORMULA_ID = 'landed_price';
 
-    private const STATE_VERSION = 4;
-    private const LOCK_NAME = 'ashko_product_sync_v1';
+    private const STATE_VERSION = 5;
+    private const LOCK_NAME = 'ashko_product_sync';
     private const LOCK_TIMEOUT_SECONDS = 15;
     private const MAX_BODY_BYTES = 8388608;
     private const MAX_STATE_BYTES = 16777216;
@@ -258,14 +260,10 @@ class Product_Sync_Receiver {
 
     private const ENVELOPE_FIELDS = array(
         'schema',
-        'schema_version',
-        'event',
         'event_type',
         'event_id',
         'local_currency',
         'formula_id',
-        'formula_revision',
-        'formula_version',
         'source',
         'generated_at',
         'products',
@@ -276,35 +274,7 @@ class Product_Sync_Receiver {
         'warnings',
     );
 
-    private const PRODUCT_FIELDS_V1_0 = array(
-        'product_code',
-        'name',
-        'serial',
-        'unit',
-        'sale_price_source',
-        'purchase_price_source',
-        'warehouse_stock',
-        'total_stock',
-        'minimum_stock',
-        'foreign_currency',
-        'foreign_price',
-        'weight_grams',
-        'location',
-        'import_freight_method_id',
-        'freight_cny_per_kg',
-        'markup_percent',
-        'irt_per_cny',
-        'pricing_catalog_revision',
-        'pricing_catalog_status',
-        'currency_effective_date',
-        'final_price',
-        'formula_version',
-        'source_updated_at',
-        'warnings',
-        'record_hash',
-    );
-
-    private const PRODUCT_FIELDS_V1_1 = array(
+    private const PRODUCT_FIELDS = array(
         'product_code',
         'category_code',
         'name',
@@ -319,15 +289,14 @@ class Product_Sync_Receiver {
         'foreign_price',
         'weight_grams',
         'location',
-        'import_freight_method_id',
-        'freight_cny_per_kg',
+        'shipping_method_id',
+        'shipping_price_per_kg_cny',
         'markup_percent',
         'irt_per_cny',
         'pricing_catalog_revision',
         'pricing_catalog_status',
         'currency_effective_date',
         'final_price',
-        'formula_version',
         'source_updated_at',
         'warnings',
         'record_hash',
@@ -343,11 +312,12 @@ class Product_Sync_Receiver {
     );
 
     private const PRODUCT_STRING_FIELDS = array(
+        'category_code',
         'name',
         'serial',
         'unit',
         'location',
-        'import_freight_method_id',
+        'shipping_method_id',
         'pricing_catalog_revision',
         'pricing_catalog_status',
         'currency_effective_date',
@@ -361,7 +331,7 @@ class Product_Sync_Receiver {
         'minimum_stock',
         'foreign_price',
         'weight_grams',
-        'freight_cny_per_kg',
+        'shipping_price_per_kg_cny',
         'markup_percent',
         'irt_per_cny',
     );
@@ -369,7 +339,7 @@ class Product_Sync_Receiver {
     private const PRODUCT_DECIMAL_FIELDS = array(
         'foreign_price',
         'weight_grams',
-        'freight_cny_per_kg',
+        'shipping_price_per_kg_cny',
         'markup_percent',
         'irt_per_cny',
     );
@@ -459,18 +429,6 @@ class Product_Sync_Receiver {
                 409
             );
         }
-        if (
-            'update' === $envelope['event_type']
-            && is_array($existing)
-            && $this->has_catalog_contract($envelope['schema_version'])
-                !== $this->has_catalog_contract((string) ($existing['schema_version'] ?? '1.0'))
-        ) {
-            return $this->error(
-                'ashko_product_sync_baseline_required',
-                'A snapshot is required before changing the source contract feature level.',
-                409
-            );
-        }
         if (is_array($existing)) {
             $comparison = $this->compare_timestamp_order(
                 $envelope['generated_at_order'],
@@ -524,7 +482,7 @@ class Product_Sync_Receiver {
     }
 
     /**
-     * Validate, order, persist, and apply a typed v1 envelope.
+     * Validate, order, persist, and apply a product-sync envelope.
      *
      * @param array $payload Decoded envelope.
      * @return array|WP_Error
@@ -713,13 +671,7 @@ class Product_Sync_Receiver {
             return array('version' => self::STATE_VERSION, 'sources' => array());
         }
         $version = (int) ($state['version'] ?? 0);
-        if (2 === $version) {
-            $state = $this->migrate_v2_state($state);
-            $migration_required = true;
-        } elseif (3 === $version) {
-            $state = $this->migrate_v3_state($state);
-            $migration_required = true;
-        } elseif (self::STATE_VERSION !== $version) {
+        if (self::STATE_VERSION !== $version) {
             return array('version' => self::STATE_VERSION, 'sources' => array());
         }
         $state['sources'] = isset($state['sources']) && is_array($state['sources']) ? $state['sources'] : array();
@@ -727,7 +679,11 @@ class Product_Sync_Receiver {
             if (!is_array($source_state)) {
                 $source_state = array();
             }
-            $this->normalize_catalog_source_state($source_state);
+            $source_state['products'] = is_array($source_state['products'] ?? null) ? $source_state['products'] : array();
+            $source_state['categories'] = is_array($source_state['categories'] ?? null) ? $source_state['categories'] : array();
+            $source_state['excluded_codes'] = is_array($source_state['excluded_codes'] ?? null) ? $source_state['excluded_codes'] : array();
+            $source_state['applied_products'] = is_array($source_state['applied_products'] ?? null) ? $source_state['applied_products'] : array();
+            $source_state['pending_products'] = is_array($source_state['pending_products'] ?? null) ? $source_state['pending_products'] : array();
             $source_state['deferred_products'] = is_array($source_state['deferred_products'] ?? null)
                 ? array_slice($source_state['deferred_products'], 0, self::MAX_DEFERRED_PRODUCTS, true)
                 : array();
@@ -780,23 +736,6 @@ class Product_Sync_Receiver {
                 409
             );
         }
-        if (
-            'update' === $envelope['event_type']
-            && is_array($existing)
-            && $this->has_catalog_contract($envelope['schema_version'])
-                !== $this->has_catalog_contract((string) ($existing['schema_version'] ?? '1.0'))
-        ) {
-            return $this->error(
-                'ashko_product_sync_baseline_required',
-                'A snapshot is required before changing the source contract feature level.',
-                409,
-                array(
-                    'stored_schema_version' => (string) ($existing['schema_version'] ?? '1.0'),
-                    'received_schema_version' => $envelope['schema_version'],
-                )
-            );
-        }
-
         if (is_array($existing)) {
             $comparison = $this->compare_timestamp_order($envelope['generated_at_order'], $existing['generated_at_order'] ?? array());
             if ($comparison < 0) {
@@ -831,14 +770,10 @@ class Product_Sync_Receiver {
         $delivery = $this->build_delivery_state($transition['products'], $transition['changed_products'], $envelope, $existing);
         $source_state = array(
             'source' => $envelope['source'],
-            'schema_version' => $envelope['schema_version'],
             'generated_at' => $envelope['generated_at'],
             'generated_at_order' => $envelope['generated_at_order'],
             'last_event_id' => $envelope['event_id'],
             'last_event_type' => $envelope['event_type'],
-            'local_currency' => $envelope['local_currency'],
-            'formula_id' => $envelope['formula_id'],
-            'formula_revision' => $envelope['formula_revision'],
             'products' => $transition['products'],
             'categories' => $transition['categories'],
             'excluded_codes' => $transition['excluded_codes'],
@@ -919,9 +854,8 @@ class Product_Sync_Receiver {
 
     private function emit_result($result, $envelope) {
         try {
-            do_action('ashko_product_sync_v1_applied', $result, array(
+            do_action('ashko_product_sync_applied', $result, array(
                 'schema' => $envelope['schema'],
-                'schema_version' => $envelope['schema_version'],
                 'event_id' => $envelope['event_id'],
                 'event_type' => $envelope['event_type'],
                 'source' => $envelope['source'],
@@ -936,12 +870,12 @@ class Product_Sync_Receiver {
 
         try {
             Logger::instance()->log(
-                'product_sync_v1_applied',
+                'product_sync_applied',
                 'patris_feed',
                 null,
                 null,
                 wp_json_encode($result),
-                'Versioned Patris product-sync event applied'
+                'Patris product-sync event applied'
             );
         } catch (Throwable $exception) {
             $result['delivery_warnings'][] = array(
@@ -959,45 +893,39 @@ class Product_Sync_Receiver {
             return $this->error('ashko_product_sync_unknown_field', 'The envelope contains unsupported fields.', 422, array('fields' => $unknown));
         }
 
-        $required = array_slice(self::ENVELOPE_FIELDS, 0, 12);
+        $required = array(
+            'schema',
+            'event_type',
+            'event_id',
+            'source',
+            'generated_at',
+            'products',
+            'categories',
+            'excluded_codes',
+            'quarantined_codes',
+            'warnings',
+        );
         $missing = array_values(array_diff($required, array_keys($payload)));
         if (!empty($missing)) {
             return $this->error('ashko_product_sync_missing_field', 'The envelope is missing required fields.', 422, array('fields' => $missing));
         }
 
-        foreach (array('schema', 'schema_version', 'event', 'event_type', 'event_id', 'local_currency', 'formula_id', 'formula_revision', 'formula_version', 'generated_at') as $field) {
+        foreach (array('schema', 'event_type', 'event_id', 'generated_at') as $field) {
             if (!is_string($payload[$field])) {
                 return $this->field_error($field, 'must be a string');
             }
         }
-        if (self::CONTRACT_NAME !== $payload['schema'] || self::CONTRACT_NAME !== $payload['event']) {
+        if (self::CONTRACT_NAME !== $payload['schema']) {
             return $this->error('ashko_product_sync_schema_unsupported', 'Only digitalogic.product-sync envelopes are accepted.', 422);
-        }
-        if (!$this->is_supported_major_version($payload['schema_version'])) {
-            return $this->error('ashko_product_sync_version_unsupported', 'Only product-sync schema major version 1 is supported.', 422);
-        }
-        $has_catalog = $this->has_catalog_contract($payload['schema_version']);
-        if (
-            !$has_catalog
-            && (array_key_exists('categories', $payload) || array_key_exists('excluded_codes', $payload))
-        ) {
-            return $this->error(
-                'ashko_product_sync_version_field_unsupported',
-                'Categories and excluded Codes require product-sync schema version 1.1 or newer.',
-                422
-            );
         }
         if (!in_array($payload['event_type'], array('snapshot', 'update'), true)) {
             return $this->field_error('event_type', 'must be snapshot or update');
         }
-        if ('IRT' !== $payload['local_currency']) {
+        if (array_key_exists('local_currency', $payload) && (!is_string($payload['local_currency']) || 'IRT' !== $payload['local_currency'])) {
             return $this->error('ashko_product_sync_currency_unsupported', 'The receiver currently supports IRT output only.', 422);
         }
-        if (self::FORMULA_ID !== $payload['formula_id'] || self::FORMULA_ID !== $payload['formula_version']) {
-            return $this->error('ashko_product_sync_formula_unsupported', 'The landed_price_v1 formula is required.', 422);
-        }
-        if (!$this->is_supported_major_version($payload['formula_revision'])) {
-            return $this->error('ashko_product_sync_formula_revision_unsupported', 'Only formula major revision 1 is supported.', 422);
+        if (array_key_exists('formula_id', $payload) && (!is_string($payload['formula_id']) || self::FORMULA_ID !== $payload['formula_id'])) {
+            return $this->error('ashko_product_sync_formula_unsupported', 'The landed_price formula is required when formula_id is supplied.', 422);
         }
         if (!$this->is_hash($payload['event_id'])) {
             return $this->field_error('event_id', 'must be a sha256 identity');
@@ -1028,7 +956,7 @@ class Product_Sync_Receiver {
         $products = array();
         $seen_codes = array();
         foreach ($payload['products'] as $index => $product) {
-            $validated = $this->validate_product($product, $index, $payload['schema_version']);
+            $validated = $this->validate_product($product, $index);
             if (is_wp_error($validated)) {
                 return $validated;
             }
@@ -1042,11 +970,11 @@ class Product_Sync_Receiver {
             $products[] = $validated;
         }
 
-        $categories = $this->validate_categories($payload['categories'] ?? array());
+        $categories = $this->validate_categories($payload['categories']);
         if (is_wp_error($categories)) {
             return $categories;
         }
-        $excluded_codes = $this->validate_string_set($payload['excluded_codes'] ?? array(), 'excluded_codes');
+        $excluded_codes = $this->validate_string_set($payload['excluded_codes'], 'excluded_codes');
         if (is_wp_error($excluded_codes)) {
             return $excluded_codes;
         }
@@ -1059,11 +987,11 @@ class Product_Sync_Receiver {
         if (is_wp_error($deleted_codes)) {
             return $deleted_codes;
         }
-        $quarantined_codes = $this->validate_string_set($payload['quarantined_codes'] ?? array(), 'quarantined_codes');
+        $quarantined_codes = $this->validate_string_set($payload['quarantined_codes'], 'quarantined_codes');
         if (is_wp_error($quarantined_codes)) {
             return $quarantined_codes;
         }
-        $warnings = $this->validate_string_set($payload['warnings'] ?? array(), 'warnings', false);
+        $warnings = $this->validate_string_set($payload['warnings'], 'warnings', false);
         if (is_wp_error($warnings)) {
             return $warnings;
         }
@@ -1089,14 +1017,8 @@ class Product_Sync_Receiver {
 
         $envelope = array(
             'schema' => $payload['schema'],
-            'schema_version' => $payload['schema_version'],
-            'event' => $payload['event'],
             'event_type' => $payload['event_type'],
             'event_id' => $payload['event_id'],
-            'local_currency' => $payload['local_currency'],
-            'formula_id' => $payload['formula_id'],
-            'formula_revision' => $payload['formula_revision'],
-            'formula_version' => $payload['formula_version'],
             'source' => $source,
             'generated_at' => $payload['generated_at'],
             'generated_at_order' => $generated_at_order,
@@ -1107,6 +1029,12 @@ class Product_Sync_Receiver {
             'quarantined_codes' => $quarantined_codes,
             'warnings' => $warnings,
         );
+        if (array_key_exists('local_currency', $payload)) {
+            $envelope['local_currency'] = $payload['local_currency'];
+        }
+        if (array_key_exists('formula_id', $payload)) {
+            $envelope['formula_id'] = $payload['formula_id'];
+        }
 
         $expected_event_id = $this->event_id($envelope);
         if (!hash_equals($expected_event_id, $envelope['event_id'])) {
@@ -1154,18 +1082,17 @@ class Product_Sync_Receiver {
         return $source;
     }
 
-    private function validate_product($product, $index, $schema_version) {
+    private function validate_product($product, $index) {
         $path = 'products[' . (int) $index . ']';
-        $product_fields = $this->product_fields($schema_version);
         if (!is_array($product) || array_is_list($product)) {
             return $this->field_error($path, 'must be an object');
         }
-        $missing = array_values(array_diff($product_fields, array_keys($product)));
-        $unknown = array_values(array_diff(array_keys($product), $product_fields));
+        $missing = array_values(array_diff(array('product_code', 'warnings', 'record_hash'), array_keys($product)));
+        $unknown = array_values(array_diff(array_keys($product), self::PRODUCT_FIELDS));
         if (!empty($missing) || !empty($unknown)) {
             return $this->error(
                 'ashko_product_sync_product_shape_invalid',
-                'A product does not match the typed v1 shape.',
+                'A product does not match the sparse product-sync shape.',
                 422,
                 array('path' => $path, 'missing' => $missing, 'unknown' => $unknown)
             );
@@ -1180,28 +1107,32 @@ class Product_Sync_Receiver {
         if (strlen($product['product_code']) > self::MAX_CODE_LENGTH) {
             return $this->field_error($path . '.product_code', 'is too long');
         }
-        if (
-            $this->has_catalog_contract($schema_version)
-            && (
-                !is_string($product['category_code'])
-                || trim($product['category_code']) !== $product['category_code']
-                || strlen($product['category_code']) > self::MAX_CODE_LENGTH
-            )
-        ) {
-            return $this->field_error($path . '.category_code', 'must be a trimmed string within the code limit');
-        }
         foreach (self::PRODUCT_STRING_FIELDS as $field) {
-            if (!is_string($product[$field])) {
-                return $this->field_error($path . '.' . $field, 'must be a string');
+            if (!array_key_exists($field, $product)) {
+                continue;
+            }
+            if (null !== $product[$field] && !is_string($product[$field])) {
+                return $this->field_error($path . '.' . $field, 'must be a string or null');
+            }
+            if (
+                null !== $product[$field]
+                && in_array($field, array('category_code', 'shipping_method_id'), true)
+                && (trim($product[$field]) !== $product[$field] || strlen($product[$field]) > self::MAX_CODE_LENGTH)
+            ) {
+                return $this->field_error($path . '.' . $field, 'must be a trimmed string within the code limit or null');
             }
         }
-        if (!is_string($product['foreign_currency']) || 'CNY' !== $product['foreign_currency']) {
-            return $this->field_error($path . '.foreign_currency', 'must be CNY');
-        }
-        if (!is_string($product['formula_version']) || self::FORMULA_ID !== $product['formula_version']) {
-            return $this->field_error($path . '.formula_version', 'must be landed_price_v1');
+        if (
+            array_key_exists('foreign_currency', $product)
+            && null !== $product['foreign_currency']
+            && (!is_string($product['foreign_currency']) || 'CNY' !== $product['foreign_currency'])
+        ) {
+            return $this->field_error($path . '.foreign_currency', 'must be CNY or null');
         }
         foreach (self::PRODUCT_NULLABLE_NUMBER_FIELDS as $field) {
+            if (!array_key_exists($field, $product)) {
+                continue;
+            }
             if (null !== $product[$field] && !$this->is_json_number($product[$field])) {
                 return $this->field_error($path . '.' . $field, 'must be a JSON number or null');
             }
@@ -1213,23 +1144,30 @@ class Product_Sync_Receiver {
                 return $this->field_error($path . '.' . $field, 'must be a base-10 decimal without exponent notation');
             }
         }
-        foreach (array('foreign_price', 'weight_grams', 'freight_cny_per_kg', 'irt_per_cny') as $field) {
-            if (null !== $product[$field] && $this->number_compare_zero($product[$field]) <= 0) {
+        foreach (array('foreign_price', 'weight_grams', 'shipping_price_per_kg_cny', 'irt_per_cny') as $field) {
+            if (array_key_exists($field, $product) && null !== $product[$field] && $this->number_compare_zero($product[$field]) <= 0) {
                 return $this->field_error($path . '.' . $field, 'must be greater than zero when provided');
             }
         }
-        if (null !== $product['markup_percent'] && $this->number_compare_zero($product['markup_percent']) < 0) {
+        if (array_key_exists('markup_percent', $product) && null !== $product['markup_percent'] && $this->number_compare_zero($product['markup_percent']) < 0) {
             return $this->field_error($path . '.markup_percent', 'must not be negative');
         }
-        if (null !== $product['final_price'] && !$this->is_nonnegative_integer($product['final_price'])) {
+        if (array_key_exists('final_price', $product) && null !== $product['final_price'] && !$this->is_nonnegative_integer($product['final_price'])) {
             return $this->field_error($path . '.final_price', 'must be a non-negative integer or null');
         }
-        if (!is_array($product['warehouse_stock']) || (!empty($product['warehouse_stock']) && array_is_list($product['warehouse_stock']))) {
-            return $this->field_error($path . '.warehouse_stock', 'must be an object');
-        }
-        foreach ($product['warehouse_stock'] as $warehouse => $stock) {
-            if ('' === trim((string) $warehouse) || !$this->is_json_number($stock)) {
-                return $this->field_error($path . '.warehouse_stock', 'must map non-empty string keys to JSON numbers');
+        if (array_key_exists('warehouse_stock', $product) && null !== $product['warehouse_stock']) {
+            if (
+                !($product['warehouse_stock'] instanceof Product_Sync_JSON_Empty_Object)
+                && (!is_array($product['warehouse_stock']) || array_is_list($product['warehouse_stock']))
+            ) {
+                return $this->field_error($path . '.warehouse_stock', 'must be an object or null');
+            }
+            if (is_array($product['warehouse_stock'])) {
+                foreach ($product['warehouse_stock'] as $warehouse => $stock) {
+                    if ('' === trim((string) $warehouse) || (null !== $stock && !$this->is_json_number($stock))) {
+                        return $this->field_error($path . '.warehouse_stock', 'must map non-empty string keys to JSON numbers or null');
+                    }
+                }
             }
         }
         $warnings = $this->validate_string_set($product['warnings'], $path . '.warnings', false);
@@ -1242,7 +1180,7 @@ class Product_Sync_Receiver {
 
         $hash_product = $product;
         $hash_product['warnings'] = $warnings;
-        $expected_hash = $this->record_hash($hash_product, $product_fields);
+        $expected_hash = $this->record_hash($hash_product);
         if (!hash_equals($expected_hash, $product['record_hash'])) {
             return $this->error(
                 'ashko_product_sync_record_hash_mismatch',
@@ -1258,19 +1196,27 @@ class Product_Sync_Receiver {
         }
 
         $stored = array();
-        foreach ($product_fields as $field) {
+        foreach ($product as $field => $value) {
             if ('warehouse_stock' === $field) {
-                $stocks = $product[$field];
-                ksort($stocks, SORT_STRING);
-                $stored[$field] = array_map(array($this, 'number_to_storage'), $stocks);
+                if (null === $value) {
+                    $stored[$field] = null;
+                } elseif ($value instanceof Product_Sync_JSON_Empty_Object) {
+                    $stored[$field] = array();
+                } else {
+                    $stocks = $value;
+                    ksort($stocks, SORT_STRING);
+                    $stored[$field] = array_map(function($stock) {
+                        return null === $stock ? null : $this->number_to_storage($stock);
+                    }, $stocks);
+                }
             } elseif (in_array($field, self::PRODUCT_DECIMAL_FIELDS, true)) {
-                $stored[$field] = null === $product[$field] ? null : $this->decimal_to_storage($product[$field]);
+                $stored[$field] = null === $value ? null : $this->decimal_to_storage($value);
             } elseif (in_array($field, self::PRODUCT_NULLABLE_NUMBER_FIELDS, true) || 'final_price' === $field) {
-                $stored[$field] = null === $product[$field] ? null : $this->number_to_storage($product[$field]);
+                $stored[$field] = null === $value ? null : $this->number_to_storage($value);
             } elseif ('warnings' === $field) {
                 $stored[$field] = $warnings;
             } else {
-                $stored[$field] = $product[$field];
+                $stored[$field] = $value;
             }
         }
 
@@ -1297,7 +1243,7 @@ class Product_Sync_Receiver {
             if (!empty($missing) || !empty($unknown)) {
                 return $this->error(
                     'ashko_product_sync_category_shape_invalid',
-                    'A category does not match the typed v1.1 shape.',
+                    'A category does not match the product-sync category shape.',
                     422,
                     array('path' => $path, 'missing' => $missing, 'unknown' => $unknown)
                 );
@@ -1318,8 +1264,8 @@ class Product_Sync_Receiver {
                     array('category_code' => $category['category_code'])
                 );
             }
-            if (!is_string($category['name']) || !is_string($category['parent_code'])) {
-                return $this->field_error($path, 'name and parent_code must be strings');
+            if ((null !== $category['name'] && !is_string($category['name'])) || !is_string($category['parent_code'])) {
+                return $this->field_error($path, 'name must be a string or null and parent_code must be a string');
             }
             if (
                 trim($category['parent_code']) !== $category['parent_code']
@@ -1896,92 +1842,6 @@ class Product_Sync_Receiver {
         return null;
     }
 
-    private function v2_terminal_resolution_reason($error_code) {
-        // v2 collapsed SQL lookup failures into not_found, so only a proven
-        // multi-row ambiguity can be migrated without first querying again.
-        return 'ashko_product_identifier_ambiguous' === $error_code
-            ? 'ambiguous'
-            : null;
-    }
-
-    /**
-     * Project v2 delivery state into the current shape without discarding retry metadata.
-     *
-     * The migration is persisted by receive() or reconcile() while holding the
-     * same advisory lock used for normal event delivery.
-     */
-    private function migrate_v2_state($state) {
-        $state['version'] = self::STATE_VERSION;
-        $sources = is_array($state['sources'] ?? null) ? $state['sources'] : array();
-        foreach ($sources as &$source_state) {
-            if (!is_array($source_state)) {
-                $source_state = array();
-            }
-            $pending = is_array($source_state['pending_products'] ?? null)
-                ? $source_state['pending_products']
-                : array();
-            $deferred = array();
-            foreach ($pending as $code => $entry) {
-                $reason = is_array($entry)
-                    ? $this->v2_terminal_resolution_reason((string) ($entry['last_error'] ?? ''))
-                    : null;
-                if (null === $reason) {
-                    continue;
-                }
-                $entry['reason'] = $reason;
-                $deferred[$code] = $entry;
-                unset($pending[$code]);
-            }
-            ksort($pending, SORT_STRING);
-            ksort($deferred, SORT_STRING);
-            $source_state['pending_products'] = $pending;
-            $source_state['deferred_products'] = array_slice(
-                $deferred,
-                0,
-                self::MAX_DEFERRED_PRODUCTS,
-                true
-            );
-        }
-        unset($source_state);
-        $state['sources'] = $sources;
-
-        return $this->migrate_v3_state($state);
-    }
-
-    /**
-     * Add the v1.1 catalog projection fields to legacy v3 source state.
-     */
-    private function migrate_v3_state($state) {
-        $state['version'] = self::STATE_VERSION;
-        $sources = is_array($state['sources'] ?? null) ? $state['sources'] : array();
-        foreach ($sources as &$source_state) {
-            if (!is_array($source_state)) {
-                $source_state = array();
-            }
-            $this->normalize_catalog_source_state($source_state);
-        }
-        unset($source_state);
-        $state['sources'] = $sources;
-
-        return $state;
-    }
-
-    private function normalize_catalog_source_state(&$source_state) {
-        $schema_version = (string) ($source_state['schema_version'] ?? '1.0');
-        $source_state['schema_version'] = $this->is_supported_major_version($schema_version)
-            ? $schema_version
-            : '1.0';
-        $source_state['categories'] = is_array($source_state['categories'] ?? null)
-            ? $source_state['categories']
-            : array();
-        ksort($source_state['categories'], SORT_STRING);
-        $excluded = is_array($source_state['excluded_codes'] ?? null)
-            ? array_values(array_unique(array_filter($source_state['excluded_codes'], 'is_string')))
-            : array();
-        sort($excluded, SORT_STRING);
-        $source_state['excluded_codes'] = $excluded;
-    }
-
     private function deferred_summary($deferred) {
         $deferred = is_array($deferred) ? $deferred : array();
         ksort($deferred, SORT_STRING);
@@ -2043,7 +1903,6 @@ class Product_Sync_Receiver {
                 'dataset' => (string) ($source['dataset'] ?? ''),
                 'revision' => (string) ($source['revision'] ?? ''),
             ),
-            'schema_version' => (string) ($source_state['schema_version'] ?? '1.0'),
             'generated_at' => (string) ($source_state['generated_at'] ?? ''),
             'last_event_id' => (string) ($source_state['last_event_id'] ?? ''),
             'stored_products' => count(is_array($source_state['products'] ?? null) ? $source_state['products'] : array()),
@@ -2150,16 +2009,16 @@ class Product_Sync_Receiver {
     // phpcs:enable
 
     /**
-     * Independently evaluate landed_price_v1 using bounded decimal strings.
+     * Independently evaluate landed_price using bounded decimal strings.
      * No binary floating-point operation participates in the calculation and
      * the only rounding is one half-up step to the final IRT integer.
      */
     private function validate_final_price_formula($product, $path) {
-        $required = array('foreign_price', 'weight_grams', 'freight_cny_per_kg', 'markup_percent', 'irt_per_cny');
+        $required = array('foreign_price', 'weight_grams', 'shipping_price_per_kg_cny', 'markup_percent', 'irt_per_cny');
         $missing = array();
         $decimals = array();
         foreach ($required as $field) {
-            if (null === $product[$field]) {
+            if (!array_key_exists($field, $product) || null === $product[$field]) {
                 $missing[] = $field;
                 continue;
             }
@@ -2169,18 +2028,28 @@ class Product_Sync_Receiver {
             }
             $decimals[$field] = $parts;
         }
-        if ('' === $product['import_freight_method_id']) {
-            $missing[] = 'import_freight_method_id';
+        if (
+            !array_key_exists('foreign_currency', $product)
+            || 'CNY' !== $product['foreign_currency']
+        ) {
+            $missing[] = 'foreign_currency';
+        }
+        if (
+            !array_key_exists('shipping_method_id', $product)
+            || null === $product['shipping_method_id']
+            || '' === $product['shipping_method_id']
+        ) {
+            $missing[] = 'shipping_method_id';
         }
 
         if (!empty($missing)) {
-            if (null === $product['final_price']) {
+            if (!array_key_exists('final_price', $product) || null === $product['final_price']) {
                 return true;
             }
 
             return $this->error(
                 'ashko_product_sync_final_price_mismatch',
-                'final_price must be null when landed_price_v1 inputs are incomplete.',
+                'final_price must be absent or explicitly null when landed_price inputs are incomplete.',
                 422,
                 array('path' => $path . '.final_price', 'expected' => null, 'missing' => $missing)
             );
@@ -2190,9 +2059,9 @@ class Product_Sync_Receiver {
             return $this->field_error($path . '.markup_percent', 'must not exceed ' . self::MAX_MARKUP_PERCENT);
         }
 
-        $freight = $this->decimal_multiply($decimals['weight_grams'], $decimals['freight_cny_per_kg']);
-        $freight['scale'] += 3; // grams to kilograms, exactly.
-        $landed_cny = $this->decimal_add($decimals['foreign_price'], $freight);
+        $shipping = $this->decimal_multiply($decimals['weight_grams'], $decimals['shipping_price_per_kg_cny']);
+        $shipping['scale'] += 3; // grams to kilograms, exactly.
+        $landed_cny = $this->decimal_add($decimals['foreign_price'], $shipping);
         $markup_multiplier = $this->decimal_add(
             $this->formula_decimal_parts('100'),
             $decimals['markup_percent']
@@ -2202,15 +2071,17 @@ class Product_Sync_Receiver {
         $irt = $this->decimal_multiply($marked_up, $decimals['irt_per_cny']);
         $rounded = $this->decimal_round_half_up_integer($irt);
         if ($this->big_integer_compare($rounded, (string) PHP_INT_MAX) > 0) {
-            return $this->field_error($path . '.final_price', 'landed_price_v1 exceeds the supported IRT integer range');
+            return $this->field_error($path . '.final_price', 'landed_price exceeds the supported IRT integer range');
         }
 
-        $actual = null === $product['final_price'] ? null : $this->number_to_storage($product['final_price']);
+        $actual = !array_key_exists('final_price', $product) || null === $product['final_price']
+            ? null
+            : $this->number_to_storage($product['final_price']);
         $expected = (int) $rounded;
         if (!is_int($actual) || $actual !== $expected) {
             return $this->error(
                 'ashko_product_sync_final_price_mismatch',
-                'final_price does not match independently evaluated landed_price_v1.',
+                'final_price does not match independently evaluated landed_price.',
                 422,
                 array('path' => $path . '.final_price', 'expected' => $expected, 'actual' => $actual)
             );
@@ -2240,10 +2111,10 @@ class Product_Sync_Receiver {
             $integer_digits = 1;
         }
         if ($integer_digits > self::MAX_FORMULA_INTEGER_DIGITS) {
-            return array('error' => 'has too many integer digits for landed_price_v1');
+            return array('error' => 'has too many integer digits for landed_price');
         }
         if (strlen($fraction) > self::MAX_FORMULA_SCALE) {
-            return array('error' => 'has too many fractional digits for landed_price_v1');
+            return array('error' => 'has too many fractional digits for landed_price');
         }
 
         $scale = strlen($fraction);
@@ -2356,24 +2227,18 @@ class Product_Sync_Receiver {
         return '' === $value ? '0' : $value;
     }
 
-    private function record_hash($product, $product_fields) {
-        $ordered = array();
-        foreach ($product_fields as $field) {
-            if ('record_hash' !== $field) {
-                $ordered[$field] = $product[$field];
-            }
-        }
+    private function record_hash($product) {
+        $ordered = $product;
+        unset($ordered['record_hash']);
+        ksort($ordered, SORT_STRING);
 
         return $this->hash_identity($this->encode_go_json($ordered, array('warehouse_stock')));
     }
 
     private function category_record_hash($category) {
-        $ordered = array();
-        foreach (self::CATEGORY_FIELDS as $field) {
-            if ('record_hash' !== $field) {
-                $ordered[$field] = $category[$field];
-            }
-        }
+        $ordered = $category;
+        unset($ordered['record_hash']);
+        ksort($ordered, SORT_STRING);
 
         return $this->hash_identity($this->encode_go_json($ordered));
     }
@@ -2410,11 +2275,15 @@ class Product_Sync_Receiver {
         sort($category_hashes, SORT_STRING);
         $identity = array(
             'schema' => $envelope['schema'],
-            'schema_version' => $envelope['schema_version'],
             'event_type' => $envelope['event_type'],
-            'local_currency' => $envelope['local_currency'],
-            'formula_id' => $envelope['formula_id'],
-            'formula_revision' => $envelope['formula_revision'],
+        );
+        if (array_key_exists('local_currency', $envelope)) {
+            $identity['local_currency'] = $envelope['local_currency'];
+        }
+        if (array_key_exists('formula_id', $envelope)) {
+            $identity['formula_id'] = $envelope['formula_id'];
+        }
+        $identity += array(
             'source' => array(
                 'id' => $envelope['source']['id'],
                 'dataset' => $envelope['source']['dataset'],
@@ -2422,19 +2291,13 @@ class Product_Sync_Receiver {
             ),
             'generated_at' => $envelope['generated_at'],
             'products' => $product_hashes,
+            'categories' => $category_hashes,
+            'excluded_codes' => $envelope['excluded_codes'],
         );
-        if (!empty($category_hashes)) {
-            $identity['categories'] = $category_hashes;
-        }
-        if (!empty($envelope['excluded_codes'])) {
-            $identity['excluded_codes'] = $envelope['excluded_codes'];
-        }
         if (!empty($envelope['deleted_codes'])) {
             $identity['deleted_codes'] = $envelope['deleted_codes'];
         }
-        if (!empty($envelope['quarantined_codes'])) {
-            $identity['quarantined_codes'] = $envelope['quarantined_codes'];
-        }
+        $identity['quarantined_codes'] = $envelope['quarantined_codes'];
 
         return $this->hash_identity($this->encode_go_json($identity));
     }
@@ -2443,11 +2306,15 @@ class Product_Sync_Receiver {
      * Encode the validated subset the same way Go encoding/json does.
      *
      * Associative arrays preserve insertion order unless explicitly marked as
-     * maps. The only map in Product v1 is warehouse_stock, whose keys Go sorts.
+     * maps. Product record keys and warehouse_stock keys are sorted before
+     * hashing to mirror the producer's canonical object encoding.
      */
     private function encode_go_json($value, $map_fields = array(), $field = '') {
         if ($value instanceof Product_Sync_JSON_Number) {
             return $value->value;
+        }
+        if ($value instanceof Product_Sync_JSON_Empty_Object) {
+            return '{}';
         }
         if (null === $value) {
             return 'null';
@@ -2528,25 +2395,6 @@ class Product_Sync_Receiver {
         }
 
         return null;
-    }
-
-    private function is_supported_major_version($version) {
-        return is_string($version) && 1 === preg_match('/^1(?:\.[0-9]+){1,2}$/', $version);
-    }
-
-    private function has_catalog_contract($version) {
-        if (!$this->is_supported_major_version($version)) {
-            return false;
-        }
-        $parts = explode('.', $version);
-
-        return (int) ($parts[1] ?? 0) >= 1;
-    }
-
-    private function product_fields($schema_version) {
-        return $this->has_catalog_contract($schema_version)
-            ? self::PRODUCT_FIELDS_V1_1
-            : self::PRODUCT_FIELDS_V1_0;
     }
 
     private function is_hash($value) {

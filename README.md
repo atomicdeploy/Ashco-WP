@@ -1,6 +1,6 @@
 # Ashko-WP Patris Sync
 
-Ashko-WP is the Ashko-specific WooCommerce receiver for Patris Export. It accepts the exact `digitalogic.product-sync` v1.0 and v1.1 contracts while keeping Ashko branding, settings, storage, REST routes, reports, and product matching independent from Digitalogic.
+Ashko-WP is the Ashko-specific WooCommerce receiver for Patris Export. It accepts the living, versionless `digitalogic.product-sync` standard while keeping Ashko branding, settings, storage, REST routes, reports, and product matching independent from Digitalogic.
 
 ## Safety model
 
@@ -8,7 +8,8 @@ Ashko-WP is the Ashko-specific WooCommerce receiver for Patris Export. It accept
 - Products are matched only by an exact, case-sensitive Patris `serial` against the configured WooCommerce meta key (production default `_sku`) or `_ashko_patris_serial` written by this plugin on an earlier safe match.
 - Patris Code is retained for audit/category integrity but is never an application identifier. There is no fuzzy name fallback.
 - Blank Serial, duplicate source Serial, duplicate Woo Serial, and unmatched products are deferred and reported without a product write.
-- v1.1 category trees, excluded Codes, record hashes, source revision, event identity, event ordering, and formula integrity are validated before writes.
+- Category trees, excluded Codes, sparse record hashes, source revision, event identity, event ordering, and formula integrity are validated before writes.
+- Optional product keys are omitted when Patris has no source/reference value. An explicit JSON `null` is retained and hashed as an explicit source value; omission and `null` are never treated as the same payload.
 - WooCommerce base currency must be `IRR`. The source contract remains canonical `IRT` for interoperability.
 - External-service delivery is off unless separately implemented and explicitly configured. This release makes no outbound requests.
 
@@ -17,10 +18,10 @@ Ashko-WP is the Ashko-specific WooCommerce receiver for Patris Export. It accept
 Defaults are installed as editable settings:
 
 - CNY reference rate: `300,000 IRR`
-- Air/Express freight: `22,000,000 IRR/kg`
+- Air/Express shipping: `22,000,000 IRR/kg`
 - profit margin: `30%`
 - saleable stock: `floor(ALLANBAR × 30%)`
-- default freight method for records with CNY: `air_express`
+- default shipping method for records with CNY: `air_express`
 
 Production Woo price is evaluated natively in IRR and rounded half-up once, at the end:
 
@@ -35,18 +36,18 @@ Full source stock is stored in `_ashko_patris_allanbar_full`; only the floored 3
 ## REST endpoints
 
 ```text
-POST /wp-json/ashko/v1/patris/product-sync/dry-run
-POST /wp-json/ashko/v1/patris/product-sync/apply
-GET  /wp-json/ashko/v1/patris/product-sync/status
+POST /wp-json/ashko/patris/product-sync/dry-run
+POST /wp-json/ashko/patris/product-sync/apply
+GET  /wp-json/ashko/patris/product-sync/status
 ```
 
-Authenticate with a user/application password that has `manage_woocommerce`, or the Ashko-only generated secret. Patris Export's fixed compatibility header is accepted:
+Authenticate with a user/application password that has `manage_woocommerce`, or the Ashko-only generated secret. Patris Export's shared secret header is accepted:
 
 ```text
 X-Digitalogic-Product-Sync-Secret: <Ashko-only secret>
 ```
 
-`X-Ashko-Product-Sync-Secret` is an equivalent branded alias. Secrets are never accepted in query strings. Optional `X-Patris-Contract`, `X-Patris-Contract-Version`, and `X-Patris-Event-ID` headers must match the JSON document exactly.
+`X-Ashko-Product-Sync-Secret` is an equivalent branded alias. Secrets are never accepted in query strings. Optional `X-Patris-Contract` and `X-Patris-Event-ID` headers must match the JSON document exactly.
 
 Source scoping is stored as an exact list of `{id,dataset}` pairs. An empty list is intended only for initial setup.
 
@@ -71,11 +72,11 @@ Core Woo fields are changed only when their desired value differs: regular/activ
 
 - CNY, exact grams, unit, Woodmart `woodmart_price_unit_of_measure`;
 - full ALLANBAR and applied stock;
-- effective/source freight, margin, FX, and formula values;
+- effective/source shipping, margin, FX, and formula values;
 - canonical IRT, native IRR, both discrepancy measures;
 - category, effective-date, catalog, source timestamp, Serial, Code, and record hash.
 
-Each dry-run/apply has a durable run record and per-product rows with old/new values. The Persian admin page groups warnings for missing CNY, weight, unit, Serial, freight, margin, FX, or final price; duplicate Serial; negative stock; unmatched/ambiguous Woo targets; source warnings; and formula discrepancies. CSV downloads are UTF-8 and include Gregorian and Jalali effective dates.
+Each dry-run/apply has a durable run record and per-product rows with old/new values. The Persian admin page groups warnings for missing CNY, weight, unit, Serial, shipping, margin, FX, or final price; duplicate Serial; negative stock; unmatched/ambiguous Woo targets; source warnings; and formula discrepancies. CSV downloads are UTF-8 and include Gregorian and Jalali effective dates.
 
 ## ACF and currency integration
 

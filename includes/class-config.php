@@ -3,18 +3,18 @@ namespace Ashko\Patris;
 
 final class Config {
     public const OPTION = 'ashko_patris_settings';
-    public const SECRET_OPTION = 'ashko_product_sync_v1_secret';
-    public const SOURCE_SCOPES_OPTION = 'ashko_product_sync_v1_source_scopes';
+    public const SECRET_OPTION = 'ashko_product_sync_secret';
+    public const SOURCE_SCOPES_OPTION = 'ashko_product_sync_source_scopes';
     public const OWN_SERIAL_META = '_ashko_patris_serial';
 
     public static function defaults(): array {
         return array(
             'serial_meta_key' => '_sku',
             'fx_irr_per_cny' => '300000',
-            'freight_irr_per_kg' => '22000000',
+            'shipping_irr_per_kg' => '22000000',
             'profit_margin_percent' => '30',
             'stock_percent' => '30',
-            'default_freight_method' => 'air_express',
+            'default_shipping_method' => 'air_express',
             'show_exact_stock' => 'yes',
             'keep_out_of_stock_visible' => 'yes',
             'external_services_enabled' => 'no',
@@ -42,10 +42,10 @@ final class Config {
         return array(
             'serial_meta_key' => $meta_key,
             'fx_irr_per_cny' => self::decimal($input['fx_irr_per_cny'] ?? $defaults['fx_irr_per_cny']),
-            'freight_irr_per_kg' => self::decimal($input['freight_irr_per_kg'] ?? $defaults['freight_irr_per_kg']),
+            'shipping_irr_per_kg' => self::decimal($input['shipping_irr_per_kg'] ?? $defaults['shipping_irr_per_kg']),
             'profit_margin_percent' => self::decimal($input['profit_margin_percent'] ?? $defaults['profit_margin_percent']),
             'stock_percent' => self::decimal($input['stock_percent'] ?? $defaults['stock_percent']),
-            'default_freight_method' => sanitize_key((string) ($input['default_freight_method'] ?? 'air_express')),
+            'default_shipping_method' => sanitize_key((string) ($input['default_shipping_method'] ?? 'air_express')),
             'show_exact_stock' => self::yes_no($input['show_exact_stock'] ?? 'no'),
             'keep_out_of_stock_visible' => self::yes_no($input['keep_out_of_stock_visible'] ?? 'no'),
             'external_services_enabled' => self::yes_no($input['external_services_enabled'] ?? 'no'),

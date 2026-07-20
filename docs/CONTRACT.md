@@ -1,9 +1,17 @@
 # Patris contract boundary
 
-Ashko-WP accepts only `digitalogic.product-sync` schema major 1. The contract name remains unchanged so one Patris Export producer can serve Ashko and Digitalogic. Site identity lives in the `ashko/v1` route, Ashko-only credentials/options/tables, `Ashko\Patris` PHP namespace, `ashko-wp` text domain, and `_ashko_patris_*` metadata.
+Ashko-WP accepts one living `digitalogic.product-sync` standard. It has no schema, formula, or route version selector and no compatibility branch for older payload shapes. Ashko and Digitalogic share the same payload semantics; site identity remains in each site's route, credentials, options, tables, PHP namespace, text domain, matching policy, and metadata prefix.
 
-Version 1.0 contains products. Version 1.1 adds the complete category projection, `category_code` on products, and `excluded_codes`. An update cannot cross feature levels without a new snapshot. Category hashes, hierarchy depth/parent relationships, overlaps, source revision, and event identity are verified exactly.
+The required envelope keys are `schema`, `event_type`, `event_id`, `source`, `generated_at`, `products`, `categories`, `excluded_codes`, `quarantined_codes`, and `warnings`. The five collection keys are present even when empty. `local_currency`, `formula_id`, and `deleted_codes` are optional; when supplied, currency is `IRT` and the formula identifier is `landed_price`.
 
-Raw Paradox/Patris fields are rejected. Only transformed typed fields can reach WooCommerce.
+Every product requires `product_code`, `warnings`, and `record_hash`. Other approved product keys are sparse. A missing key means Patris supplied no source/reference value. A present key with JSON `null` means the source explicitly supplied null. Empty strings and empty warehouse objects are also explicit values. Ashko preserves all four states for hashing and receiver storage instead of filling missing keys with null.
 
-Application identity is `serial`, never `product_code`. The resolver performs a case-sensitive exact database comparison against the configured meta key and `_ashko_patris_serial`; results from both namespaces are unioned and de-duplicated by Woo ID. Any cross-product collision is ambiguous.
+Product hashes are SHA-256 identities of exactly the present product members other than `record_hash`, with object keys sorted lexicographically. Category hashes follow the same rule. Warehouse keys are sorted. `event_id` includes the schema name, event type, supplied currency/formula identifiers, source, timestamp, sorted product/category hash lists, excluded codes, optional tombstones, and quarantined codes. Warnings do not affect event identity.
+
+Categories always contain `category_code`, `name`, `parent_code`, `depth`, `warnings`, and `record_hash`. An explicitly null source category name remains `name: null`; derived hierarchy fields remain non-null. Category hierarchy, catalog overlaps, source revision, event identity, ordering, and independently calculated final price are verified before a WooCommerce write.
+
+Only `shipping_method_id` and `shipping_price_per_kg_cny` are accepted for source shipping. Removed schema/formula selectors, the duplicate event name, and old shipping aliases are rejected as unknown fields. There is no fallback parser.
+
+Raw Paradox/Patris fields are rejected. Only transformed fields can reach WooCommerce. Application identity on Ashko is `serial`, never `product_code`; exact case-sensitive matches from the configured meta key and `_ashko_patris_serial` are unioned by Woo ID, and any collision is reported as ambiguous.
+
+Ashko routes are `/wp-json/ashko/patris/product-sync/dry-run`, `/apply`, and `/status`. No versioned route alias is registered.

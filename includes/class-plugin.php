@@ -5,7 +5,7 @@ use Ashko\Patris\Admin\Admin;
 use Ashko\Patris\API\REST_Controller;
 
 final class Plugin {
-    public const DB_VERSION = '2';
+    public const DB_VERSION = '3';
 
     public static function activate(): void {
         $stored = get_option(Config::OPTION, array());
