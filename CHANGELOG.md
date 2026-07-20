@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.1 — 2026-07-20
+
+- Added a duplicate-safe single-product stock fallback after WooCommerce's normal add-to-cart output for catalog-mode themes that remove the stock template.
+- Kept the canonical `woocommerce_get_stock_html` rendering path and added regression coverage for normal, fallback, zero-stock, and non-Patris products.
+
 ## 1.0.0 — 2026-07-20
 
 - Added exact `digitalogic.product-sync` v1.0/v1.1 validation with catalog/exclusion integrity and idempotent ordered receiver state.

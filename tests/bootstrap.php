@@ -9,6 +9,8 @@ $GLOBALS['ashko_test_options'] = array(
 $GLOBALS['ashko_test_serial_rows'] = array();
 $GLOBALS['ashko_test_products'] = array();
 $GLOBALS['ashko_test_currency'] = 'IRR';
+$GLOBALS['ashko_test_hooks'] = array();
+$GLOBALS['ashko_test_current_actions'] = array();
 
 class WP_Error {
     private $code;
@@ -42,6 +44,19 @@ function wp_cache_delete($key, $group = '') { return true; }
 function get_woocommerce_currency() { return $GLOBALS['ashko_test_currency']; }
 function wp_raise_memory_limit($context = 'admin') { return ini_set('memory_limit', '512M'); }
 function do_action($name, ...$args) {}
+function add_filter($hook, $callback, $priority = 10, $accepted_args = 1) {
+    $GLOBALS['ashko_test_hooks'][] = array('type' => 'filter', 'hook' => $hook, 'callback' => $callback, 'priority' => $priority, 'accepted_args' => $accepted_args);
+    return true;
+}
+function add_action($hook, $callback, $priority = 10, $accepted_args = 1) {
+    $GLOBALS['ashko_test_hooks'][] = array('type' => 'action', 'hook' => $hook, 'callback' => $callback, 'priority' => $priority, 'accepted_args' => $accepted_args);
+    return true;
+}
+function doing_action($hook = null) { return null === $hook ? !empty($GLOBALS['ashko_test_current_actions']) : !empty($GLOBALS['ashko_test_current_actions'][$hook]); }
+function esc_attr($value) { return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8'); }
+function esc_html($value) { return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8'); }
+function number_format_i18n($number, $decimals = 0) { return number_format((float) $number, $decimals, '.', ','); }
+function wp_kses_post($value) { return (string) $value; }
 function get_post_type($post_id) { return 'product'; }
 function get_post_meta($post_id, $key, $single = false) {
     $product = $GLOBALS['ashko_test_products'][(int) $post_id] ?? null;
@@ -115,3 +130,4 @@ require_once $root . '/includes/class-product-applicator.php';
 require_once $root . '/includes/class-jalali.php';
 require_once $root . '/includes/class-logger.php';
 require_once $root . '/includes/class-product-sync-receiver.php';
+require_once $root . '/includes/class-frontend-stock.php';
