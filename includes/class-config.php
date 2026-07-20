@@ -35,7 +35,7 @@ final class Config {
     public static function sanitize(array $input): array {
         $defaults = self::defaults();
         $meta_key = isset($input['serial_meta_key']) ? sanitize_key((string) $input['serial_meta_key']) : '_sku';
-        if ('' === $meta_key || in_array($meta_key, array('_ashko_patris_product_code', '_digitalogic_patris_product_code'), true)) {
+        if ('' === $meta_key || preg_match('/_patris_product_code$/', $meta_key)) {
             $meta_key = '_sku';
         }
 

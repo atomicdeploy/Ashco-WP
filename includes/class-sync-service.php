@@ -106,16 +106,23 @@ final class Sync_Service {
                 );
             }
             if (!$report_ready || 'apply' === $mode) {
+                $report_state = $this->report_stage_state(
+                    $mode,
+                    $report_ready,
+                    $report_product_count - $processed
+                );
                 return $this->response(
                     $mode,
-                    $report_ready ? 'report_ready' : 'report_pending',
+                    $report_state['status'],
                     $envelope,
                     $preview,
                     $run_id,
                     $summary,
                     array(),
-                    'apply' === $mode || !$report_ready,
-                    $report_product_count - $processed
+                    $report_state['retryable'],
+                    $report_state['pending_products'],
+                    0,
+                    array('report_status' => $report_state['report_status'])
                 );
             }
         }
@@ -134,14 +141,35 @@ final class Sync_Service {
         $this->reports->record_receiver_result($run_id, $result, $summary);
         return $this->response(
             'apply',
-            (string) ($result['status'] ?? 'applied'),
+            (string) $result['status'],
             $envelope,
             $preview,
             $run_id,
             $summary,
             $result,
             !empty($result['retryable']),
-            (int) ($result['pending_products'] ?? 0)
+            (int) ($result['pending_products'] ?? 0),
+            (int) ($result['deferred_products'] ?? 0)
+        );
+    }
+
+    private function report_stage_state(string $mode, bool $report_ready, int $remaining): array {
+        $remaining = max(0, $remaining);
+        $report_status = $report_ready ? 'report_ready' : 'report_pending';
+        if ('apply' === $mode) {
+            return array(
+                'status' => 'retry_pending',
+                'retryable' => true,
+                'pending_products' => max(1, $remaining),
+                'report_status' => $report_status,
+            );
+        }
+
+        return array(
+            'status' => $report_status,
+            'retryable' => !$report_ready,
+            'pending_products' => $remaining,
+            'report_status' => $report_status,
         );
     }
 
@@ -275,20 +303,27 @@ final class Sync_Service {
         array $summary,
         array $receiver = array(),
         bool $retryable = false,
-        int $pending = 0
+        int $pending = 0,
+        int $deferred = 0,
+        array $extra = array()
     ): array {
-        return array(
-            'success' => true,
+        $data = array_merge(array(
             'mode' => $mode,
             'status' => $status,
+            'event_id' => (string) $envelope['event_id'],
             'retryable' => $retryable,
-            'pending_products' => $pending,
-            'event_id' => $envelope['event_id'],
+            'pending_products' => max(0, $pending),
+            'deferred_products' => max(0, $deferred),
             'replay' => (bool) $preview['replay'],
             'run_id' => $run_id,
             'summary' => $summary,
             'receiver' => $receiver,
             'report_download_url' => Report_Repository::download_url($run_id),
-        );
+        ), $extra);
+        if (array_key_exists('deferred_reconciliation', $receiver)) {
+            $data['deferred_reconciliation'] = $receiver['deferred_reconciliation'];
+        }
+
+        return array('success' => true, 'data' => $data);
     }
 }

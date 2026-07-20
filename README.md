@@ -1,6 +1,6 @@
 # Ashco-WP Patris Sync
 
-Ashco-WP is the Ashco-specific WooCommerce receiver for Patris Export. It accepts the living, versionless `digitalogic.product-sync` standard while keeping Ashco branding, settings, storage, REST routes, reports, and product matching independent from Digitalogic.
+Ashco-WP is the Ashco-specific WooCommerce receiver for Patris Export. It accepts the living `patris.product-sync` standard while keeping Ashco branding, settings, storage, REST routes, reports, and product matching independent from others.
 
 ## Safety model
 
@@ -41,13 +41,13 @@ POST /wp-json/ashko/patris/product-sync/apply
 GET  /wp-json/ashko/patris/product-sync/status
 ```
 
-Authenticate with a user/application password that has `manage_woocommerce`, or the Ashco-only generated secret. Patris Export's shared secret header is accepted:
+Authenticate with a user/application password that has `manage_woocommerce`, or the generated receiver secret. Patris Export sends that secret through the neutral header:
 
 ```text
-X-Digitalogic-Product-Sync-Secret: <Ashco-only secret>
+X-Patris-Product-Sync-Secret: <receiver secret>
 ```
 
-`X-Ashco-Product-Sync-Secret` is the equivalent branded alias. Secrets are never accepted in query strings. Optional `X-Patris-Contract` and `X-Patris-Event-ID` headers must match the JSON document exactly.
+Secrets are never accepted in query strings. Optional `X-Patris-Contract` and `X-Patris-Event-ID` headers must match the JSON document exactly.
 
 Source scoping is stored as an exact list of `{id,dataset}` pairs. An empty list is intended only for initial setup.
 
@@ -60,9 +60,9 @@ Shared hosting has a short request timeout, so report planning and Woo writes ar
 - receiver state and the durable outbox are committed after every apply batch;
 - full snapshots queue only products whose incoming `record_hash` differs from the receiver's applied hash; unchanged hashes are not written again;
 - identical event calls resume the same report and then retry only pending delivery work;
-- responses expose `retryable`, `pending_products`, and the durable `run_id`.
+- successful POST responses use one wrapper: `{success:true,data:{...}}`; `data` always exposes non-null `status`, `event_id`, `retryable`, `pending_products`, and `deferred_products`, plus the durable `run_id`.
 
-When an apply response says `report_pending`, `report_ready`, `partially_applied`, or `retry_pending`, send the identical event again. A terminal replay does not write products again.
+When an apply response says `partially_applied` or `retry_pending`, send the identical event again. Report planning during apply also uses `retry_pending`; `data.report_status` distinguishes `report_pending` from `report_ready` without adding delivery-state aliases. A terminal replay does not write products again. Dry-run report planning uses `report_pending`, and completion uses `dry_run_complete`.
 
 The receiver calls WordPress's supported `wp_raise_memory_limit('admin')` before decoding and fails clearly below 192 MiB. It does not use `set_time_limit` as a correctness mechanism.
 
@@ -97,7 +97,7 @@ Do not place production JSON, databases, reports, or credentials inside the plug
 
 ### Compatibility identifiers
 
-Ashco is the public brand and the required spelling for new user-facing text and integrations. Existing runtime identifiers remain unchanged until a coordinated migration is approved: the `ashko-wp` plugin/text-domain slug, `Ashko\Patris` PHP namespace, `/ashko/` REST namespace, `wp ashko` CLI prefix, `_ashko_*` storage keys, and the previously deployed `X-Ashko-Product-Sync-Secret` fallback. New clients should use `X-Ashco-Product-Sync-Secret`.
+Ashco is the public brand and the required spelling for new user-facing text and integrations. Existing runtime identifiers remain unchanged until a coordinated migration is approved: the `ashko-wp` plugin/text-domain slug, `Ashko\Patris` PHP namespace, `/ashko/` REST namespace, `wp ashko` CLI prefix, and `_ashko_*` storage keys. Product-sync clients use the neutral `X-Patris-Product-Sync-Secret` header.
 
 ## Development
 

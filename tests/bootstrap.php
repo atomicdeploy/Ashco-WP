@@ -39,6 +39,19 @@ class WP_REST_Request {
     }
 }
 
+class WP_REST_Response {
+    private $data;
+    private int $status;
+
+    public function __construct($data = null, int $status = 200) {
+        $this->data = $data;
+        $this->status = $status;
+    }
+
+    public function get_data() { return $this->data; }
+    public function get_status(): int { return $this->status; }
+}
+
 function is_wp_error($value) { return $value instanceof WP_Error; }
 function __($value, $domain = null) { return $value; }
 function current_user_can($capability) { return (bool) $GLOBALS['ashko_test_current_user_can']; }
@@ -71,6 +84,8 @@ function esc_attr($value) { return htmlspecialchars((string) $value, ENT_QUOTES,
 function esc_html($value) { return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8'); }
 function number_format_i18n($number, $decimals = 0) { return number_format((float) $number, $decimals, '.', ','); }
 function wp_kses_post($value) { return (string) $value; }
+function admin_url($path = '') { return 'https://example.test/wp-admin/' . ltrim((string) $path, '/'); }
+function wp_nonce_url($url, $action = -1, $name = '_wpnonce') { return (string) $url . '&_wpnonce=test'; }
 function get_post_type($post_id) { return 'product'; }
 function get_post_meta($post_id, $key, $single = false) {
     $product = $GLOBALS['ashko_test_products'][(int) $post_id] ?? null;

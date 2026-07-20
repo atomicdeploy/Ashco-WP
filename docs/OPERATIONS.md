@@ -11,7 +11,7 @@
 9. Send the identical snapshot to `/apply` repeatedly while `retryable` is true.
 10. Confirm `pending_products` is zero. Deferred missing/ambiguous rows remain explicit reconciliation work and are never guessed.
 
-The first apply call may finish report planning and return `report_ready` without product writes. Subsequent identical calls drain at most 25 Woo writes each. Every batch persists and verifies receiver state before returning.
+The first apply call may finish report planning without product writes. Its delivery status remains `retry_pending` with `retryable: true` and at least one `pending_products`; the separate `report_status` field indicates `report_pending` or `report_ready`. Subsequent identical calls drain at most 25 Woo writes each. Every batch persists and verifies receiver state before returning.
 
 The production ZIP deliberately excludes source control, CI, tests, reports, databases, JSON payloads, credentials, and build scripts.
 

@@ -13,23 +13,14 @@ final class RESTControllerPermissionTest extends TestCase {
         $GLOBALS['ashko_test_options'][Config::SECRET_OPTION] = self::SECRET;
     }
 
-    /** @dataProvider secretHeaderProvider */
-    public function test_accepts_current_and_compatibility_secret_headers(string $header): void {
-        $request = new WP_REST_Request(array($header => self::SECRET));
+    public function test_accepts_neutral_patris_secret_header(): void {
+        $request = new WP_REST_Request(array('X-Patris-Product-Sync-Secret' => self::SECRET));
 
         self::assertTrue(REST_Controller::permission($request));
     }
 
-    public static function secretHeaderProvider(): array {
-        return array(
-            'Ashco branded header' => array('X-Ashco-Product-Sync-Secret'),
-            'Patris shared header' => array('X-Digitalogic-Product-Sync-Secret'),
-            'deployed legacy header' => array('X-Ashko-Product-Sync-Secret'),
-        );
-    }
-
     public function test_rejects_invalid_secret_with_correct_branding(): void {
-        $request = new WP_REST_Request(array('X-Ashco-Product-Sync-Secret' => 'wrong'));
+        $request = new WP_REST_Request(array('X-Patris-Product-Sync-Secret' => 'wrong'));
 
         $result = REST_Controller::permission($request);
 

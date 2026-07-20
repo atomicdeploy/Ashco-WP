@@ -1,7 +1,7 @@
 {
-  "schema": "digitalogic.product-sync",
+  "schema": "patris.product-sync",
   "event_type": "snapshot",
-  "event_id": "sha256:761ba45f6192959d4d64cbff3d7d2925b4fc146c1697c7a0925f56503efbbaa4",
+  "event_id": "sha256:c6889c5d98598dc61e36d78d1e1f8418c5e238eb58a4fd7ce847b6c6e451f243",
   "local_currency": "IRT",
   "formula_id": "landed_price",
   "source": {
