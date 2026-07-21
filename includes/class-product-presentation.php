@@ -3,6 +3,16 @@ namespace Ashko\Patris;
 
 final class Product_Presentation {
     private const RECORD_HASH_META = '_ashko_patris_record_hash';
+
+    /**
+     * Immutable tuple emitted by the reviewed one-time catalog importer.
+     * Despite the historical meta-key name, the stored source value is a
+     * legacy provenance token and is not the raw kala.db digest.
+     */
+    private const IMPORT_MARKER_META = '_ashko_patris_import_marker';
+    private const IMPORT_LEGACY_SOURCE_TOKEN_META = '_ashko_patris_import_source_sha256';
+    private const TRUSTED_IMPORT_MARKER = 'positive-stock-20260720';
+    private const TRUSTED_IMPORT_LEGACY_SOURCE_TOKEN = '3da2f89f3c814c3d6b8efc4511984739c87b5c12f9ef3c6ea1e11575925fa321';
     private const CODE_META = '_ashko_patris_product_code';
     private const UNIT_META = '_ashko_patris_unit';
     private const CLEANUP_OPTION = 'ashko_patris_legacy_excerpt_cleanup';
@@ -192,7 +202,25 @@ final class Product_Presentation {
             'no_found_rows' => true,
             'suppress_filters' => true,
             'meta_query' => array(
-                array('key' => self::RECORD_HASH_META, 'compare' => 'EXISTS'),
+                'relation' => 'OR',
+                array(
+                    'key' => self::RECORD_HASH_META,
+                    'value' => '^sha256:[a-f0-9]{64}$',
+                    'compare' => 'REGEXP',
+                ),
+                array(
+                    'relation' => 'AND',
+                    array(
+                        'key' => self::IMPORT_MARKER_META,
+                        'value' => self::TRUSTED_IMPORT_MARKER,
+                        'compare' => '=',
+                    ),
+                    array(
+                        'key' => self::IMPORT_LEGACY_SOURCE_TOKEN_META,
+                        'value' => self::TRUSTED_IMPORT_LEGACY_SOURCE_TOKEN,
+                        'compare' => '=',
+                    ),
+                ),
             ),
         )) : array();
 
@@ -253,9 +281,19 @@ final class Product_Presentation {
     }
 
     private static function is_owned_product($product): bool {
-        return is_object($product)
-            && method_exists($product, 'get_meta')
-            && '' !== trim((string) $product->get_meta(self::RECORD_HASH_META, true, 'edit'));
+        if (!is_object($product) || !method_exists($product, 'get_meta')) {
+            return false;
+        }
+
+        $record_hash = (string) $product->get_meta(self::RECORD_HASH_META, true, 'edit');
+        if (1 === preg_match('/\Asha256:[a-f0-9]{64}\z/', $record_hash)) {
+            return true;
+        }
+
+        $import_marker = (string) $product->get_meta(self::IMPORT_MARKER_META, true, 'edit');
+        $source_token = (string) $product->get_meta(self::IMPORT_LEGACY_SOURCE_TOKEN_META, true, 'edit');
+        return hash_equals(self::TRUSTED_IMPORT_MARKER, $import_marker)
+            && hash_equals(self::TRUSTED_IMPORT_LEGACY_SOURCE_TOKEN, $source_token);
     }
 
     private static function meta($product, string $key): string {

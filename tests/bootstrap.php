@@ -108,7 +108,10 @@ function delete_post_meta($post_id, $key, $value = '') {
     return $product ? $product->delete_meta_data_exact($key, $value) : false;
 }
 function wc_get_product($post_id) { return $GLOBALS['ashko_test_products'][(int) $post_id] ?? null; }
-function get_posts($args = array()) { return $GLOBALS['ashko_test_post_ids']; }
+function get_posts($args = array()) {
+    $GLOBALS['ashko_test_get_posts_args'] = $args;
+    return $GLOBALS['ashko_test_post_ids'];
+}
 function wp_get_post_terms($post_id, $taxonomy, $args = array()) {
     return $GLOBALS['ashko_test_product_categories'][(int) $post_id] ?? array();
 }

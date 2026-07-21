@@ -8,6 +8,7 @@ final class ProductPresentationTest extends TestCase {
         $GLOBALS['ashko_test_hooks'] = array();
         $GLOBALS['ashko_test_products'] = array();
         $GLOBALS['ashko_test_post_ids'] = array();
+        unset($GLOBALS['ashko_test_get_posts_args']);
         $GLOBALS['ashko_test_product_categories'] = array();
         unset($GLOBALS['product']);
         unset($GLOBALS['ashko_test_options']['ashko_patris_legacy_excerpt_cleanup']);
@@ -53,6 +54,64 @@ final class ProductPresentationTest extends TestCase {
             '_ashko_patris_product_code' => 'DO-NOT-SHOW',
         ));
         self::assertSame(array(), Product_Presentation::product_attributes(array(), $unowned));
+    }
+
+    public function test_exact_one_time_import_provenance_is_owned_but_incomplete_or_forged_provenance_is_not(): void {
+        $trusted_meta = array(
+            '_ashko_patris_product_code' => 'P-IMPORT',
+            Config::OWN_SERIAL_META => 'S-IMPORT',
+            '_ashko_patris_unit' => 'عدد',
+            '_ashko_patris_import_marker' => 'positive-stock-20260720',
+            '_ashko_patris_import_source_sha256' => '3da2f89f3c814c3d6b8efc4511984739c87b5c12f9ef3c6ea1e11575925fa321',
+        );
+        $trusted = new Ashko_Test_Presentation_Product(104, 'Imported', '', $trusted_meta);
+        $GLOBALS['ashko_test_product_categories'][104] = array('قطعه');
+        self::assertArrayHasKey(
+            'ashco_patris_sale_unit',
+            Product_Presentation::product_attributes(array(), $trusted)
+        );
+        $legacy = '«Imported» از گروه «قطعه» با سریال S-IMPORT و کد پاتریس P-IMPORT است. واحد فروش: عدد.';
+        self::assertTrue(Product_Presentation::is_legacy_generated_excerpt($legacy, $trusted));
+        self::assertFalse(Product_Presentation::is_legacy_generated_excerpt($legacy . ' توضیح فروشنده.', $trusted));
+        self::assertSame(
+            $legacy . ' توضیح فروشنده.',
+            Product_Presentation::filter_product_short_description($legacy . ' توضیح فروشنده.', $trusted)
+        );
+
+        $untrusted = array(
+            array_diff_key($trusted_meta, array('_ashko_patris_import_source_sha256' => true)),
+            array_diff_key($trusted_meta, array('_ashko_patris_import_marker' => true)),
+            array_replace($trusted_meta, array('_ashko_patris_import_marker' => 'positive-stock-20260721')),
+            array_replace($trusted_meta, array('_ashko_patris_import_marker' => 'positive-stock-20260720 ')),
+            array_replace($trusted_meta, array(
+                '_ashko_patris_import_source_sha256' => str_repeat('f', 64),
+            )),
+            array_replace($trusted_meta, array(
+                '_ashko_patris_import_source_sha256' => ' ' . $trusted_meta['_ashko_patris_import_source_sha256'],
+            )),
+            array_replace($trusted_meta, array(
+                '_ashko_patris_import_source_sha256' => strtoupper($trusted_meta['_ashko_patris_import_source_sha256']),
+            )),
+            array_replace($trusted_meta, array(
+                '_ashko_patris_record_hash' => 'sha256:' . str_repeat('A', 64),
+                '_ashko_patris_import_marker' => '',
+                '_ashko_patris_import_source_sha256' => '',
+            )),
+            array_replace($trusted_meta, array(
+                '_ashko_patris_record_hash' => ' sha256:' . str_repeat('a', 64),
+                '_ashko_patris_import_marker' => '',
+                '_ashko_patris_import_source_sha256' => '',
+            )),
+            array_replace($trusted_meta, array(
+                '_ashko_patris_record_hash' => 'sha256:' . str_repeat('a', 64) . "\n",
+                '_ashko_patris_import_marker' => '',
+                '_ashko_patris_import_source_sha256' => '',
+            )),
+        );
+        foreach ($untrusted as $offset => $meta) {
+            $product = new Ashko_Test_Presentation_Product(105 + $offset, 'Untrusted', '', $meta);
+            self::assertSame(array(), Product_Presentation::product_attributes(array(), $product));
+        }
     }
 
     public function test_additional_information_tab_is_restored_only_when_needed(): void {
@@ -137,7 +196,13 @@ final class ProductPresentationTest extends TestCase {
     public function test_cleanup_dry_run_and_apply_are_exact_idempotent_and_audited(): void {
         $exact = $this->product(160, 'Part A', 'P-4', 'S-4', 'عدد');
         $exact->set_short_description('«Part A» از گروه «قطعه» با سریال S-4 و کد پاتریس P-4 است. واحد فروش: عدد.');
-        $missing = $this->product(161, 'Part B', 'P-5', 'S-5', '');
+        $missing = new Ashko_Test_Presentation_Product(161, 'Part B', '', array(
+            '_ashko_patris_product_code' => 'P-5',
+            Config::OWN_SERIAL_META => 'S-5',
+            '_ashko_patris_unit' => '',
+            '_ashko_patris_import_marker' => 'positive-stock-20260720',
+            '_ashko_patris_import_source_sha256' => '3da2f89f3c814c3d6b8efc4511984739c87b5c12f9ef3c6ea1e11575925fa321',
+        ));
         $missing->set_short_description('«Part B» از گروه «قطعه» با سریال S-5 و کد پاتریس P-5 است.');
         $merchant = $this->product(162, 'Part C', 'P-6', 'S-6', 'عدد');
         $merchant->set_short_description('توضیح واقعی فروشنده با کد P-6');
@@ -151,6 +216,19 @@ final class ProductPresentationTest extends TestCase {
         self::assertSame(2, $dry_run['matched']);
         self::assertSame(0, $dry_run['cleared']);
         self::assertNotSame('', $exact->get_short_description('edit'));
+
+        $meta_query = $GLOBALS['ashko_test_get_posts_args']['meta_query'];
+        self::assertSame('OR', $meta_query['relation']);
+        self::assertSame('_ashko_patris_record_hash', $meta_query[0]['key']);
+        self::assertSame('REGEXP', $meta_query[0]['compare']);
+        self::assertSame('^sha256:[a-f0-9]{64}$', $meta_query[0]['value']);
+        self::assertSame('_ashko_patris_import_marker', $meta_query[1][0]['key']);
+        self::assertSame('positive-stock-20260720', $meta_query[1][0]['value']);
+        self::assertSame('_ashko_patris_import_source_sha256', $meta_query[1][1]['key']);
+        self::assertSame(
+            '3da2f89f3c814c3d6b8efc4511984739c87b5c12f9ef3c6ea1e11575925fa321',
+            $meta_query[1][1]['value']
+        );
 
         $applied = Product_Presentation::cleanup_legacy_excerpts(true);
         self::assertSame(2, $applied['cleared']);

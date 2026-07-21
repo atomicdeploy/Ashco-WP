@@ -9,6 +9,7 @@
 - Moved Patris Code, Serial, and sale unit from generated excerpts into semantic WooCommerce product details and structured product properties.
 - Snapshotted the canonical sale unit through variations, cart, checkout, order lines, emails, account views, and standard invoice metadata.
 - Added an exact-match admin/WP-CLI cleanup for legacy generated excerpts while preserving merchant-authored summaries.
+- Recognized the reviewed one-time import's exact legacy provenance tuple in product presentation and cleanup without widening ownership to incomplete or altered markers.
 
 ## 1.1.0 — 2026-07-20
 
