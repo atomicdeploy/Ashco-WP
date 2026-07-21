@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Renamed the public product-identifier labels to `کد کالا` and `سریال کالا` in WooCommerce product details and structured product data while retaining exact recognition of historical generated excerpts.
 - Corrected the public brand spelling to Ashco across plugin display text, runtime messages, translations, and documentation.
 - Standardized product-sync authentication on the neutral `X-Patris-Product-Sync-Secret` credential header.
 - Added an exact-match Rank Math maintenance repair for malformed product title/description defaults and known bad product overrides.

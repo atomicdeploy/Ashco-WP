@@ -61,13 +61,13 @@ final class Product_Presentation {
 
         if ('' !== $code) {
             $attributes['ashco_patris_product_code'] = array(
-                'label' => __('کد پاتریس', 'ashko-wp'),
+                'label' => __('کد کالا', 'ashko-wp'),
                 'value' => self::identifier_html($code),
             );
         }
         if ('' !== $serial) {
             $attributes['ashco_patris_serial'] = array(
-                'label' => __('سریال پاتریس', 'ashko-wp'),
+                'label' => __('سریال کالا', 'ashko-wp'),
                 'value' => self::identifier_html($serial),
             );
         }
@@ -122,8 +122,8 @@ final class Product_Presentation {
             }
         }
         foreach (array(
-            __('کد پاتریس', 'ashko-wp') => self::meta($product, self::CODE_META),
-            __('سریال پاتریس', 'ashko-wp') => self::meta($product, Config::OWN_SERIAL_META),
+            __('کد کالا', 'ashko-wp') => self::meta($product, self::CODE_META),
+            __('سریال کالا', 'ashko-wp') => self::meta($product, Config::OWN_SERIAL_META),
             __('واحد فروش', 'ashko-wp') => self::meta($product, self::UNIT_META),
         ) as $name => $value) {
             if ('' === $value) {

@@ -324,12 +324,14 @@ msgstr ""
 msgid "A Patris contract header does not match the JSON document."
 msgstr ""
 
-#: includes\class-product-presentation.php:53
-msgid "کد پاتریس"
+#: includes\class-product-presentation.php:64
+#: includes\class-product-presentation.php:125
+msgid "کد کالا"
 msgstr ""
 
-#: includes\class-product-presentation.php:59
-msgid "سریال پاتریس"
+#: includes\class-product-presentation.php:70
+#: includes\class-product-presentation.php:126
+msgid "سریال کالا"
 msgstr ""
 
 #: includes\class-product-commerce.php:67
