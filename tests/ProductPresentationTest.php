@@ -8,8 +8,13 @@ final class ProductPresentationTest extends TestCase {
         $GLOBALS['ashko_test_hooks'] = array();
         $GLOBALS['ashko_test_products'] = array();
         $GLOBALS['ashko_test_post_ids'] = array();
+        $GLOBALS['ashko_test_raw_post_excerpts'] = array();
+        $GLOBALS['ashko_test_get_posts_calls'] = array();
+        $GLOBALS['ashko_test_excerpt_prefilter_calls'] = 0;
         unset($GLOBALS['ashko_test_get_posts_args']);
         $GLOBALS['ashko_test_product_categories'] = array();
+        $GLOBALS['ashko_test_queried_object_id'] = 0;
+        $GLOBALS['ashko_test_post_types'] = array();
         unset($GLOBALS['product']);
         unset($GLOBALS['ashko_test_options']['ashko_patris_legacy_excerpt_cleanup']);
     }
@@ -24,6 +29,14 @@ final class ProductPresentationTest extends TestCase {
         self::assertContains('woocommerce_display_product_attributes', $hooks);
         self::assertContains('woocommerce_product_tabs', $hooks);
         self::assertContains('woocommerce_structured_data_product', $hooks);
+        self::assertContains('rank_math/snippet/rich_snippet_product_entity', $hooks);
+        $rank_math_hooks = array_values(array_filter(
+            $GLOBALS['ashko_test_hooks'],
+            static fn(array $hook): bool => 'rank_math/snippet/rich_snippet_product_entity' === $hook['hook']
+        ));
+        self::assertCount(1, $rank_math_hooks);
+        self::assertSame(20, $rank_math_hooks[0]['priority']);
+        self::assertSame(1, $rank_math_hooks[0]['accepted_args']);
     }
 
     public function test_product_details_are_structured_escaped_and_blank_safe(): void {
@@ -42,6 +55,11 @@ final class ProductPresentationTest extends TestCase {
         self::assertSame('کد پاتریس', $attributes['ashco_patris_product_code']['label']);
         self::assertStringContainsString('class="ashco-patris-identifier"', $attributes['ashco_patris_product_code']['value']);
         self::assertStringContainsString('dir="ltr"', $attributes['ashco_patris_product_code']['value']);
+        self::assertStringStartsWith('<span ', $attributes['ashco_patris_product_code']['value']);
+        self::assertSame(
+            $attributes['ashco_patris_product_code']['value'],
+            wp_kses_post($attributes['ashco_patris_product_code']['value'])
+        );
         self::assertStringContainsString('A&amp;B', $attributes['ashco_patris_product_code']['value']);
         self::assertStringContainsString('B &lt; 7', $attributes['ashco_patris_serial']['value']);
         self::assertSame('عدد', $attributes['ashco_patris_sale_unit']['value']);
@@ -142,6 +160,50 @@ final class ProductPresentationTest extends TestCase {
         self::assertCount(3, $again['additionalProperty']);
     }
 
+    public function test_rank_math_product_entity_preserves_data_and_is_idempotent(): void {
+        $product = $this->product(121, 'Part', 'P-2', 'S-2', 'عدد');
+        $GLOBALS['ashko_test_queried_object_id'] = 121;
+        $entity = array(
+            '@type' => 'Product',
+            'offers' => array('price' => '100'),
+            'additionalProperty' => array(
+                array('@type' => 'PropertyValue', 'name' => 'رنگ', 'value' => 'قرمز'),
+            ),
+        );
+
+        $markup = Product_Presentation::rank_math_product_entity($entity);
+        self::assertSame('100', $markup['offers']['price']);
+        self::assertSame('قرمز', $markup['additionalProperty'][0]['value']);
+        self::assertSame(
+            array('رنگ', 'کد پاتریس', 'سریال پاتریس', 'واحد فروش'),
+            array_column($markup['additionalProperty'], 'name')
+        );
+
+        $again = Product_Presentation::rank_math_product_entity($markup);
+        self::assertSame($markup, $again);
+    }
+
+    public function test_rank_math_product_entity_requires_the_queried_woocommerce_product(): void {
+        $entity = array('@type' => 'Product', 'name' => 'Part');
+        self::assertSame($entity, Product_Presentation::rank_math_product_entity($entity));
+
+        $GLOBALS['product'] = $this->product(122, 'Unrelated loop product', 'WRONG', 'WRONG', 'بسته');
+        self::assertSame($entity, Product_Presentation::rank_math_product_entity($entity));
+
+        $this->product(123, 'Queried product', 'P-3', 'S-3', 'متر');
+        $GLOBALS['ashko_test_queried_object_id'] = 123;
+        $GLOBALS['ashko_test_post_types'][123] = 'page';
+        self::assertSame($entity, Product_Presentation::rank_math_product_entity($entity));
+
+        $GLOBALS['ashko_test_post_types'][123] = 'product';
+        $markup = Product_Presentation::rank_math_product_entity($entity);
+        self::assertSame(
+            array('کد پاتریس', 'سریال پاتریس', 'واحد فروش'),
+            array_column($markup['additionalProperty'], 'name')
+        );
+        self::assertSame('not-an-array', Product_Presentation::rank_math_product_entity('not-an-array'));
+    }
+
     public function test_exact_import_excerpt_is_hidden_but_merchant_copy_is_preserved(): void {
         $product = $this->product(130, 'MODULE PLAYER G016-12V', '118325', '118325', 'عدد');
         $GLOBALS['ashko_test_product_categories'][130] = array('ماژول');
@@ -216,6 +278,7 @@ final class ProductPresentationTest extends TestCase {
         self::assertSame(2, $dry_run['matched']);
         self::assertSame(0, $dry_run['cleared']);
         self::assertNotSame('', $exact->get_short_description('edit'));
+        self::assertSame(array(160, 161, 162), $GLOBALS['ashko_test_get_posts_args']['post__in']);
 
         $meta_query = $GLOBALS['ashko_test_get_posts_args']['meta_query'];
         self::assertSame('OR', $meta_query['relation']);
@@ -241,8 +304,40 @@ final class ProductPresentationTest extends TestCase {
         self::assertSame(2, get_option('ashko_patris_legacy_excerpt_cleanup')['cleared']);
 
         $again = Product_Presentation::cleanup_legacy_excerpts(true);
+        self::assertSame(1, $again['scanned']);
         self::assertSame(0, $again['matched']);
         self::assertSame(0, $again['cleared']);
+        self::assertSame(array(162), $GLOBALS['ashko_test_get_posts_args']['post__in']);
+        self::assertSame('توضیح واقعی فروشنده با کد P-6', $merchant->get_short_description('edit'));
+    }
+
+    public function test_cleanup_empty_prefilter_short_circuits_but_later_trusted_excerpt_is_discovered(): void {
+        $product = $this->product(170, 'Part D', 'P-7', 'S-7', 'عدد');
+        $GLOBALS['ashko_test_product_categories'][170] = array('قطعه');
+        $GLOBALS['ashko_test_post_ids'] = array(170);
+
+        $empty = Product_Presentation::cleanup_legacy_excerpts(true);
+        self::assertSame(0, $empty['scanned']);
+        self::assertSame(0, $empty['matched']);
+        self::assertSame(0, $empty['cleared']);
+        self::assertSame(1, $GLOBALS['ashko_test_excerpt_prefilter_calls']);
+        self::assertSame(array(), $GLOBALS['ashko_test_get_posts_calls']);
+        self::assertArrayNotHasKey('ashko_test_get_posts_args', $GLOBALS);
+        self::assertSame(array(
+            'completed_at' => '2026-07-20 12:00:00',
+            'scanned' => 0,
+            'matched' => 0,
+            'cleared' => 0,
+            'errors' => 0,
+        ), get_option('ashko_patris_legacy_excerpt_cleanup'));
+
+        $legacy = '«Part D» از گروه «قطعه» با سریال S-7 و کد پاتریس P-7 است. واحد فروش: عدد.';
+        $product->set_short_description($legacy);
+        $later = Product_Presentation::cleanup_legacy_excerpts(false);
+        self::assertSame(1, $later['scanned']);
+        self::assertSame(1, $later['matched']);
+        self::assertSame(array(170), $later['matched_product_ids']);
+        self::assertSame(array(170), $GLOBALS['ashko_test_get_posts_args']['post__in']);
     }
 
     private function product(int $id, string $name, string $code, string $serial, string $unit): Ashko_Test_Presentation_Product {
@@ -268,12 +363,16 @@ final class Ashko_Test_Presentation_Product {
         $this->short_description = $short_description;
         $this->meta = $meta;
         $GLOBALS['ashko_test_products'][$id] = $this;
+        $GLOBALS['ashko_test_raw_post_excerpts'][$id] = $short_description;
     }
 
     public function get_id(): int { return $this->id; }
     public function get_name($context = 'view'): string { return $this->name; }
     public function get_meta($key, $single = true, $context = 'view') { return $this->meta[$key] ?? ''; }
     public function get_short_description($context = 'view'): string { return $this->short_description; }
-    public function set_short_description(string $value): void { $this->short_description = $value; }
+    public function set_short_description(string $value): void {
+        $this->short_description = $value;
+        $GLOBALS['ashko_test_raw_post_excerpts'][$this->id] = $value;
+    }
     public function save(): int { ++$this->save_count; return $this->id; }
 }

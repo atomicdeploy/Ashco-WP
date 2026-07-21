@@ -24,6 +24,7 @@ final class Product_Presentation {
         add_filter('woocommerce_display_product_attributes', array(self::class, 'product_attributes'), 20, 2);
         add_filter('woocommerce_product_tabs', array(self::class, 'product_tabs'), 99, 1);
         add_filter('woocommerce_structured_data_product', array(self::class, 'structured_data'), 20, 2);
+        add_filter('rank_math/snippet/rich_snippet_product_entity', array(self::class, 'rank_math_product_entity'), 20, 1);
     }
 
     public static function filter_product_short_description($description, $product): string {
@@ -146,6 +147,19 @@ final class Product_Presentation {
     }
 
     /**
+     * Rank Math exposes only the entity to this filter, so resolve the current
+     * WooCommerce product and reuse the canonical Product property builder.
+     */
+    public static function rank_math_product_entity($entity) {
+        if (!is_array($entity)) {
+            return $entity;
+        }
+
+        $product = self::current_product();
+        return null === $product ? $entity : self::structured_data($entity, $product);
+    }
+
+    /**
      * Recognize only the exact sentence emitted by the one-time catalog import.
      * Any extra text, changed identity, or merchant-authored prose is preserved.
      */
@@ -192,37 +206,42 @@ final class Product_Presentation {
                 )),
             );
         }
-        $ids = function_exists('get_posts') ? get_posts(array(
-            'post_type' => 'product',
-            'post_status' => 'any',
-            'fields' => 'ids',
-            'posts_per_page' => -1,
-            'orderby' => 'ID',
-            'order' => 'ASC',
-            'no_found_rows' => true,
-            'suppress_filters' => true,
-            'meta_query' => array(
-                'relation' => 'OR',
-                array(
-                    'key' => self::RECORD_HASH_META,
-                    'value' => '^sha256:[a-f0-9]{64}$',
-                    'compare' => 'REGEXP',
-                ),
-                array(
-                    'relation' => 'AND',
+        $candidate_ids = self::nonempty_excerpt_product_ids();
+        $ids = array();
+        if (array() !== $candidate_ids && function_exists('get_posts')) {
+            $ids = get_posts(array(
+                'post_type' => 'product',
+                'post_status' => 'any',
+                'fields' => 'ids',
+                'posts_per_page' => -1,
+                'post__in' => $candidate_ids,
+                'orderby' => 'ID',
+                'order' => 'ASC',
+                'no_found_rows' => true,
+                'suppress_filters' => true,
+                'meta_query' => array(
+                    'relation' => 'OR',
                     array(
-                        'key' => self::IMPORT_MARKER_META,
-                        'value' => self::TRUSTED_IMPORT_MARKER,
-                        'compare' => '=',
+                        'key' => self::RECORD_HASH_META,
+                        'value' => '^sha256:[a-f0-9]{64}$',
+                        'compare' => 'REGEXP',
                     ),
                     array(
-                        'key' => self::IMPORT_LEGACY_SOURCE_TOKEN_META,
-                        'value' => self::TRUSTED_IMPORT_LEGACY_SOURCE_TOKEN,
-                        'compare' => '=',
+                        'relation' => 'AND',
+                        array(
+                            'key' => self::IMPORT_MARKER_META,
+                            'value' => self::TRUSTED_IMPORT_MARKER,
+                            'compare' => '=',
+                        ),
+                        array(
+                            'key' => self::IMPORT_LEGACY_SOURCE_TOKEN_META,
+                            'value' => self::TRUSTED_IMPORT_LEGACY_SOURCE_TOKEN,
+                            'compare' => '=',
+                        ),
                     ),
                 ),
-            ),
-        )) : array();
+            ));
+        }
 
         $result = array(
             'mode' => $apply ? 'apply' : 'dry-run',
@@ -274,6 +293,42 @@ final class Product_Presentation {
         return $result;
     }
 
+    /**
+     * Read raw storage first so already-cleared products never enter the more
+     * expensive provenance query. Do not pass an empty post__in to WP_Query:
+     * WordPress treats that as no restriction and would scan every product.
+     */
+    private static function nonempty_excerpt_product_ids(): array {
+        global $wpdb;
+        if (
+            !is_object($wpdb)
+            || !isset($wpdb->posts)
+            || !method_exists($wpdb, 'prepare')
+            || !method_exists($wpdb, 'get_col')
+        ) {
+            return array();
+        }
+
+        $rows = $wpdb->get_col($wpdb->prepare(
+            "SELECT ID
+             FROM {$wpdb->posts}
+             WHERE post_type = %s
+               AND post_excerpt <> ''
+             ORDER BY ID ASC
+             /* ashko_nonempty_product_excerpts */",
+            'product'
+        ));
+        if (!is_array($rows)) {
+            return array();
+        }
+
+        $ids = array_values(array_unique(array_filter(array_map('intval', $rows), static function(int $id): bool {
+            return $id > 0;
+        })));
+        sort($ids, SORT_NUMERIC);
+        return $ids;
+    }
+
     private static function has_public_details($product): bool {
         return '' !== self::meta($product, self::CODE_META)
             || '' !== self::meta($product, Config::OWN_SERIAL_META)
@@ -304,7 +359,31 @@ final class Product_Presentation {
     }
 
     private static function identifier_html(string $value): string {
-        return '<bdi class="ashco-patris-identifier" dir="ltr">' . esc_html($value) . '</bdi>';
+        return '<span class="ashco-patris-identifier" dir="ltr">' . esc_html($value) . '</span>';
+    }
+
+    /** Resolve only the queried WooCommerce product; never trust loop globals. */
+    private static function current_product() {
+        if (
+            !function_exists('get_queried_object_id')
+            || !function_exists('get_post_type')
+            || !function_exists('wc_get_product')
+        ) {
+            return null;
+        }
+
+        $queried_id = (int) get_queried_object_id();
+        if ($queried_id <= 0 || 'product' !== get_post_type($queried_id)) {
+            return null;
+        }
+
+        $queried_product = wc_get_product($queried_id);
+        return is_object($queried_product)
+            && method_exists($queried_product, 'get_id')
+            && method_exists($queried_product, 'get_meta')
+            && $queried_id === (int) $queried_product->get_id()
+                ? $queried_product
+                : null;
     }
 
     private static function is_assigned_category(string $group, $product): bool {

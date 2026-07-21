@@ -15,6 +15,9 @@ $GLOBALS['ashko_test_current_user_can'] = false;
 $GLOBALS['ashko_test_inline_scripts'] = array();
 $GLOBALS['ashko_test_post_ids'] = array();
 $GLOBALS['ashko_test_product_categories'] = array();
+$GLOBALS['ashko_test_raw_post_excerpts'] = array();
+$GLOBALS['ashko_test_get_posts_calls'] = array();
+$GLOBALS['ashko_test_excerpt_prefilter_calls'] = 0;
 
 class WP_Error {
     private $code;
@@ -91,14 +94,18 @@ function wp_strip_all_tags($value, $remove_breaks = false) {
     return $remove_breaks ? preg_replace('/[\r\n\t ]+/', ' ', $value) : $value;
 }
 function number_format_i18n($number, $decimals = 0) { return number_format((float) $number, $decimals, '.', ','); }
-function wp_kses_post($value) { return (string) $value; }
+function wp_kses_post($value) {
+    // The focused test double mirrors the relevant WordPress post allowlist:
+    // bdi is stripped, while span and its global class/dir attributes survive.
+    return preg_replace('#</?bdi\\b[^>]*>#i', '', (string) $value);
+}
 function wp_add_inline_script($handle, $data, $position = 'after') {
     $GLOBALS['ashko_test_inline_scripts'][] = array('handle' => $handle, 'data' => $data, 'position' => $position);
     return true;
 }
 function admin_url($path = '') { return 'https://example.test/wp-admin/' . ltrim((string) $path, '/'); }
 function wp_nonce_url($url, $action = -1, $name = '_wpnonce') { return (string) $url . '&_wpnonce=test'; }
-function get_post_type($post_id) { return 'product'; }
+function get_post_type($post_id) { return $GLOBALS['ashko_test_post_types'][(int) $post_id] ?? 'product'; }
 function get_post_meta($post_id, $key, $single = false) {
     $product = $GLOBALS['ashko_test_products'][(int) $post_id] ?? null;
     return $product ? $product->get_meta($key, $single, 'edit') : '';
@@ -108,9 +115,17 @@ function delete_post_meta($post_id, $key, $value = '') {
     return $product ? $product->delete_meta_data_exact($key, $value) : false;
 }
 function wc_get_product($post_id) { return $GLOBALS['ashko_test_products'][(int) $post_id] ?? null; }
+function get_queried_object_id() { return (int) ($GLOBALS['ashko_test_queried_object_id'] ?? 0); }
 function get_posts($args = array()) {
     $GLOBALS['ashko_test_get_posts_args'] = $args;
-    return $GLOBALS['ashko_test_post_ids'];
+    $GLOBALS['ashko_test_get_posts_calls'][] = $args;
+    $ids = $GLOBALS['ashko_test_post_ids'];
+    if (isset($args['post__in']) && is_array($args['post__in'])) {
+        $ids = array_values(array_filter($ids, static function($id) use ($args) {
+            return in_array((int) $id, array_map('intval', $args['post__in']), true);
+        }));
+    }
+    return $ids;
 }
 function wp_get_post_terms($post_id, $taxonomy, $args = array()) {
     return $GLOBALS['ashko_test_product_categories'][(int) $post_id] ?? array();
@@ -134,6 +149,21 @@ final class Ashko_Test_WPDB {
         return array_values(array_filter($GLOBALS['ashko_test_serial_rows'], static function($row) use ($keys, $serials) {
             return in_array((string) $row['meta_key'], $keys, true) && in_array((string) $row['meta_value'], $serials, true);
         }));
+    }
+    public function get_col($prepared) {
+        $query = is_array($prepared) ? ($prepared['query'] ?? '') : (string) $prepared;
+        if (false === strpos($query, 'ashko_nonempty_product_excerpts')) {
+            return array();
+        }
+        ++$GLOBALS['ashko_test_excerpt_prefilter_calls'];
+        $ids = array();
+        foreach ($GLOBALS['ashko_test_raw_post_excerpts'] as $id => $excerpt) {
+            if ('' !== (string) $excerpt) {
+                $ids[] = (int) $id;
+            }
+        }
+        sort($ids, SORT_NUMERIC);
+        return $ids;
     }
 }
 $GLOBALS['wpdb'] = new Ashko_Test_WPDB();
