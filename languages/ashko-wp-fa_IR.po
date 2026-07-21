@@ -354,3 +354,34 @@ msgstr "پاک‌سازی موارد منطبق"
 #: includes\admin\class-admin.php:231
 msgid "فقط توضیح‌های ماشینیِ دقیق پاک شوند؟"
 msgstr "فقط توضیح‌های ماشینیِ دقیق پاک شوند؟"
+
+#: includes\class-storefront-price-display.php:82
+#: includes\class-storefront-price-display.php:102
+msgid "ریال"
+msgstr "ریال"
+
+#: includes\class-storefront-price-display.php:83
+#: includes\class-storefront-price-display.php:106
+msgid "تومان"
+msgstr "تومان"
+
+#: includes\class-storefront-price-display.php:86
+#: includes\class-storefront-price-display.php:113
+msgid "قیمت‌ها به ریال نمایش داده می‌شوند."
+msgstr "قیمت‌ها به ریال نمایش داده می‌شوند."
+
+#: includes\class-storefront-price-display.php:87
+msgid "قیمت‌ها به تومان نمایش داده می‌شوند."
+msgstr "قیمت‌ها به تومان نمایش داده می‌شوند."
+
+#: includes\class-storefront-price-display.php:97
+msgid "انتخاب واحد نمایش قیمت"
+msgstr "انتخاب واحد نمایش قیمت"
+
+#: includes\class-storefront-price-display.php:99
+msgid "نمایش قیمت"
+msgstr "نمایش قیمت"
+
+#: includes\class-storefront-price-display.php:110
+msgid "هر ۱ تومان برابر با ۱۰ ریال است؛ این انتخاب فقط شیوهٔ نمایش قیمت را تغییر می‌دهد."
+msgstr "هر ۱ تومان برابر با ۱۰ ریال است؛ این انتخاب فقط شیوهٔ نمایش قیمت را تغییر می‌دهد."

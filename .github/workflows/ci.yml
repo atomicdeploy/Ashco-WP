@@ -17,9 +17,13 @@ jobs:
           php-version: '8.1'
           coverage: none
           tools: composer:v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       - run: composer install --no-interaction --prefer-dist
       - run: composer lint
       - run: composer test
+      - run: composer test:js
       - name: Build production ZIP
         shell: pwsh
         run: ./scripts/build-plugin.ps1

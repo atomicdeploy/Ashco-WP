@@ -11,6 +11,7 @@
   },
   "scripts": {
     "test": "phpunit",
+    "test:js": "node --test tests/js/*.test.js",
     "lint": "php scripts/lint.php",
     "check-package": "pwsh -NoProfile -File scripts/build-plugin.ps1"
   }

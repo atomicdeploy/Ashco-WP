@@ -16,7 +16,7 @@ New-Item -ItemType Directory -Path $stagePlugin -Force | Out-Null
 foreach ($file in @('ashko-wp.php', 'README.md', 'CHANGELOG.md', 'LICENSE')) {
     Copy-Item -LiteralPath (Join-Path $pluginRoot $file) -Destination $stagePlugin
 }
-foreach ($directory in @('includes', 'languages', 'docs')) {
+foreach ($directory in @('includes', 'languages', 'docs', 'assets')) {
     Copy-Item -LiteralPath (Join-Path $pluginRoot $directory) -Destination $stagePlugin -Recurse
 }
 
