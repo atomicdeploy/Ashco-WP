@@ -12,6 +12,9 @@ $GLOBALS['ashko_test_currency'] = 'IRR';
 $GLOBALS['ashko_test_hooks'] = array();
 $GLOBALS['ashko_test_current_actions'] = array();
 $GLOBALS['ashko_test_current_user_can'] = false;
+$GLOBALS['ashko_test_inline_scripts'] = array();
+$GLOBALS['ashko_test_post_ids'] = array();
+$GLOBALS['ashko_test_product_categories'] = array();
 
 class WP_Error {
     private $code;
@@ -82,8 +85,17 @@ function add_action($hook, $callback, $priority = 10, $accepted_args = 1) {
 function doing_action($hook = null) { return null === $hook ? !empty($GLOBALS['ashko_test_current_actions']) : !empty($GLOBALS['ashko_test_current_actions'][$hook]); }
 function esc_attr($value) { return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8'); }
 function esc_html($value) { return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8'); }
+function esc_html__($value, $domain = null) { return esc_html($value); }
+function wp_strip_all_tags($value, $remove_breaks = false) {
+    $value = strip_tags((string) $value);
+    return $remove_breaks ? preg_replace('/[\r\n\t ]+/', ' ', $value) : $value;
+}
 function number_format_i18n($number, $decimals = 0) { return number_format((float) $number, $decimals, '.', ','); }
 function wp_kses_post($value) { return (string) $value; }
+function wp_add_inline_script($handle, $data, $position = 'after') {
+    $GLOBALS['ashko_test_inline_scripts'][] = array('handle' => $handle, 'data' => $data, 'position' => $position);
+    return true;
+}
 function admin_url($path = '') { return 'https://example.test/wp-admin/' . ltrim((string) $path, '/'); }
 function wp_nonce_url($url, $action = -1, $name = '_wpnonce') { return (string) $url . '&_wpnonce=test'; }
 function get_post_type($post_id) { return 'product'; }
@@ -96,6 +108,10 @@ function delete_post_meta($post_id, $key, $value = '') {
     return $product ? $product->delete_meta_data_exact($key, $value) : false;
 }
 function wc_get_product($post_id) { return $GLOBALS['ashko_test_products'][(int) $post_id] ?? null; }
+function get_posts($args = array()) { return $GLOBALS['ashko_test_post_ids']; }
+function wp_get_post_terms($post_id, $taxonomy, $args = array()) {
+    return $GLOBALS['ashko_test_product_categories'][(int) $post_id] ?? array();
+}
 
 final class Ashko_Test_WPDB {
     public $prefix = 'wp_';
@@ -166,6 +182,8 @@ require_once $root . '/includes/class-memory-guard.php';
 require_once $root . '/includes/class-decimal-calculator.php';
 require_once $root . '/includes/class-serial-resolver.php';
 require_once $root . '/includes/class-product-applicator.php';
+require_once $root . '/includes/class-product-commerce.php';
+require_once $root . '/includes/class-product-presentation.php';
 require_once $root . '/includes/class-jalali.php';
 require_once $root . '/includes/class-logger.php';
 require_once $root . '/includes/class-product-sync-receiver.php';

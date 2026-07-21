@@ -7,6 +7,7 @@ final class CLI {
         \WP_CLI::add_command('ashko patris reconcile', array(self::class, 'reconcile'));
         \WP_CLI::add_command('ashko patris dry-run', array(self::class, 'dry_run'));
         \WP_CLI::add_command('ashko patris apply', array(self::class, 'apply'));
+        \WP_CLI::add_command('ashko patris cleanup-excerpts', array(self::class, 'cleanup_excerpts'));
     }
 
     public static function status(): void {
@@ -27,6 +28,17 @@ final class CLI {
             \WP_CLI::error('Use --yes after reviewing an Ashco dry-run report.');
         }
         self::file_action($args, true);
+    }
+
+    public static function cleanup_excerpts(array $args, array $assoc): void {
+        $apply = !empty($assoc['yes']);
+        $result = Product_Presentation::cleanup_legacy_excerpts($apply);
+        \WP_CLI::print_value($result, array('format' => 'json'));
+        if (!$apply) {
+            \WP_CLI::log('Dry run only. Re-run with --yes to clear the exact matched legacy excerpts.');
+        } elseif ($result['errors']) {
+            \WP_CLI::error('One or more legacy excerpts could not be cleared.');
+        }
     }
 
     private static function file_action(array $args, bool $apply): void {

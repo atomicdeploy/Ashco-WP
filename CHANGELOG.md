@@ -6,6 +6,9 @@
 - Standardized product-sync authentication on the neutral `X-Patris-Product-Sync-Secret` credential header.
 - Added an exact-match Rank Math maintenance repair for malformed product title/description defaults and known bad product overrides.
 - Made shipping rates currency-explicit throughout the living product-sync contract and Ashco settings, with exact CNY/IRR conversion and one final rounding step.
+- Moved Patris Code, Serial, and sale unit from generated excerpts into semantic WooCommerce product details and structured product properties.
+- Snapshotted the canonical sale unit through variations, cart, checkout, order lines, emails, account views, and standard invoice metadata.
+- Added an exact-match admin/WP-CLI cleanup for legacy generated excerpts while preserving merchant-authored summaries.
 
 ## 1.1.0 — 2026-07-20
 
