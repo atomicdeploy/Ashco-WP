@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Ashco-WP Patris Sync 1.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-20 19:44+0330\n"
+"POT-Creation-Date: 2026-07-21 08:27+0330\n"
 "PO-Revision-Date: 2026-07-20 23:30+0330\n"
 "Last-Translator: AtomicDeploy\n"
 "Language-Team: Persian\n"
@@ -13,377 +13,1029 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "X-Domain: ashko-wp\n"
 
-#: includes\class-sync-service.php:35
-msgid "This exact Patris source is not allowed."
-msgstr "این منبع دقیق پاتریس در فهرست مجاز نیست."
+#: includes\admin\class-admin.php:575
+#, php-format
+msgid "%1$d توضیح کوتاه قدیمی پاک شد؛ تعداد خطا: %2$d."
+msgstr "%1$d توضیح کوتاه قدیمی پاک شد؛ تعداد خطا: %2$d."
 
-#: includes\class-sync-service.php:56
-msgid "The durable sync report did not pass creation readback."
-msgstr "بازخوانی ایجاد گزارش پایدار همگام‌سازی موفق نبود."
+#: includes\admin\class-admin.php:187
+#, fuzzy, php-format
+msgid "%d فیلد متادیتا"
+msgstr "تغییرات متادیتا"
 
-#: includes\class-sync-service.php:70
-msgid "The durable report cannot resume because this event projection differs from its first request."
-msgstr "گزارش پایدار نمی‌تواند ادامه یابد، زیرا نمای این رویداد با نخستین درخواست آن متفاوت است."
+#: includes\api\class-rest-controller.php:85
+msgid "A Patris contract header does not match the JSON document."
+msgstr "یکی از سرآیندهای قرارداد پاتریس با سند JSON مطابقت ندارد."
 
-#: includes\class-sync-service.php:86 includes\class-serial-resolver.php:140
-#: includes\class-product-sync-receiver.php:1699
-msgid "No WooCommerce product has that exact Serial."
-msgstr "هیچ کالای ووکامرس با این Serial دقیق پیدا نشد."
+#: includes\class-current-catalog-report.php:167
+msgid "A different candidate already occupies this source timestamp."
+msgstr "پیش‌نمایش دیگری همین زمان منبع را اشغال کرده است."
 
-#: includes\class-sync-service.php:105
-msgid "The durable sync report checkpoint could not be saved."
-msgstr "نقطه ذخیره گزارش پایدار همگام‌سازی ثبت نشد."
+#: includes\class-report-repository.php:121
+msgid "A per-product report row could not be saved."
+msgstr "ردیف گزارش هر کالا ذخیره نشد."
 
-#: includes\class-serial-resolver.php:77
-msgid "Serial must be supplied as a string."
-msgstr "Serial باید به‌صورت رشته ارسال شود."
+#: includes\api\class-rest-controller.php:41
+msgid "A valid Ashco sync credential is required."
+msgstr "برای همگام‌سازی، اعتبارنامه معتبر اشکو لازم است."
+
+#: includes\class-current-catalog-report.php:158
+msgid "An older candidate cannot replace the newer staged projection."
+msgstr "پیش‌نمایش قدیمی‌تر نمی‌تواند جایگزین تصویر مرحله‌بندی‌شده جدیدتر شود."
+
+#: includes\class-plugin.php:51
+msgid "Ashco-WP برای همگام‌سازی کالا به WooCommerce نیاز دارد."
+msgstr "Ashco-WP برای همگام‌سازی کالا به WooCommerce نیاز دارد."
+
+#: includes\admin\class-admin.php:341
+msgid ""
+"Ashco-WP نرخ مرجع CNY و متادیتای محصول را مستقیماً مدیریت می‌کند؛ افزونه تبدیل "
+"ارز برای فروشگاه پایه IRR لازم نیست."
+msgstr ""
+"Ashco-WP نرخ مرجع CNY و متادیتای محصول را مستقیماً مدیریت می‌کند؛ افزونه تبدیل "
+"ارز برای فروشگاه پایه IRR لازم نیست."
+
+#: includes\admin\class-admin.php:152
+msgid "CNY"
+msgstr "CNY"
+
+#: includes\admin\class-admin.php:128
+msgid "CNY منبع"
+msgstr "CNY منبع"
+
+#: includes\admin\class-admin.php:647
+msgid "CNY موجود نیست یا ارز آن صحیح نیست"
+msgstr "CNY موجود نیست یا ارز آن صحیح نیست"
+
+#: includes\admin\class-admin.php:428
+msgid "CSV export stopped at the safe row limit."
+msgstr "خروجی CSV در سقف امن تعداد ردیف متوقف شد."
 
 #: includes\class-serial-resolver.php:132
 msgid "More than one product shares that exact Serial."
 msgstr "بیش از یک کالا همین Serial دقیق را دارد."
 
+#: includes\class-cli.php:126
+msgid "Mutation requires an explicit administrator --user and --yes."
+msgstr "تغییر داده به --user مدیر صریح و --yes نیاز دارد."
+
+#: includes\class-sync-service.php:92 includes\class-serial-resolver.php:140
+#: includes\class-product-sync-receiver.php:1701
+#: includes\class-current-catalog-report.php:86
+msgid "No WooCommerce product has that exact Serial."
+msgstr "هیچ کالای ووکامرس با این Serial دقیق پیدا نشد."
+
+#: includes\class-cli.php:60
+msgid "Provide a canonical Ashco kala.json path."
+msgstr "مسیر فایل canonical kala.json اشکو را وارد کنید."
+
+#: includes\class-serial-resolver.php:77
+msgid "Serial must be supplied as a string."
+msgstr "Serial باید به‌صورت رشته ارسال شود."
+
+#: includes\class-cli.php:77
+msgid "Static kala.json input must be stored outside the Ashco web root."
+msgstr "فایل ثابت kala.json باید خارج از ریشه وب اشکو نگهداری شود."
+
+#: includes\class-current-catalog-report.php:530
+msgid "The Ashco product catalog could not be read."
+msgstr "فهرست کالاهای اشکو خوانده نشد."
+
+#: includes\class-current-catalog-report.php:533
+msgid "The Ashco product catalog exceeds the safe report limit."
+msgstr "فهرست کالاهای اشکو از سقف امن گزارش بیشتر است."
+
+#: includes\class-memory-guard.php:18
+msgid ""
+"The Ashco sync receiver needs at least 192 MiB of PHP memory for a complete "
+"Patris envelope."
+msgstr ""
+"گیرنده همگام‌سازی اشکو برای بسته کامل پاتریس حداقل به ۱۹۲ مگابایت حافظه PHP "
+"نیاز دارد."
+
+#: includes\class-cli.php:68
+msgid "The Ashco web root could not be resolved safely."
+msgstr "مسیر قطعی ریشه وب اشکو به‌صورت امن تعیین نشد."
+
+#: includes\class-cli.php:104
+msgid "The canonical Ashco kala.json file changed during its safety check."
+msgstr "فایل canonical kala.json اشکو هنگام بررسی ایمنی تغییر کرد."
+
+#: includes\class-cli.php:99
+msgid "The canonical Ashco kala.json file could not be locked for reading."
+msgstr "قفل خواندن فایل canonical kala.json اشکو برقرار نشد."
+
+#: includes\class-cli.php:95
+msgid "The canonical Ashco kala.json file could not be opened."
+msgstr "فایل canonical kala.json اشکو باز نشد."
+
+#: includes\class-cli.php:108
+msgid "The canonical Ashco kala.json file could not be read completely."
+msgstr "فایل canonical kala.json اشکو به‌طور کامل خوانده نشد."
+
+#: includes\class-cli.php:81
+msgid ""
+"The canonical Ashco kala.json file is empty or exceeds the safe size limit."
+msgstr "فایل canonical kala.json اشکو خالی است یا از سقف امن حجم بیشتر است."
+
+#: includes\class-cli.php:64
+msgid "The canonical Ashco kala.json file is not readable."
+msgstr "فایل canonical kala.json اشکو قابل خواندن نیست."
+
+#: includes\class-sync-service.php:76
+msgid ""
+"The durable report cannot resume because this event projection differs from "
+"its first request."
+msgstr ""
+"گزارش پایدار نمی‌تواند ادامه یابد، زیرا نمای این رویداد با نخستین درخواست آن "
+"متفاوت است."
+
+#: includes\class-sync-service.php:111
+msgid "The durable sync report checkpoint could not be saved."
+msgstr "نقطه ذخیره گزارش پایدار همگام‌سازی ثبت نشد."
+
+#: includes\class-report-repository.php:89
+msgid "The durable sync report could not be started."
+msgstr "گزارش پایدار همگام‌سازی آغاز نشد."
+
+#: includes\class-sync-service.php:62
+msgid "The durable sync report did not pass creation readback."
+msgstr "بازخوانی ایجاد گزارش پایدار همگام‌سازی موفق نبود."
+
 #: includes\class-serial-resolver.php:148
 msgid "The exact Serial lookup could not be completed."
 msgstr "جست‌وجوی دقیق Serial کامل نشد."
 
-#: includes\class-report-repository.php:91
-msgid "The durable sync report could not be started."
-msgstr "گزارش پایدار همگام‌سازی آغاز نشد."
+#: includes\class-cli.php:129
+msgid ""
+"The explicit --user must be an Ashco administrator with WooCommerce "
+"management access."
+msgstr "--user صریح باید مدیر اشکو و دارای دسترسی مدیریت WooCommerce باشد."
 
-#: includes\class-report-repository.php:123
-msgid "A per-product report row could not be saved."
-msgstr "ردیف گزارش هر کالا ذخیره نشد."
+#: includes\class-current-catalog-report.php:145
+msgid "The safe staged-source limit has been reached."
+msgstr "سقف امن تعداد منابع مرحله‌بندی‌شده تکمیل شده است."
 
-#: includes\class-plugin.php:47
-msgid "Ashco-WP برای همگام‌سازی کالا به WooCommerce نیاز دارد."
-msgstr "Ashco-WP برای همگام‌سازی کالا به WooCommerce نیاز دارد."
+#: includes\class-current-catalog-report.php:219
+msgid "The staged candidate projection changed during persistence."
+msgstr "پیش‌نمایش مرحله‌بندی‌شده هنگام ذخیره‌سازی تغییر کرد."
 
-#: includes\class-plugin.php:52
-#, php-format
-msgid "ارز پایه WooCommerce باید IRR باشد؛ مقدار فعلی %s است. هیچ قیمت IRT بدون تبدیل روی اشکو نوشته نمی‌شود."
-msgstr "ارز پایه WooCommerce باید IRR باشد؛ مقدار فعلی %s است. هیچ قیمت IRT بدون تبدیل روی اشکو نوشته نمی‌شود."
+#: includes\class-current-catalog-report.php:213
+#, fuzzy
+msgid "The validated candidate projection did not pass staged readback."
+msgstr "بازخوانی ایجاد گزارش پایدار همگام‌سازی موفق نبود."
+
+#: includes\class-current-catalog-report.php:134
+msgid "The validated candidate projection is incomplete and was not staged."
+msgstr "پیش‌نمایش معتبر کامل نیست و مرحله‌بندی نشد."
+
+#: includes\class-sync-service.php:36
+msgid "This exact Patris source is not allowed."
+msgstr "این منبع دقیق پاتریس در فهرست مجاز نیست."
+
+#: includes\class-cli.php:30
+msgid "Use --yes after reviewing an Ashco dry-run report."
+msgstr "پس از بررسی گزارش اجرای آزمایشی اشکو از --yes استفاده کنید."
+
+#: includes\admin\class-admin.php:176
+msgid "Woo فعلی:"
+msgstr "Woo فعلی:"
+
+#: includes\admin\class-admin.php:276
+msgid "null صریح منبع"
+msgstr "null صریح منبع"
+
+#: includes\admin\class-admin.php:377
+msgid ""
+"اتصال به سرویس‌های خارجی به‌طور پیش‌فرض غیرفعال است و این نسخه هیچ داده‌ای را "
+"بدون پیکربندی صریح ارسال نمی‌کند."
+msgstr ""
+"اتصال به سرویس‌های خارجی به‌طور پیش‌فرض غیرفعال است و این نسخه هیچ داده‌ای را "
+"بدون پیکربندی صریح ارسال نمی‌کند."
+
+#: includes\admin\class-admin.php:294
+msgid "اجرای اخیر"
+msgstr "اجرای اخیر"
+
+#: includes\admin\class-admin.php:153
+#, fuzzy
+msgid "ارز خارجی"
+msgstr "ارز قیمت خارجی"
+
+#: includes\admin\class-admin.php:702
+msgid "ارز قیمت خارجی"
+msgstr "ارز قیمت خارجی"
+
+#: includes\admin\class-admin.php:225
+#, fuzzy
+msgid "ارز هزینه حمل"
+msgstr "ارز هزینه حمل هر کیلو"
+
+#: includes\admin\class-admin.php:361
+msgid "ارز هزینه حمل هر کیلو"
+msgstr "ارز هزینه حمل هر کیلو"
+
+#: includes\admin\class-admin.php:221
+#, fuzzy
+msgid "ارز پایه WooCommerce"
+msgstr "شناسه WooCommerce"
 
 #: includes\class-plugin.php:56
-msgid "یک افزونه تغییر ارز فعال است. Ashco-WP نرخ CNY مرجع را خود مدیریت می‌کند؛ برای جلوگیری از تغییر قیمت IRR، وضعیت افزونه ارزی را بررسی کنید."
-msgstr "یک افزونه تغییر ارز فعال است. Ashco-WP نرخ CNY مرجع را خود مدیریت می‌کند؛ برای جلوگیری از تغییر قیمت IRR، وضعیت افزونه ارزی را بررسی کنید."
-
-#: includes\class-memory-guard.php:18
-msgid "The Ashco sync receiver needs at least 192 MiB of PHP memory for a complete Patris envelope."
-msgstr "گیرنده همگام‌سازی اشکو برای بسته کامل پاتریس حداقل به ۱۹۲ مگابایت حافظه PHP نیاز دارد."
-
-#: includes\class-frontend-stock.php:67
 #, php-format
-msgid "موجودی قابل فروش اشکو: %s"
-msgstr "موجودی قابل فروش اشکو: %s"
+msgid ""
+"ارز پایه WooCommerce باید IRR باشد؛ مقدار فعلی %s است. هیچ قیمت IRT بدون "
+"تبدیل روی اشکو نوشته نمی‌شود."
+msgstr ""
+"ارز پایه WooCommerce باید IRR باشد؛ مقدار فعلی %s است. هیچ قیمت IRT بدون "
+"تبدیل روی اشکو نوشته نمی‌شود."
 
-#: includes\class-acf-integration.php:21
-msgid "قیمت‌گذاری پاتریس اشکو"
-msgstr "قیمت‌گذاری پاتریس اشکو"
+#: includes\admin\class-admin.php:120
+msgid "اعمال فیلتر"
+msgstr "اعمال فیلتر"
 
-#: includes\class-acf-integration.php:25
-msgid "قیمت خرید (یوان چین)"
-msgstr "قیمت خرید (یوان چین)"
+#: includes\admin\class-admin.php:345
+msgid "افزونه تغییر ارز شناسایی نشد."
+msgstr "افزونه تغییر ارز شناسایی نشد."
+
+#: includes\admin\class-admin.php:364
+msgid "انتخاب ارز الزامی است و مبلغ حمل بر اساس همین ارز محاسبه می‌شود."
+msgstr "انتخاب ارز الزامی است و مبلغ حمل بر اساس همین ارز محاسبه می‌شود."
+
+#: includes\class-storefront-price-display.php:97
+msgid "انتخاب واحد نمایش قیمت"
+msgstr "انتخاب واحد نمایش قیمت"
+
+#: includes\admin\class-admin.php:567
+msgid ""
+"این ابزار فقط جملهٔ دقیق و ماشینیِ واردشده را پاک می‌کند. توضیح‌های نوشته‌شده "
+"توسط فروشنده بدون تغییر می‌مانند."
+msgstr ""
+"این ابزار فقط جملهٔ دقیق و ماشینیِ واردشده را پاک می‌کند. توضیح‌های نوشته‌شده "
+"توسط فروشنده بدون تغییر می‌مانند."
+
+#: includes\admin\class-admin.php:75
+#, fuzzy
+msgid ""
+"این نما مستقل از تاریخچه اجراها، تصویر کامل انتخاب‌شده را با وضعیت فعلی "
+"WooCommerce تطبیق می‌دهد و هیچ داده‌ای را تغییر نمی‌دهد."
+msgstr ""
+"این نما مستقل از تاریخچه اجراها، کل آخرین تصویر مرجع ذخیره‌شده را با وضعیت "
+"فعلی WooCommerce تطبیق می‌دهد و هیچ داده‌ای را تغییر نمی‌دهد."
 
 #: includes\class-acf-integration.php:33
 msgid "تاریخ مؤثر نرخ ارز"
 msgstr "تاریخ مؤثر نرخ ارز"
 
-#: includes\class-acf-integration.php:38
-msgid "مقدار مرجع به‌صورت میلادی ISO ذخیره می‌شود؛ پنل اشکو معادل جلالی را نیز نمایش می‌دهد."
-msgstr "مقدار مرجع به‌صورت میلادی ISO ذخیره می‌شود؛ پنل اشکو معادل جلالی را نیز نمایش می‌دهد."
-
-#: includes\admin\class-admin.php:17
-msgid "هماهنگ‌سازی پاتریس اشکو"
-msgstr "هماهنگ‌سازی پاتریس اشکو"
-
-#: includes\admin\class-admin.php:18
-msgid "پاتریس اشکو"
-msgstr "پاتریس اشکو"
-
-#: includes\admin\class-admin.php:29 includes\admin\class-admin.php:135
-#: includes\admin\class-admin.php:151
-msgid "دسترسی کافی ندارید."
-msgstr "دسترسی کافی ندارید."
-
-#: includes\admin\class-admin.php:32
-msgid "هماهنگ‌سازی کالا و قیمت پاتریس — اشکو"
-msgstr "هماهنگ‌سازی کالا و قیمت پاتریس — اشکو"
-
-#: includes\admin\class-admin.php:34
-msgid "گزارش‌ها و هشدارها"
-msgstr "گزارش‌ها و هشدارها"
-
-#: includes\admin\class-admin.php:35
-msgid "تنظیمات قیمت و اتصال"
-msgstr "تنظیمات قیمت و اتصال"
-
-#: includes\admin\class-admin.php:49
-msgid "هنوز اجرای خشک یا اعمال ثبت نشده است."
-msgstr "هنوز اجرای خشک یا اعمال ثبت نشده است."
-
-#: includes\admin\class-admin.php:54
-msgid "اجرای اخیر"
-msgstr "اجرای اخیر"
-
-#: includes\admin\class-admin.php:77
-#, php-format
-msgid "جزئیات اجرای شماره %d"
-msgstr "جزئیات اجرای شماره %d"
-
-#: includes\admin\class-admin.php:78
-msgid "دانلود گزارش کامل CSV"
-msgstr "دانلود گزارش کامل CSV"
-
-#: includes\admin\class-admin.php:79
-msgid "تغییرات فیلدهای ووکامرس"
-msgstr "تغییرات فیلدهای ووکامرس"
-
-#: includes\admin\class-admin.php:80
-msgid "تغییرات متادیتا"
-msgstr "تغییرات متادیتا"
-
-#: includes\admin\class-admin.php:81
-msgid "گروه‌های هشدار"
-msgstr "گروه‌های هشدار"
-
-#: includes\admin\class-admin.php:84
-msgid "فهرست کالا/قیمت (۲۰۰ ردیف نخست)"
-msgstr "فهرست کالا/قیمت (۲۰۰ ردیف نخست)"
-
-#: includes\admin\class-admin.php:85
-msgid "نتیجه"
-msgstr "نتیجه"
-
-#: includes\admin\class-admin.php:85
-msgid "قیمت منبع IRT"
-msgstr "قیمت منبع IRT"
-
-#: includes\admin\class-admin.php:85
-msgid "قیمت نهایی IRR"
-msgstr "قیمت نهایی IRR"
-
-#: includes\admin\class-admin.php:85
-msgid "مغایرت IRR"
-msgstr "مغایرت IRR"
-
-#: includes\admin\class-admin.php:85
+#: includes\admin\class-admin.php:325
 msgid "تاریخ نرخ (میلادی/جلالی)"
 msgstr "تاریخ نرخ (میلادی/جلالی)"
 
-#: includes\admin\class-admin.php:85
-msgid "فیلدها"
-msgstr "فیلدها"
+#: includes\admin\class-admin.php:39
+msgid "تاریخچه اجراها"
+msgstr "تاریخچه اجراها"
 
-#: includes\admin\class-admin.php:85
-msgid "هشدارها"
-msgstr "هشدارها"
+#: includes\admin\class-admin.php:84
+msgid "تصویر گزارش"
+msgstr "تصویر گزارش"
 
-#: includes\admin\class-admin.php:100
-msgid "وضعیت یکپارچه‌سازی"
-msgstr "وضعیت یکپارچه‌سازی"
+#: includes\admin\class-admin.php:245 includes\admin\class-admin.php:712
+msgid "تطبیق دقیق"
+msgstr "تطبیق دقیق"
 
-#: includes\admin\class-admin.php:101
-msgid "Ashco-WP نرخ مرجع CNY و متادیتای محصول را مستقیماً مدیریت می‌کند؛ افزونه تبدیل ارز برای فروشگاه پایه IRR لازم نیست."
-msgstr "Ashco-WP نرخ مرجع CNY و متادیتای محصول را مستقیماً مدیریت می‌کند؛ افزونه تبدیل ارز برای فروشگاه پایه IRR لازم نیست."
+#: includes\admin\class-admin.php:99
+msgid "تطبیق‌یافته"
+msgstr "تطبیق‌یافته"
 
-#: includes\admin\class-admin.php:102
-msgid "در دسترس؛ همگام‌سازی دوطرفه فعال است."
-msgstr "در دسترس؛ همگام‌سازی دوطرفه فعال است."
-
-#: includes\admin\class-admin.php:102
-msgid "در دسترس نیست؛ متادیتای استاندارد Ashco-WP بدون اختلال کار می‌کند."
-msgstr "در دسترس نیست؛ متادیتای استاندارد Ashco-WP بدون اختلال کار می‌کند."
-
-#: includes\admin\class-admin.php:105
-msgid "افزونه تغییر ارز شناسایی نشد."
-msgstr "افزونه تغییر ارز شناسایی نشد."
-
-#: includes\admin\class-admin.php:109
-msgid "فعال (احتمال تعارض)"
-msgstr "فعال (احتمال تعارض)"
-
-#: includes\admin\class-admin.php:109
-msgid "غیرفعال (وضعیت توصیه‌شده)"
-msgstr "غیرفعال (وضعیت توصیه‌شده)"
-
-#: includes\admin\class-admin.php:116
-msgid "کلید متای دقیق Serial"
-msgstr "کلید متای دقیق Serial"
-
-#: includes\admin\class-admin.php:116
-msgid "پیش‌فرض و مقدار تأییدشده سایت: _sku. تطبیق Code مجاز نیست."
-msgstr "پیش‌فرض و مقدار تأییدشده سایت: _sku. تطبیق Code مجاز نیست."
-
-#: includes\admin\class-admin.php:117
-msgid "نرخ هر CNY به ریال"
-msgstr "نرخ هر CNY به ریال"
-
-#: includes\admin\class-admin.php:118
-msgid "هزینه هوایی/اکسپرس هر کیلو"
-msgstr "هزینه هوایی/اکسپرس هر کیلو"
-
-#: includes\admin\class-admin.php:119
-msgid "ارز هزینه حمل هر کیلو"
-msgstr "ارز هزینه حمل هر کیلو"
-
-#: includes\admin\class-admin.php:122
-msgid "ریال ایران (IRR)"
-msgstr "ریال ایران (IRR)"
-
-#: includes\admin\class-admin.php:122
-msgid "یوان چین (CNY)"
-msgstr "یوان چین (CNY)"
-
-#: includes\admin\class-admin.php:123
-msgid "انتخاب ارز الزامی است و مبلغ حمل بر اساس همین ارز محاسبه می‌شود."
-msgstr "انتخاب ارز الزامی است و مبلغ حمل بر اساس همین ارز محاسبه می‌شود."
-
-#: includes\admin\class-admin.php:126
-msgid "حاشیه سود (درصد)"
-msgstr "حاشیه سود (درصد)"
-
-#: includes\admin\class-admin.php:120
-msgid "درصد موجودی ALLANBAR قابل فروش"
-msgstr "درصد موجودی ALLANBAR قابل فروش"
-
-#: includes\admin\class-admin.php:121
-msgid "روش پیش‌فرض حمل"
-msgstr "روش پیش‌فرض حمل"
-
-#: includes\admin\class-admin.php:122
-msgid "نمایش تعداد موجودی در سایت"
-msgstr "نمایش تعداد موجودی در سایت"
-
-#: includes\admin\class-admin.php:123
-msgid "نمایش کالاهای ناموجود"
-msgstr "نمایش کالاهای ناموجود"
+#: includes\admin\class-admin.php:115
+msgid "تعداد در صفحه"
+msgstr "تعداد در صفحه"
 
 #: includes\admin\class-admin.php:124
-msgid "محدوده منبع مجاز (JSON)"
-msgstr "محدوده منبع مجاز (JSON)"
+#, php-format
+msgid "تعداد نتیجه: %d"
+msgstr "تعداد نتیجه: %d"
 
-#: includes\admin\class-admin.php:125
-msgid "کلید محرمانه REST"
-msgstr "کلید محرمانه REST"
-
-#: includes\admin\class-admin.php:126
-msgid "نشانی اجرای خشک"
-msgstr "نشانی اجرای خشک"
-
-#: includes\admin\class-admin.php:127
-msgid "نشانی اعمال"
-msgstr "نشانی اعمال"
-
-#: includes\admin\class-admin.php:129
-msgid "ذخیره تنظیمات"
-msgstr "ذخیره تنظیمات"
-
-#: includes\admin\class-admin.php:130
-msgid "اتصال به سرویس‌های خارجی به‌طور پیش‌فرض غیرفعال است و این نسخه هیچ داده‌ای را بدون پیکربندی صریح ارسال نمی‌کند."
-msgstr "اتصال به سرویس‌های خارجی به‌طور پیش‌فرض غیرفعال است و این نسخه هیچ داده‌ای را بدون پیکربندی صریح ارسال نمی‌کند."
-
-#: includes\admin\class-admin.php:157
-msgid "گزارش پیدا نشد."
-msgstr "گزارش پیدا نشد."
-
-#: includes\admin\class-admin.php:187
-msgid "فیلد/هشدار"
-msgstr "فیلد/هشدار"
-
-#: includes\admin\class-admin.php:187
+#: includes\admin\class-admin.php:608
 msgid "تعداد کالا"
 msgstr "تعداد کالا"
 
-#: includes\admin\class-admin.php:203
-msgid "فعال"
-msgstr "فعال"
+#: includes\admin\class-admin.php:319
+msgid "تغییرات فیلدهای ووکامرس"
+msgstr "تغییرات فیلدهای ووکامرس"
 
-#: includes\api\class-rest-controller.php:45
-msgid "A valid Ashco sync credential is required."
-msgstr "برای همگام‌سازی، اعتبارنامه معتبر اشکو لازم است."
+#: includes\admin\class-admin.php:320
+msgid "تغییرات متادیتا"
+msgstr "تغییرات متادیتا"
 
-#: includes\api\class-rest-controller.php:90
-msgid "A Patris contract header does not match the JSON document."
-msgstr "یکی از سرآیندهای قرارداد پاتریس با سند JSON مطابقت ندارد."
+#: includes\admin\class-admin.php:40
+msgid "تنظیمات قیمت و اتصال"
+msgstr "تنظیمات قیمت و اتصال"
 
-#: includes\class-product-presentation.php:64
-#: includes\class-product-presentation.php:125
-msgid "کد کالا"
-msgstr "کد کالا"
+#: includes\admin\class-admin.php:651
+msgid "تنظیمات مبلغ یا ارز حمل کامل نیست"
+msgstr "تنظیمات مبلغ یا ارز حمل کامل نیست"
 
-#: includes\class-product-presentation.php:70
-#: includes\class-product-presentation.php:126
-msgid "سریال کالا"
-msgstr "سریال کالا"
-
-#: includes\class-product-commerce.php:67
-#: includes\class-product-commerce.php:123
-#: includes\class-product-commerce.php:185
-#: includes\class-product-presentation.php:65
-msgid "واحد فروش"
-msgstr "واحد فروش"
-
-#: includes\class-product-commerce.php:67
-msgid "واحد فروش:"
-msgstr "واحد فروش:"
-
-#: includes\class-product-presentation.php:85
+#: includes\class-product-presentation.php:96
 msgid "توضیحات تکمیلی"
 msgstr "توضیحات تکمیلی"
-
-#: includes\admin\class-admin.php:204
-msgid "پاک‌سازی توضیح کوتاه قدیمی"
-msgstr "پاک‌سازی توضیح کوتاه قدیمی"
-
-#: includes\admin\class-admin.php:205
-msgid "این ابزار فقط جملهٔ دقیق و ماشینیِ واردشده را پاک می‌کند. توضیح‌های نوشته‌شده توسط فروشنده بدون تغییر می‌مانند."
-msgstr "این ابزار فقط جملهٔ دقیق و ماشینیِ واردشده را پاک می‌کند. توضیح‌های نوشته‌شده توسط فروشنده بدون تغییر می‌مانند."
-
-#: includes\admin\class-admin.php:214
-#, php-format
-msgid "%1$d توضیح کوتاه قدیمی پاک شد؛ تعداد خطا: %2$d."
-msgstr "%1$d توضیح کوتاه قدیمی پاک شد؛ تعداد خطا: %2$d."
-
-#: includes\admin\class-admin.php:221
-#, php-format
-msgid "نتیجهٔ اجرای آزمایشی: %d توضیح کوتاه منطبق است."
-msgstr "نتیجهٔ اجرای آزمایشی: %d توضیح کوتاه منطبق است."
-
-#: includes\admin\class-admin.php:230
-msgid "پاک‌سازی موارد منطبق"
-msgstr "پاک‌سازی موارد منطبق"
-
-#: includes\admin\class-admin.php:231
-msgid "فقط توضیح‌های ماشینیِ دقیق پاک شوند؟"
-msgstr "فقط توضیح‌های ماشینیِ دقیق پاک شوند؟"
-
-#: includes\class-storefront-price-display.php:82
-#: includes\class-storefront-price-display.php:102
-msgid "ریال"
-msgstr "ریال"
 
 #: includes\class-storefront-price-display.php:83
 #: includes\class-storefront-price-display.php:106
 msgid "تومان"
 msgstr "تومان"
 
-#: includes\class-storefront-price-display.php:86
-#: includes\class-storefront-price-display.php:113
-msgid "قیمت‌ها به ریال نمایش داده می‌شوند."
-msgstr "قیمت‌ها به ریال نمایش داده می‌شوند."
+#: includes\admin\class-admin.php:317
+#, php-format
+msgid "جزئیات اجرای شماره %d"
+msgstr "جزئیات اجرای شماره %d"
+
+#: includes\admin\class-admin.php:95
+msgid "جست‌وجو"
+msgstr "جست‌وجو"
+
+#: includes\admin\class-admin.php:661
+msgid "جست‌وجوی دقیق سریال ناموفق بود"
+msgstr "جست‌وجوی دقیق سریال ناموفق بود"
+
+#: includes\admin\class-admin.php:366
+msgid "حاشیه سود (درصد)"
+msgstr "حاشیه سود (درصد)"
+
+#: includes\admin\class-admin.php:226
+#, fuzzy
+msgid "حاشیه سود درصدی"
+msgstr "حاشیه سود (درصد)"
+
+#: includes\admin\class-admin.php:652
+msgid "حاشیه سود موجود نیست"
+msgstr "حاشیه سود موجود نیست"
+
+#: includes\admin\class-admin.php:467
+msgid "خروجی CSV باز نشد."
+msgstr "خروجی CSV باز نشد."
+
+#: includes\admin\class-admin.php:681
+msgid "داده قدیمی کالا به علت قرنطینه نگه‌داری شده است"
+msgstr "داده قدیمی کالا به علت قرنطینه نگه‌داری شده است"
+
+#: includes\admin\class-admin.php:168
+#, php-format
+msgid "داده نگه‌داری‌شده از: %s"
+msgstr "داده نگه‌داری‌شده از: %s"
+
+#: includes\admin\class-admin.php:103
+msgid "دارای مغایرت"
+msgstr "دارای مغایرت"
+
+#: includes\admin\class-admin.php:105
+msgid "دارای هشدار سراسری منبع"
+msgstr "دارای هشدار سراسری منبع"
+
+#: includes\admin\class-admin.php:96
+msgid "دامنه"
+msgstr "دامنه"
+
+#: includes\admin\class-admin.php:121
+msgid "دانلود CSV همین نتیجه"
+msgstr "دانلود CSV همین نتیجه"
+
+#: includes\admin\class-admin.php:318
+msgid "دانلود گزارش کامل CSV"
+msgstr "دانلود گزارش کامل CSV"
+
+#: includes\admin\class-admin.php:342
+msgid "در دسترس نیست؛ متادیتای استاندارد Ashco-WP بدون اختلال کار می‌کند."
+msgstr "در دسترس نیست؛ متادیتای استاندارد Ashco-WP بدون اختلال کار می‌کند."
+
+#: includes\admin\class-admin.php:342
+msgid "در دسترس؛ همگام‌سازی دوطرفه فعال است."
+msgstr "در دسترس؛ همگام‌سازی دوطرفه فعال است."
+
+#: includes\admin\class-admin.php:367
+msgid "درصد موجودی ALLANBAR قابل فروش"
+msgstr "درصد موجودی ALLANBAR قابل فروش"
+
+#: includes\admin\class-admin.php:227
+#, fuzzy
+msgid "درصد موجودی قابل فروش"
+msgstr "درصد موجودی ALLANBAR قابل فروش"
+
+#: includes\admin\class-admin.php:33 includes\admin\class-admin.php:383
+#: includes\admin\class-admin.php:399 includes\admin\class-admin.php:436
+#: includes\admin\class-admin.php:549
+msgid "دسترسی کافی ندارید."
+msgstr "دسترسی کافی ندارید."
+
+#: includes\admin\class-admin.php:376
+msgid "ذخیره تنظیمات"
+msgstr "ذخیره تنظیمات"
+
+#: includes\admin\class-admin.php:135
+msgid "ردیفی مطابق فیلتر پیدا نشد."
+msgstr "ردیفی مطابق فیلتر پیدا نشد."
+
+#: includes\admin\class-admin.php:223
+#, fuzzy
+msgid "روش حمل"
+msgstr "روش پیش‌فرض حمل"
+
+#: includes\admin\class-admin.php:368
+msgid "روش پیش‌فرض حمل"
+msgstr "روش پیش‌فرض حمل"
+
+#: includes\class-storefront-price-display.php:82
+#: includes\class-storefront-price-display.php:102
+msgid "ریال"
+msgstr "ریال"
+
+#: includes\admin\class-admin.php:363
+msgid "ریال ایران (IRR)"
+msgstr "ریال ایران (IRR)"
+
+#: includes\admin\class-admin.php:78
+#, php-format
+msgid "زمان مرحله‌بندی: %s"
+msgstr "زمان مرحله‌بندی: %s"
+
+#: includes\admin\class-admin.php:171
+#, fuzzy, php-format
+msgid "زمان منبع: %s"
+msgstr "هشدار منبع: %s"
+
+#: includes\admin\class-admin.php:660
+msgid "سریال در WooCommerce تکراری است"
+msgstr "سریال در WooCommerce تکراری است"
+
+#: includes\admin\class-admin.php:659
+msgid "سریال در منبع تکراری است"
+msgstr "سریال در منبع تکراری است"
+
+#: includes\admin\class-admin.php:151
+#, fuzzy
+msgid "سریال مرجع"
+msgstr "سریال کالا"
+
+#: includes\class-product-presentation.php:70
+#: includes\class-product-presentation.php:126
+#: includes\admin\class-admin.php:127 includes\admin\class-admin.php:701
+msgid "سریال کالا"
+msgstr "سریال کالا"
+
+#: includes\admin\class-admin.php:650
+msgid "سریال کالا موجود نیست"
+msgstr "سریال کالا موجود نیست"
+
+#: includes\admin\class-admin.php:129
+msgid "شناسه WooCommerce"
+msgstr "شناسه WooCommerce"
+
+#: includes\admin\class-admin.php:349
+msgid "غیرفعال (وضعیت توصیه‌شده)"
+msgstr "غیرفعال (وضعیت توصیه‌شده)"
+
+#: includes\admin\class-admin.php:273
+msgid "فاقد داده منبع"
+msgstr "فاقد داده منبع"
+
+#: includes\admin\class-admin.php:228
+#, fuzzy
+msgid "فرمول قیمت"
+msgstr "مغایرت فرمول قیمت"
+
+#: includes\admin\class-admin.php:229
+#, fuzzy
+msgid "فرمول موجودی"
+msgstr "مغایرت موجودی"
+
+#: includes\admin\class-admin.php:624
+msgid "فعال"
+msgstr "فعال"
+
+#: includes\admin\class-admin.php:349
+msgid "فعال (احتمال تعارض)"
+msgstr "فعال (احتمال تعارض)"
+
+#: includes\admin\class-admin.php:181
+msgid "فعلی:"
+msgstr "فعلی:"
+
+#: includes\admin\class-admin.php:592
+msgid "فقط توضیح‌های ماشینیِ دقیق پاک شوند؟"
+msgstr "فقط توضیح‌های ماشینیِ دقیق پاک شوند؟"
+
+#: includes\admin\class-admin.php:101 includes\admin\class-admin.php:248
+#: includes\admin\class-admin.php:714
+msgid "فقط در WooCommerce"
+msgstr "فقط در WooCommerce"
+
+#: includes\admin\class-admin.php:100 includes\admin\class-admin.php:246
+#: includes\admin\class-admin.php:713
+msgid "فقط در منبع"
+msgstr "فقط در منبع"
+
+#: includes\admin\class-admin.php:324
+msgid "فهرست کالا/قیمت (۲۰۰ ردیف نخست)"
+msgstr "فهرست کالا/قیمت (۲۰۰ ردیف نخست)"
+
+#: includes\admin\class-admin.php:688
+#, php-format
+msgid "فیلد منبع حذف شده است: %s"
+msgstr "فیلد منبع حذف شده است: %s"
+
+#: includes\admin\class-admin.php:691
+#, php-format
+msgid "فیلد منبع دارای null صریح است: %s"
+msgstr "فیلد منبع دارای null صریح است: %s"
+
+#: includes\admin\class-admin.php:608
+msgid "فیلد/هشدار"
+msgstr "فیلد/هشدار"
+
+#: includes\admin\class-admin.php:325
+msgid "فیلدها"
+msgstr "فیلدها"
+
+#: includes\admin\class-admin.php:165
+msgid "قرنطینه"
+msgstr "قرنطینه"
+
+#: includes\admin\class-admin.php:251
+msgid "قرنطینه با داده قدیمی"
+msgstr "قرنطینه با داده قدیمی"
+
+#: includes\admin\class-admin.php:104
+msgid "قرنطینه‌شده"
+msgstr "قرنطینه‌شده"
+
+#: includes\admin\class-admin.php:716
+#, fuzzy
+msgid "قرنطینه‌شده در منبع"
+msgstr "فقط در منبع"
+
+#: includes\admin\class-admin.php:146
+#, fuzzy
+msgid "قیمت"
+msgstr "قیمت CNY"
+
+#: includes\admin\class-admin.php:703
+msgid "قیمت CNY"
+msgstr "قیمت CNY"
+
+#: includes\class-acf-integration.php:25
+msgid "قیمت خرید (یوان چین)"
+msgstr "قیمت خرید (یوان چین)"
+
+#: includes\admin\class-admin.php:129
+msgid "قیمت فعلی/محاسبه‌شده IRR"
+msgstr "قیمت فعلی/محاسبه‌شده IRR"
+
+#: includes\admin\class-admin.php:325
+msgid "قیمت منبع IRT"
+msgstr "قیمت منبع IRT"
+
+#: includes\admin\class-admin.php:325
+msgid "قیمت نهایی IRR"
+msgstr "قیمت نهایی IRR"
+
+#: includes\admin\class-admin.php:655
+msgid "قیمت نهایی قابل محاسبه نیست"
+msgstr "قیمت نهایی قابل محاسبه نیست"
+
+#: includes\admin\class-admin.php:183
+msgid "قیمت نهایی منبع IRT:"
+msgstr "قیمت نهایی منبع IRT:"
 
 #: includes\class-storefront-price-display.php:87
 msgid "قیمت‌ها به تومان نمایش داده می‌شوند."
 msgstr "قیمت‌ها به تومان نمایش داده می‌شوند."
 
-#: includes\class-storefront-price-display.php:97
-msgid "انتخاب واحد نمایش قیمت"
-msgstr "انتخاب واحد نمایش قیمت"
+#: includes\class-storefront-price-display.php:86
+#: includes\class-storefront-price-display.php:113
+msgid "قیمت‌ها به ریال نمایش داده می‌شوند."
+msgstr "قیمت‌ها به ریال نمایش داده می‌شوند."
+
+#: includes\class-acf-integration.php:21
+msgid "قیمت‌گذاری پاتریس اشکو"
+msgstr "قیمت‌گذاری پاتریس اشکو"
+
+#: includes\admin\class-admin.php:231
+msgid "مبنای محاسبه این گزارش"
+msgstr "مبنای محاسبه این گزارش"
+
+#: includes\admin\class-admin.php:102 includes\admin\class-admin.php:249
+#: includes\admin\class-admin.php:715
+msgid "مبهم"
+msgstr "مبهم"
+
+#: includes\admin\class-admin.php:157
+#, fuzzy
+msgid "متادیتای قیمت‌گذاری"
+msgstr "ارز قیمت خارجی"
+
+#: includes\admin\class-admin.php:156
+#, fuzzy
+msgid "متادیتای موجودی"
+msgstr "مغایرت موجودی"
+
+#: includes\admin\class-admin.php:155
+#, fuzzy
+msgid "متای وزن منبع"
+msgstr "وزن منبع"
+
+#: includes\admin\class-admin.php:371
+msgid "محدوده منبع مجاز (JSON)"
+msgstr "محدوده منبع مجاز (JSON)"
+
+#: includes\admin\class-admin.php:672
+#, fuzzy
+msgid "مغایرت CNY"
+msgstr "مغایرت IRR"
+
+#: includes\admin\class-admin.php:325
+msgid "مغایرت IRR"
+msgstr "مغایرت IRR"
+
+#: includes\admin\class-admin.php:673
+#, fuzzy
+msgid "مغایرت ارز خارجی"
+msgstr "مغایرت هش رکورد"
+
+#: includes\admin\class-admin.php:678
+msgid "مغایرت در متادیتای مدیریت‌شده"
+msgstr "مغایرت در متادیتای مدیریت‌شده"
+
+#: includes\admin\class-admin.php:671
+#, fuzzy
+msgid "مغایرت سریال مرجع"
+msgstr "مغایرت قیمت"
+
+#: includes\admin\class-admin.php:656
+msgid "مغایرت فرمول قیمت"
+msgstr "مغایرت فرمول قیمت"
+
+#: includes\admin\class-admin.php:253 includes\admin\class-admin.php:666
+msgid "مغایرت قیمت"
+msgstr "مغایرت قیمت"
+
+#: includes\admin\class-admin.php:257
+#, fuzzy
+msgid "مغایرت متادیتا"
+msgstr "تغییرات متادیتا"
+
+#: includes\admin\class-admin.php:677
+msgid "مغایرت متادیتای قیمت‌گذاری"
+msgstr "مغایرت متادیتای قیمت‌گذاری"
+
+#: includes\admin\class-admin.php:676
+#, fuzzy
+msgid "مغایرت متادیتای موجودی"
+msgstr "مغایرت موجودی"
+
+#: includes\admin\class-admin.php:675
+#, fuzzy
+msgid "مغایرت متای وزن منبع"
+msgstr "مغایرت وزن"
+
+#: includes\admin\class-admin.php:254 includes\admin\class-admin.php:667
+msgid "مغایرت موجودی"
+msgstr "مغایرت موجودی"
+
+#: includes\admin\class-admin.php:256
+msgid "مغایرت هش"
+msgstr "مغایرت هش"
+
+#: includes\admin\class-admin.php:669
+msgid "مغایرت هش رکورد"
+msgstr "مغایرت هش رکورد"
+
+#: includes\admin\class-admin.php:674
+#, fuzzy
+msgid "مغایرت واحد فروش"
+msgstr "مغایرت هش رکورد"
+
+#: includes\admin\class-admin.php:255 includes\admin\class-admin.php:668
+msgid "مغایرت وزن"
+msgstr "مغایرت وزن"
+
+#: includes\admin\class-admin.php:670
+#, fuzzy
+msgid "مغایرت کد کالا"
+msgstr "مغایرت هش رکورد"
+
+#: includes\admin\class-admin.php:129
+msgid "مغایرت‌های مستقل"
+msgstr "مغایرت‌های مستقل"
+
+#: includes\class-acf-integration.php:38
+msgid ""
+"مقدار مرجع به‌صورت میلادی ISO ذخیره می‌شود؛ پنل اشکو معادل جلالی را نیز نمایش "
+"می‌دهد."
+msgstr ""
+"مقدار مرجع به‌صورت میلادی ISO ذخیره می‌شود؛ پنل اشکو معادل جلالی را نیز نمایش "
+"می‌دهد."
+
+#: includes\admin\class-admin.php:147
+#, fuzzy
+msgid "موجودی"
+msgstr "موجودی کل"
+
+#: includes\class-frontend-stock.php:67
+#, php-format
+msgid "موجودی قابل فروش اشکو: %s"
+msgstr "موجودی قابل فروش اشکو: %s"
+
+#: includes\admin\class-admin.php:247
+msgid "موجودی مثبت و فاقد Woo"
+msgstr "موجودی مثبت و فاقد Woo"
+
+#: includes\admin\class-admin.php:658
+msgid "موجودی منبع مثبت است اما کالای WooCommerce پیدا نشد"
+msgstr "موجودی منبع مثبت است اما کالای WooCommerce پیدا نشد"
+
+#: includes\admin\class-admin.php:654
+msgid "موجودی منبع منفی است"
+msgstr "موجودی منبع منفی است"
+
+#: includes\admin\class-admin.php:706
+msgid "موجودی کل"
+msgstr "موجودی کل"
+
+#: includes\admin\class-admin.php:128
+msgid "موجودی کل/قابل فروش"
+msgstr "موجودی کل/قابل فروش"
+
+#: includes\admin\class-admin.php:127
+msgid "نام کالا"
+msgstr "نام کالا"
+
+#: includes\admin\class-admin.php:95
+msgid "نام، کد، سریال یا شناسه"
+msgstr "نام، کد، سریال یا شناسه"
+
+#: includes\admin\class-admin.php:325
+msgid "نتیجه"
+msgstr "نتیجه"
+
+#: includes\admin\class-admin.php:456
+#, php-format
+msgid "نتیجه CSV از سقف امن %d ردیف بیشتر است؛ فیلتر محدودتری انتخاب کنید."
+msgstr "نتیجه CSV از سقف امن %d ردیف بیشتر است؛ فیلتر محدودتری انتخاب کنید."
+
+#: includes\admin\class-admin.php:582
+#, php-format
+msgid "نتیجهٔ اجرای آزمایشی: %d توضیح کوتاه منطبق است."
+msgstr "نتیجهٔ اجرای آزمایشی: %d توضیح کوتاه منطبق است."
+
+#: includes\admin\class-admin.php:222
+#, fuzzy
+msgid "نرخ CNY به IRR"
+msgstr "نرخ هر CNY به ریال"
+
+#: includes\admin\class-admin.php:653
+msgid "نرخ تبدیل CNY موجود نیست"
+msgstr "نرخ تبدیل CNY موجود نیست"
+
+#: includes\admin\class-admin.php:357
+msgid "نرخ هر CNY به ریال"
+msgstr "نرخ هر CNY به ریال"
+
+#: includes\admin\class-admin.php:373
+msgid "نشانی اجرای خشک"
+msgstr "نشانی اجرای خشک"
+
+#: includes\admin\class-admin.php:374
+msgid "نشانی اعمال"
+msgstr "نشانی اعمال"
+
+#: includes\admin\class-admin.php:369
+msgid "نمایش تعداد موجودی در سایت"
+msgstr "نمایش تعداد موجودی در سایت"
 
 #: includes\class-storefront-price-display.php:99
 msgid "نمایش قیمت"
 msgstr "نمایش قیمت"
 
+#: includes\admin\class-admin.php:370
+msgid "نمایش کالاهای ناموجود"
+msgstr "نمایش کالاهای ناموجود"
+
 #: includes\class-storefront-price-display.php:110
-msgid "هر ۱ تومان برابر با ۱۰ ریال است؛ این انتخاب فقط شیوهٔ نمایش قیمت را تغییر می‌دهد."
-msgstr "هر ۱ تومان برابر با ۱۰ ریال است؛ این انتخاب فقط شیوهٔ نمایش قیمت را تغییر می‌دهد."
+msgid ""
+"هر ۱ تومان برابر با ۱۰ ریال است؛ این انتخاب فقط شیوهٔ نمایش قیمت را تغییر "
+"می‌دهد."
+msgstr ""
+"هر ۱ تومان برابر با ۱۰ ریال است؛ این انتخاب فقط شیوهٔ نمایش قیمت را تغییر "
+"می‌دهد."
+
+#: includes\admin\class-admin.php:224
+#, fuzzy
+msgid "هزینه حمل هر کیلو"
+msgstr "ارز هزینه حمل هر کیلو"
+
+#: includes\admin\class-admin.php:358
+msgid "هزینه هوایی/اکسپرس هر کیلو"
+msgstr "هزینه هوایی/اکسپرس هر کیلو"
+
+#: includes\admin\class-admin.php:149
+#, fuzzy
+msgid "هش رکورد"
+msgstr "مغایرت هش رکورد"
+
+#: includes\admin\class-admin.php:110
+msgid "هشدار"
+msgstr "هشدار"
+
+#: includes\admin\class-admin.php:682
+msgid "هشدار سراسری در تصویر منبع وجود دارد"
+msgstr "هشدار سراسری در تصویر منبع وجود دارد"
+
+#: includes\admin\class-admin.php:252 includes\admin\class-admin.php:717
+#, fuzzy
+msgid "هشدار سراسری منبع"
+msgstr "هشدار منبع: %s"
+
+#: includes\admin\class-admin.php:694
+#, php-format
+msgid "هشدار منبع: %s"
+msgstr "هشدار منبع: %s"
+
+#: includes\admin\class-admin.php:129 includes\admin\class-admin.php:325
+msgid "هشدارها"
+msgstr "هشدارها"
+
+#: includes\admin\class-admin.php:21
+msgid "هماهنگ‌سازی پاتریس اشکو"
+msgstr "هماهنگ‌سازی پاتریس اشکو"
+
+#: includes\admin\class-admin.php:36
+msgid "هماهنگ‌سازی کالا و قیمت پاتریس — اشکو"
+msgstr "هماهنگ‌سازی کالا و قیمت پاتریس — اشکو"
+
+#: includes\admin\class-admin.php:98
+msgid "همه ردیف‌ها"
+msgstr "همه ردیف‌ها"
+
+#: includes\admin\class-admin.php:110
+msgid "همه هشدارها"
+msgstr "همه هشدارها"
+
+#: includes\admin\class-admin.php:289
+msgid "هنوز اجرای خشک یا اعمال ثبت نشده است."
+msgstr "هنوز اجرای خشک یا اعمال ثبت نشده است."
+
+#: includes\admin\class-admin.php:128
+msgid "واحد"
+msgstr "واحد"
+
+#: includes\class-product-presentation.php:76
+#: includes\class-product-presentation.php:127
+#: includes\class-product-commerce.php:110
+#: includes\class-product-commerce.php:171
+#: includes\class-product-commerce.php:179 includes\admin\class-admin.php:154
+#: includes\admin\class-admin.php:705
+msgid "واحد فروش"
+msgstr "واحد فروش"
+
+#: includes\admin\class-admin.php:649
+msgid "واحد فروش موجود نیست"
+msgstr "واحد فروش موجود نیست"
+
+#: includes\class-product-commerce.php:66
+msgid "واحد فروش:"
+msgstr "واحد فروش:"
+
+#: includes\admin\class-admin.php:258
+msgid "والد متغیر کنارگذاشته‌شده"
+msgstr "والد متغیر کنارگذاشته‌شده"
+
+#: includes\admin\class-admin.php:662
+msgid "والد کالای متغیر از تطبیق کنار گذاشته شد"
+msgstr "والد کالای متغیر از تطبیق کنار گذاشته شد"
+
+#: includes\admin\class-admin.php:704
+msgid "وزن"
+msgstr "وزن"
+
+#: includes\admin\class-admin.php:128
+msgid "وزن منبع"
+msgstr "وزن منبع"
+
+#: includes\admin\class-admin.php:648
+msgid "وزن موجود نیست"
+msgstr "وزن موجود نیست"
+
+#: includes\admin\class-admin.php:148
+#, fuzzy
+msgid "وزن ووکامرس"
+msgstr "وزن موجود نیست"
+
+#: includes\admin\class-admin.php:127
+msgid "وضعیت"
+msgstr "وضعیت"
+
+#: includes\admin\class-admin.php:38
+msgid "وضعیت فعلی کالا و قیمت"
+msgstr "وضعیت فعلی کالا و قیمت"
+
+#: includes\admin\class-admin.php:87
+#, fuzzy
+msgid "وضعیت پذیرفته‌شده فعلی"
+msgstr "وضعیت یکپارچه‌سازی"
+
+#: includes\admin\class-admin.php:340
+msgid "وضعیت یکپارچه‌سازی"
+msgstr "وضعیت یکپارچه‌سازی"
+
+#: includes\admin\class-admin.php:22
+msgid "پاتریس اشکو"
+msgstr "پاتریس اشکو"
+
+#: includes\admin\class-admin.php:565
+msgid "پاک‌سازی توضیح کوتاه قدیمی"
+msgstr "پاک‌سازی توضیح کوتاه قدیمی"
+
+#: includes\admin\class-admin.php:591
+msgid "پاک‌سازی موارد منطبق"
+msgstr "پاک‌سازی موارد منطبق"
+
+#: includes\admin\class-admin.php:356
+msgid "پیش‌فرض و مقدار تأییدشده سایت: _sku. تطبیق Code مجاز نیست."
+msgstr "پیش‌فرض و مقدار تأییدشده سایت: _sku. تطبیق Code مجاز نیست."
+
+#: includes\admin\class-admin.php:86
+msgid "پیش‌نمایش معتبر اعمال‌نشده"
+msgstr "پیش‌نمایش معتبر اعمال‌نشده"
+
+#: includes\admin\class-admin.php:77
+msgid "پیش‌نمایش معتبر و اعمال‌نشده"
+msgstr "پیش‌نمایش معتبر و اعمال‌نشده"
+
+#: includes\admin\class-admin.php:664
+msgid "کالا فقط در WooCommerce وجود دارد"
+msgstr "کالا فقط در WooCommerce وجود دارد"
+
+#: includes\admin\class-admin.php:665
+msgid "کالای WooCommerce سریال ندارد"
+msgstr "کالای WooCommerce سریال ندارد"
+
+#: includes\admin\class-admin.php:663
+msgid "کالای WooCommerce قابل بارگذاری نیست"
+msgstr "کالای WooCommerce قابل بارگذاری نیست"
+
+#: includes\admin\class-admin.php:657
+msgid "کالای متناظر در WooCommerce پیدا نشد"
+msgstr "کالای متناظر در WooCommerce پیدا نشد"
+
+#: includes\admin\class-admin.php:244
+msgid "کالای منبع"
+msgstr "کالای منبع"
+
+#: includes\admin\class-admin.php:250
+msgid "کد قرنطینه‌شده"
+msgstr "کد قرنطینه‌شده"
+
+#: includes\admin\class-admin.php:680
+msgid "کد قرنطینه‌شده داده کالای معتبر ندارد"
+msgstr "کد قرنطینه‌شده داده کالای معتبر ندارد"
+
+#: includes\admin\class-admin.php:679
+#, fuzzy
+msgid "کد منبع قرنطینه شده است"
+msgstr "فیلد منبع حذف شده است: %s"
+
+#: includes\class-product-presentation.php:64
+#: includes\class-product-presentation.php:125
+#: includes\admin\class-admin.php:127 includes\admin\class-admin.php:150
+msgid "کد کالا"
+msgstr "کد کالا"
+
+#: includes\admin\class-admin.php:356
+msgid "کلید متای دقیق Serial"
+msgstr "کلید متای دقیق Serial"
+
+#: includes\admin\class-admin.php:372
+msgid "کلید محرمانه REST"
+msgstr "کلید محرمانه REST"
+
+#: includes\admin\class-admin.php:321
+msgid "گروه‌های هشدار"
+msgstr "گروه‌های هشدار"
+
+#: includes\admin\class-admin.php:405
+msgid "گزارش پیدا نشد."
+msgstr "گزارش پیدا نشد."
+
+#: includes\admin\class-admin.php:363
+msgid "یوان چین (CNY)"
+msgstr "یوان چین (CNY)"
+
+#: includes\class-plugin.php:60
+msgid ""
+"یک افزونه تغییر ارز فعال است. Ashco-WP نرخ CNY مرجع را خود مدیریت می‌کند؛ "
+"برای جلوگیری از تغییر قیمت IRR، وضعیت افزونه ارزی را بررسی کنید."
+msgstr ""
+"یک افزونه تغییر ارز فعال است. Ashco-WP نرخ CNY مرجع را خود مدیریت می‌کند؛ "
+"برای جلوگیری از تغییر قیمت IRR، وضعیت افزونه ارزی را بررسی کنید."
+
+#~ msgid "گزارش‌ها و هشدارها"
+#~ msgstr "گزارش‌ها و هشدارها"

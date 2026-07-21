@@ -29,6 +29,7 @@ require_once ASHKO_WP_DIR . 'includes/class-decimal-calculator.php';
 require_once ASHKO_WP_DIR . 'includes/class-serial-resolver.php';
 require_once ASHKO_WP_DIR . 'includes/class-product-applicator.php';
 require_once ASHKO_WP_DIR . 'includes/class-report-repository.php';
+require_once ASHKO_WP_DIR . 'includes/class-current-catalog-report.php';
 require_once ASHKO_WP_DIR . 'includes/class-logger.php';
 require_once ASHKO_WP_DIR . 'includes/class-product-sync-receiver.php';
 require_once ASHKO_WP_DIR . 'includes/class-sync-service.php';

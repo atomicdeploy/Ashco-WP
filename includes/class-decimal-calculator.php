@@ -3,6 +3,9 @@ namespace Ashko\Patris;
 
 /** Exact non-negative decimal arithmetic for Ashco pricing and stock policy. */
 final class Decimal_Calculator {
+    public const PRICE_FORMULA = '((CNY × FX_IRR) + freight_IRR) × (1 + margin ÷ 100), where freight uses the declared CNY or IRR rate; one final half-up round in IRR';
+    public const STOCK_FORMULA = 'floor(max(total_stock, 0) × stock_percent ÷ 100)';
+
     /** Calculate the approved expression in IRR and round once, at the end. */
     public static function price(
         $foreign_cny,
@@ -48,7 +51,7 @@ final class Decimal_Calculator {
         return array(
             'native_final_irt' => $native_irt,
             'woo_final_irr' => $woo_irr,
-            'formula' => '((CNY × FX_IRR) + freight_IRR) × (1 + margin ÷ 100), where freight uses the declared CNY or IRR rate; one final half-up round in IRR',
+            'formula' => self::PRICE_FORMULA,
             'shipping_price_per_kg_currency' => $shipping_currency,
         );
     }

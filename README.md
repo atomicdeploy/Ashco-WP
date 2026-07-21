@@ -81,6 +81,12 @@ Core Woo fields are changed only when their desired value differs: regular/activ
 
 Each dry-run/apply has a durable run record and per-product rows with old/new values. The Persian admin page groups warnings for missing CNY, weight, unit, Serial, shipping amount/currency, margin, FX, or final price; duplicate Serial; negative stock; unmatched/ambiguous Woo targets; source warnings; and formula discrepancies. CSV downloads are UTF-8 and include Gregorian and Jalali effective dates.
 
+The separate **Current product and price status** tab does not replace or alter that durable history. Every validated dry-run stages its complete candidate projection in a private, non-authoritative option; the selector can therefore reconcile that unapplied candidate or the accepted receiver state against the complete current WooCommerce catalog before any product write. Matching remains exact, case-sensitive Serial. The report includes matched, source-only, positive-stock source-only, ambiguous, Woo-only, quarantined, and source-warning rows. It identifies retained stale data for quarantined codes, preserves every envelope warning, and excludes variable parent containers while retaining purchasable variations.
+
+Core price, saleable stock, and store-unit weight are evaluated independently. Every plugin-managed product fact is also compared directly rather than trusting the stored source hash: product Code, canonical Serial, CNY and currency, unit, source weight and stock facts, shipping amount/currency/method, margin, FX, formula, final-price facts, effective date, and record identity. The report and CSV state the exact FX, freight amount and currency, margin, stock percentage, and formulas used for the current projection. Search, scope, warning filters, paging, and the filtered UTF-8 CSV export operate over the selected complete projection. CSV exports are capped at 20,000 rows, cap individual cells, and neutralize spreadsheet formula prefixes.
+
+The current report explicitly shows `فاقد داده منبع` for an omitted source key and `null صریح منبع` for a present key whose value is JSON null. Omitted fields are not materialized as null in report data.
+
 ## Product identity and sale unit
 
 Patris Code, Patris Serial, and sale unit are product facts, not descriptive copy. For plugin-owned products they appear as escaped, RTL-safe rows in WooCommerce's standard Additional Information table and as Schema.org `additionalProperty` values in both WooCommerce and Rank Math Product entities. Their public Persian labels are `کد کالا`, `سریال کالا`, and `واحد فروش`; source-system terminology is not exposed to shoppers. Patris Code is not mislabeled as MPN/GTIN, and the theme's price-unit field remains a derived display adapter.
@@ -110,13 +116,15 @@ Install the production ZIP in WordPress, activate it, verify Woo base currency i
 
 ```bash
 wp ashko patris status
-wp ashko patris dry-run /secure/path/event.json
-wp ashko patris apply /secure/path/event.json --yes
+wp ashko patris dry-run /secure/outside-webroot/kala.json
+wp ashko patris apply /secure/outside-webroot/kala.json --user=<administrator> --yes
 wp ashko patris reconcile
 wp ashko patris cleanup-excerpts
 ```
 
-Do not place production JSON, databases, reports, or credentials inside the plugin directory or repository.
+Static canonical `kala.json` input is accepted only through these CLI file commands. The resolved file must be readable, non-empty, no larger than 8 MiB, and outside the resolved WordPress web root. The command checks the size before reading and holds a shared lock while reading. Mutation additionally requires both an explicit administrator `--user` with WooCommerce management access and `--yes`. Do not place production JSON, databases, reports, or credentials inside the plugin directory, repository, or any other web-accessible directory.
+
+A successful dry-run response includes `staged_candidate`. Open the Persian current-catalog page and select the unapplied candidate to review the full source/Woo one-sided sets, quarantine, warnings, drift, and price provenance before using `apply`. Accepting that same event removes its staged copy because the receiver state then becomes authoritative.
 
 ### Compatibility identifiers
 

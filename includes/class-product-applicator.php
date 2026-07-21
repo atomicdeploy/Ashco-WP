@@ -48,6 +48,25 @@ final class Product_Applicator {
         );
     }
 
+    /**
+     * Return the exact read-only projection used by apply operations.
+     *
+     * The current-catalog report consumes this instead of maintaining a second
+     * list of plugin-owned metadata or a second interpretation of sparse input.
+     */
+    public function report_projection(array $data): array {
+        return $this->desired_values($data);
+    }
+
+    /** @return string[] */
+    public function managed_meta_keys(): array {
+        static $keys = null;
+        if (null === $keys) {
+            $keys = array_keys($this->desired_values(array())['meta']);
+        }
+        return $keys;
+    }
+
     /** Apply only fields whose desired value differs. */
     public function apply_product_feed($product, array $data): array {
         $plan = $this->plan($product, $data);

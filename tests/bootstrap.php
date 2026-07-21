@@ -206,6 +206,7 @@ final class Ashko_Test_Product {
         $this->core = array_merge(array(
             'regular_price' => '', 'price' => '', 'sale_price' => '', 'weight' => '',
             'manage_stock' => false, 'stock_quantity' => null, 'stock_status' => 'outofstock',
+            'name' => '', 'type' => 'simple',
         ), $core);
         $this->meta = $meta;
         $GLOBALS['ashko_test_products'][$id] = $this;
@@ -218,6 +219,9 @@ final class Ashko_Test_Product {
     public function get_manage_stock($context = 'view') { return $this->core['manage_stock']; }
     public function get_stock_quantity($context = 'view') { return $this->core['stock_quantity']; }
     public function get_stock_status($context = 'view') { return $this->core['stock_status']; }
+    public function get_name($context = 'view') { return $this->core['name']; }
+    public function get_type() { return $this->core['type']; }
+    public function is_type($type) { return (string) $type === $this->core['type']; }
     public function get_meta($key, $single = true, $context = 'view') { return $this->meta[$key] ?? ''; }
     public function set_regular_price($value) { $this->core['regular_price'] = (string) $value; }
     public function set_price($value) { $this->core['price'] = (string) $value; }

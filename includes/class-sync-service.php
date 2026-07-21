@@ -31,8 +31,15 @@ final class Sync_Service {
             return $preview;
         }
         $envelope = $preview['envelope'];
+        $staged_candidate = array();
         if (!Config::source_allowed((string) $envelope['source']['id'], (string) $envelope['source']['dataset'])) {
             return new WP_Error('ashko_product_sync_source_forbidden', __('This exact Patris source is not allowed.', 'ashko-wp'), array('status' => 403));
+        }
+        if ('dry-run' === $mode) {
+            $staged_candidate = Current_Catalog_Report::stage_preview($preview);
+            if (is_wp_error($staged_candidate)) {
+                return $staged_candidate;
+            }
         }
 
         $products = array_values($preview['transition']['changed_products']);
@@ -111,6 +118,10 @@ final class Sync_Service {
                     $report_ready,
                     $report_product_count - $processed
                 );
+                $extra = array('report_status' => $report_state['report_status']);
+                if ('dry-run' === $mode) {
+                    $extra['staged_candidate'] = $staged_candidate;
+                }
                 return $this->response(
                     $mode,
                     $report_state['status'],
@@ -122,7 +133,7 @@ final class Sync_Service {
                     $report_state['retryable'],
                     $report_state['pending_products'],
                     0,
-                    array('report_status' => $report_state['report_status'])
+                    $extra
                 );
             }
         }
@@ -130,7 +141,19 @@ final class Sync_Service {
         $summary['processed_products'] = $report_product_count;
         if ('dry-run' === $mode) {
             $this->reports->finish($run_id, 'dry_run_complete', $summary, array());
-            return $this->response('dry-run', 'dry_run_complete', $envelope, $preview, $run_id, $summary);
+            return $this->response(
+                'dry-run',
+                'dry_run_complete',
+                $envelope,
+                $preview,
+                $run_id,
+                $summary,
+                array(),
+                false,
+                0,
+                0,
+                array('staged_candidate' => $staged_candidate)
+            );
         }
 
         $result = Product_Sync_Receiver::instance()->receive_json($json);
@@ -138,6 +161,11 @@ final class Sync_Service {
             $this->reports->finish($run_id, 'apply_failed', $summary, array('error' => $result->get_error_code()));
             return $result;
         }
+        Current_Catalog_Report::clear_staged_source(
+            (string) $envelope['source']['id'],
+            (string) $envelope['source']['dataset'],
+            (string) $envelope['event_id']
+        );
         $this->reports->record_receiver_result($run_id, $result, $summary);
         return $this->response(
             'apply',

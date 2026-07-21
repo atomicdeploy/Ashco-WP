@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added a read-only full current-catalog reconciliation and price-list projection with exact Serial matching, one-sided catalog sets, independent price/stock/weight/hash drift, explicit omitted/null states, filters, paging, and bounded formula-safe CSV export.
+- Made validated dry-run candidates inspectable before apply through separate non-authoritative staging; surfaced quarantine, retained-stale records and envelope warnings; added direct drift checks for every managed WooCommerce product fact; and included exact FX, freight currency/rate, margin, stock policy, and formula provenance in the Persian UI and CSV.
+- Hardened static canonical `kala.json` CLI ingestion with resolved outside-web-root paths, pre-read and open-file size verification, locked reads, and explicit administrator `--user` plus `--yes` requirements for mutation.
 - Renamed the public product-identifier labels to `کد کالا` and `سریال کالا` in WooCommerce product details and structured product data while retaining exact recognition of historical generated excerpts.
 - Corrected the public brand spelling to Ashco across plugin display text, runtime messages, translations, and documentation.
 - Standardized product-sync authentication on the neutral `X-Patris-Product-Sync-Secret` credential header.
