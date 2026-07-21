@@ -52,7 +52,8 @@ final class ProductPresentationTest extends TestCase {
             'ashco_patris_serial',
             'ashco_patris_sale_unit',
         ), array_keys($attributes));
-        self::assertSame('کد پاتریس', $attributes['ashco_patris_product_code']['label']);
+        self::assertSame('کد کالا', $attributes['ashco_patris_product_code']['label']);
+        self::assertSame('سریال کالا', $attributes['ashco_patris_serial']['label']);
         self::assertStringContainsString('class="ashco-patris-identifier"', $attributes['ashco_patris_product_code']['value']);
         self::assertStringContainsString('dir="ltr"', $attributes['ashco_patris_product_code']['value']);
         self::assertStringStartsWith('<span ', $attributes['ashco_patris_product_code']['value']);
@@ -152,7 +153,7 @@ final class ProductPresentationTest extends TestCase {
         self::assertArrayNotHasKey('mpn', $markup);
         self::assertCount(3, $markup['additionalProperty']);
         self::assertSame(
-            array('کد پاتریس', 'سریال پاتریس', 'واحد فروش'),
+            array('کد کالا', 'سریال کالا', 'واحد فروش'),
             array_column($markup['additionalProperty'], 'name')
         );
 
@@ -175,7 +176,7 @@ final class ProductPresentationTest extends TestCase {
         self::assertSame('100', $markup['offers']['price']);
         self::assertSame('قرمز', $markup['additionalProperty'][0]['value']);
         self::assertSame(
-            array('رنگ', 'کد پاتریس', 'سریال پاتریس', 'واحد فروش'),
+            array('رنگ', 'کد کالا', 'سریال کالا', 'واحد فروش'),
             array_column($markup['additionalProperty'], 'name')
         );
 
@@ -198,7 +199,7 @@ final class ProductPresentationTest extends TestCase {
         $GLOBALS['ashko_test_post_types'][123] = 'product';
         $markup = Product_Presentation::rank_math_product_entity($entity);
         self::assertSame(
-            array('کد پاتریس', 'سریال پاتریس', 'واحد فروش'),
+            array('کد کالا', 'سریال کالا', 'واحد فروش'),
             array_column($markup['additionalProperty'], 'name')
         );
         self::assertSame('not-an-array', Product_Presentation::rank_math_product_entity('not-an-array'));

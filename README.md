@@ -83,7 +83,7 @@ Each dry-run/apply has a durable run record and per-product rows with old/new va
 
 ## Product identity and sale unit
 
-Patris Code, Patris Serial, and sale unit are product facts, not descriptive copy. For plugin-owned products they appear as escaped, RTL-safe rows in WooCommerce's standard Additional Information table and as Schema.org `additionalProperty` values in both WooCommerce and Rank Math Product entities. Patris Code is not mislabeled as MPN/GTIN, and the theme's price-unit field remains a derived display adapter.
+Patris Code, Patris Serial, and sale unit are product facts, not descriptive copy. For plugin-owned products they appear as escaped, RTL-safe rows in WooCommerce's standard Additional Information table and as Schema.org `additionalProperty` values in both WooCommerce and Rank Math Product entities. Their public Persian labels are `کد کالا`, `سریال کالا`, and `واحد فروش`; source-system terminology is not exposed to shoppers. Patris Code is not mislabeled as MPN/GTIN, and the theme's price-unit field remains a derived display adapter.
 
 The canonical `_ashko_patris_unit` is resolved from a selected variation first and then its parent. It is snapshotted when an item enters the cart, displayed once in cart/checkout, copied to the order line, and exposed through WooCommerce's standard formatted item metadata as `واحد فروش`. Account pages, email templates, and invoice plugins that use WooCommerce formatted order metadata therefore retain the unit that was actually ordered even if the product changes later.
 
