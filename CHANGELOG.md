@@ -10,6 +10,8 @@
 - Snapshotted the canonical sale unit through variations, cart, checkout, order lines, emails, account views, and standard invoice metadata.
 - Added an exact-match admin/WP-CLI cleanup for legacy generated excerpts while preserving merchant-authored summaries.
 - Recognized the reviewed one-time import's exact legacy provenance tuple in product presentation and cleanup without widening ownership to incomplete or altered markers.
+- Preserved explicit LTR identifier markup through the live Woodmart sanitizer and extended Rank Math's emitted Product entity with the same sparse, idempotent Schema.org properties.
+- Prefiltered empty raw excerpts before guarded cleanup scans so completed maintenance no longer hydrates the cleared catalog on every settings view.
 
 ## 1.1.0 — 2026-07-20
 
