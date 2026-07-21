@@ -323,3 +323,52 @@ msgstr ""
 #: includes\api\class-rest-controller.php:90
 msgid "A Patris contract header does not match the JSON document."
 msgstr ""
+
+#: includes\class-product-presentation.php:53
+msgid "کد پاتریس"
+msgstr ""
+
+#: includes\class-product-presentation.php:59
+msgid "سریال پاتریس"
+msgstr ""
+
+#: includes\class-product-commerce.php:67
+#: includes\class-product-commerce.php:123
+#: includes\class-product-commerce.php:185
+#: includes\class-product-presentation.php:65
+msgid "واحد فروش"
+msgstr ""
+
+#: includes\class-product-commerce.php:67
+msgid "واحد فروش:"
+msgstr ""
+
+#: includes\class-product-presentation.php:85
+msgid "توضیحات تکمیلی"
+msgstr ""
+
+#: includes\admin\class-admin.php:204
+msgid "پاک‌سازی توضیح کوتاه قدیمی"
+msgstr ""
+
+#: includes\admin\class-admin.php:205
+msgid "این ابزار فقط جملهٔ دقیق و ماشینیِ واردشده را پاک می‌کند. توضیح‌های نوشته‌شده توسط فروشنده بدون تغییر می‌مانند."
+msgstr ""
+
+#: includes\admin\class-admin.php:214
+#, php-format
+msgid "%1$d توضیح کوتاه قدیمی پاک شد؛ تعداد خطا: %2$d."
+msgstr ""
+
+#: includes\admin\class-admin.php:221
+#, php-format
+msgid "نتیجهٔ اجرای آزمایشی: %d توضیح کوتاه منطبق است."
+msgstr ""
+
+#: includes\admin\class-admin.php:230
+msgid "پاک‌سازی موارد منطبق"
+msgstr ""
+
+#: includes\admin\class-admin.php:231
+msgid "فقط توضیح‌های ماشینیِ دقیق پاک شوند؟"
+msgstr ""

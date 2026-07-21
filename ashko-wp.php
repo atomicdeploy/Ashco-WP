@@ -34,6 +34,8 @@ require_once ASHKO_WP_DIR . 'includes/class-product-sync-receiver.php';
 require_once ASHKO_WP_DIR . 'includes/class-sync-service.php';
 require_once ASHKO_WP_DIR . 'includes/class-acf-integration.php';
 require_once ASHKO_WP_DIR . 'includes/class-frontend-stock.php';
+require_once ASHKO_WP_DIR . 'includes/class-product-presentation.php';
+require_once ASHKO_WP_DIR . 'includes/class-product-commerce.php';
 require_once ASHKO_WP_DIR . 'includes/class-jalali.php';
 require_once ASHKO_WP_DIR . 'includes/class-integration-status.php';
 require_once ASHKO_WP_DIR . 'includes/api/class-rest-controller.php';

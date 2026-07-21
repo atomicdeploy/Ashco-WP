@@ -27,6 +27,8 @@ final class Plugin {
         Admin::register();
         ACF_Integration::register();
         Frontend_Stock::register();
+        Product_Presentation::register();
+        Product_Commerce::register();
         add_action('admin_notices', array(self::class, 'requirements_notice'));
         if (defined('WP_CLI') && WP_CLI) {
             CLI::register();

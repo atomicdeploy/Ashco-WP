@@ -81,6 +81,19 @@ Core Woo fields are changed only when their desired value differs: regular/activ
 
 Each dry-run/apply has a durable run record and per-product rows with old/new values. The Persian admin page groups warnings for missing CNY, weight, unit, Serial, shipping amount/currency, margin, FX, or final price; duplicate Serial; negative stock; unmatched/ambiguous Woo targets; source warnings; and formula discrepancies. CSV downloads are UTF-8 and include Gregorian and Jalali effective dates.
 
+## Product identity and sale unit
+
+Patris Code, Patris Serial, and sale unit are product facts, not descriptive copy. For plugin-owned products they appear as escaped, RTL-safe rows in WooCommerce's standard Additional Information table and as Schema.org `additionalProperty` values. Patris Code is not mislabeled as MPN/GTIN, and the theme's price-unit field remains a derived display adapter.
+
+The canonical `_ashko_patris_unit` is resolved from a selected variation first and then its parent. It is snapshotted when an item enters the cart, displayed once in cart/checkout, copied to the order line, and exposed through WooCommerce's standard formatted item metadata as `واحد فروش`. Account pages, email templates, and invoice plugins that use WooCommerce formatted order metadata therefore retain the unit that was actually ordered even if the product changes later.
+
+The Settings tab includes a guarded maintenance action for the earlier one-time import sentence. It clears only an entire machine-generated excerpt whose title, Code, Serial, and unit exactly match the plugin-owned product metadata; merchant-written text and partial/mismatched sentences are preserved. The same operation is available as an auditable WP-CLI dry run and explicit apply:
+
+```bash
+wp ashko patris cleanup-excerpts
+wp ashko patris cleanup-excerpts --yes
+```
+
 ## ACF and currency integration
 
 Ashco-WP owns the CNY reference rate and canonical product meta integration; a third-party currency switcher is not required and should remain inactive on the IRR storefront. If ACF is available, Ashco-WP registers and bidirectionally mirrors CNY and effective-date fields. Without ACF, canonical product meta and all pricing/report functionality continue to work.
@@ -94,6 +107,7 @@ wp ashko patris status
 wp ashko patris dry-run /secure/path/event.json
 wp ashko patris apply /secure/path/event.json --yes
 wp ashko patris reconcile
+wp ashko patris cleanup-excerpts
 ```
 
 Do not place production JSON, databases, reports, or credentials inside the plugin directory or repository.

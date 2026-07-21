@@ -3,6 +3,7 @@ namespace Ashko\Patris\Admin;
 
 use Ashko\Patris\Config;
 use Ashko\Patris\Integration_Status;
+use Ashko\Patris\Product_Presentation;
 use Ashko\Patris\Report_Repository;
 
 final class Admin {
@@ -10,6 +11,7 @@ final class Admin {
         add_action('admin_menu', array(self::class, 'menu'));
         add_action('admin_post_ashko_save_patris_settings', array(self::class, 'save_settings'));
         add_action('admin_post_ashko_download_patris_report', array(self::class, 'download_report'));
+        add_action('admin_post_ashko_cleanup_legacy_excerpts', array(self::class, 'cleanup_legacy_excerpts'));
     }
 
     public static function menu(): void {
@@ -135,6 +137,7 @@ final class Admin {
         echo '</tbody></table>';
         submit_button(__('ذخیره تنظیمات', 'ashko-wp'));
         echo '</form><p>' . esc_html__('اتصال به سرویس‌های خارجی به‌طور پیش‌فرض غیرفعال است و این نسخه هیچ داده‌ای را بدون پیکربندی صریح ارسال نمی‌کند.', 'ashko-wp') . '</p>';
+        self::legacy_excerpt_cleanup();
     }
 
     public static function save_settings(): void {
@@ -178,6 +181,56 @@ final class Admin {
         }
         fclose($stream);
         exit;
+    }
+
+    public static function cleanup_legacy_excerpts(): void {
+        if (!current_user_can('manage_woocommerce')) {
+            wp_die(esc_html__('دسترسی کافی ندارید.', 'ashko-wp'));
+        }
+        check_admin_referer('ashko_cleanup_legacy_excerpts');
+        $result = Product_Presentation::cleanup_legacy_excerpts(true);
+        $url = admin_url(
+            'admin.php?page=ashko-patris&tab=settings'
+            . '&cleanup_matched=' . (int) $result['matched']
+            . '&cleanup_cleared=' . (int) $result['cleared']
+            . '&cleanup_errors=' . count($result['errors'])
+        );
+        wp_safe_redirect($url);
+        exit;
+    }
+
+    private static function legacy_excerpt_cleanup(): void {
+        $dry_run = Product_Presentation::cleanup_legacy_excerpts(false);
+        echo '<hr><h2>' . esc_html__('پاک‌سازی توضیح کوتاه قدیمی', 'ashko-wp') . '</h2>';
+        echo '<p>' . esc_html__(
+            'این ابزار فقط جملهٔ دقیق و ماشینیِ واردشده را پاک می‌کند. توضیح‌های نوشته‌شده توسط فروشنده بدون تغییر می‌مانند.',
+            'ashko-wp'
+        ) . '</p>';
+        if (isset($_GET['cleanup_cleared'])) {
+            $cleared = absint($_GET['cleanup_cleared']);
+            $errors = isset($_GET['cleanup_errors']) ? absint($_GET['cleanup_errors']) : 0;
+            echo '<div class="notice notice-' . ($errors ? 'warning' : 'success') . ' inline"><p>'
+                . esc_html(sprintf(
+                    __('%1$d توضیح کوتاه قدیمی پاک شد؛ تعداد خطا: %2$d.', 'ashko-wp'),
+                    $cleared,
+                    $errors
+                ))
+                . '</p></div>';
+        }
+        echo '<p><strong>' . esc_html(sprintf(
+            __('نتیجهٔ اجرای آزمایشی: %d توضیح کوتاه منطبق است.', 'ashko-wp'),
+            (int) $dry_run['matched']
+        )) . '</strong></p>';
+        if (0 === (int) $dry_run['matched']) {
+            return;
+        }
+        echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '">';
+        echo '<input type="hidden" name="action" value="ashko_cleanup_legacy_excerpts">';
+        wp_nonce_field('ashko_cleanup_legacy_excerpts');
+        submit_button(__('پاک‌سازی موارد منطبق', 'ashko-wp'), 'secondary', 'submit', false, array(
+            'onclick' => "return confirm('" . esc_js(__('فقط توضیح‌های ماشینیِ دقیق پاک شوند؟', 'ashko-wp')) . "');",
+        ));
+        echo '</form>';
     }
 
     private static function tab_link(string $slug, string $label, string $active): void {
