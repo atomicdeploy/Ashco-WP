@@ -1,13 +1,13 @@
 {
   "schema": "patris.product-sync",
   "event_type": "snapshot",
-  "event_id": "sha256:c6889c5d98598dc61e36d78d1e1f8418c5e238eb58a4fd7ce847b6c6e451f243",
+  "event_id": "sha256:2f2104e5230930fa885770b3de8fe5202e06886c70009e273354fdfd426ca643",
   "local_currency": "IRT",
   "formula_id": "landed_price",
   "source": {
     "id": "synthetic-fixture",
     "dataset": "synthetic-kala.db",
-    "revision": "sha256:8520b1c24c40954919e696e42c78e4dd96fae15412f7c49b299d73ebfee170ac"
+    "revision": "sha256:b6343b768a7bd1ea597cf24d911473c7e53c16b1e795eefe157a8b4dc569b335"
   },
   "generated_at": "2026-01-02T03:04:05Z",
   "products": [
@@ -30,7 +30,8 @@
       "weight_grams": 240,
       "location": "",
       "shipping_method_id": "synthetic-air",
-      "shipping_price_per_kg_cny": 120,
+      "shipping_price_per_kg": 120,
+      "shipping_price_per_kg_currency": "CNY",
       "markup_percent": 30,
       "irt_per_cny": 29000,
       "pricing_catalog_revision": "synthetic-catalog",
@@ -39,7 +40,7 @@
       "final_price": 2009410,
       "source_updated_at": "2026-01-01T00:00:00Z",
       "warnings": [],
-      "record_hash": "sha256:edd2d99bf22a7dd51a68d16c088cb92d3468e543e3623b6868e4349b494cd5cd"
+      "record_hash": "sha256:1a22f4d320f7f966d838d4ee6eb276a9298f84a9a020dac32db4805a773b69ba"
     },
     {
       "product_code": "101001002",
@@ -59,11 +60,12 @@
         "final_price_unavailable",
         "foreign_price_missing",
         "markup_percent_missing",
+        "shipping_currency_missing",
         "shipping_method_missing",
         "shipping_rate_missing",
         "weight_missing"
       ],
-      "record_hash": "sha256:6b76177e287e3740fae279dfe21a4602b17e77641c41454db13927af7d3b52f7"
+      "record_hash": "sha256:9bc503265e1117898d3bb5ab0f6cb8d34d72bf9c7b337034e19a58608fee4e0d"
     }
   ],
   "categories": [

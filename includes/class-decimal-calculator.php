@@ -4,19 +4,37 @@ namespace Ashko\Patris;
 /** Exact non-negative decimal arithmetic for Ashco pricing and stock policy. */
 final class Decimal_Calculator {
     /** Calculate the approved expression in IRR and round once, at the end. */
-    public static function price($foreign_cny, $weight_grams, $fx_irr, $shipping_irr_per_kg, $margin_percent): ?array {
+    public static function price(
+        $foreign_cny,
+        $weight_grams,
+        $fx_irr,
+        $shipping_price_per_kg,
+        $shipping_price_per_kg_currency,
+        $margin_percent
+    ): ?array {
         $cny = self::parts($foreign_cny);
         $weight = self::parts($weight_grams);
         $fx = self::parts($fx_irr);
-        $shipping_rate = self::parts($shipping_irr_per_kg);
+        $shipping_rate = self::parts($shipping_price_per_kg);
         $margin = self::parts($margin_percent);
-        if (null === $cny || null === $weight || null === $fx || null === $shipping_rate || null === $margin) {
+        $shipping_currency = (string) $shipping_price_per_kg_currency;
+        if (
+            null === $cny
+            || null === $weight
+            || null === $fx
+            || null === $shipping_rate
+            || null === $margin
+            || !in_array($shipping_currency, array('CNY', 'IRR'), true)
+        ) {
             return null;
         }
 
         $goods_irr = self::multiply($cny, $fx);
         $shipping_irr = self::multiply($weight, $shipping_rate);
         $shipping_irr['scale'] += 3;
+        if ('CNY' === $shipping_currency) {
+            $shipping_irr = self::multiply($shipping_irr, $fx);
+        }
         $landed_irr = self::add($goods_irr, $shipping_irr);
         $multiplier = self::add(self::parts('100'), $margin);
         $sale_irr = self::multiply($landed_irr, $multiplier);
@@ -30,7 +48,8 @@ final class Decimal_Calculator {
         return array(
             'native_final_irt' => $native_irt,
             'woo_final_irr' => $woo_irr,
-            'formula' => '((CNY × FX_IRR) + ((weight_g ÷ 1000) × shipping_IRR_per_kg)) × (1 + margin ÷ 100), one final half-up round in IRR',
+            'formula' => '((CNY × FX_IRR) + freight_IRR) × (1 + margin ÷ 100), where freight uses the declared CNY or IRR rate; one final half-up round in IRR',
+            'shipping_price_per_kg_currency' => $shipping_currency,
         );
     }
 

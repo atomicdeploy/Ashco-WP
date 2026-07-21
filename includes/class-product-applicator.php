@@ -109,7 +109,15 @@ final class Product_Applicator {
         if ('' === (string) ($data['serial'] ?? '')) {
             $warnings[] = 'missing_serial';
         }
-        if ($has_cny && ('' === (string) Config::get('default_shipping_method') || '' === (string) Config::get('shipping_irr_per_kg'))) {
+        $shipping_currency = (string) Config::get('shipping_price_per_kg_currency', '');
+        if (
+            $has_cny
+            && (
+                '' === (string) Config::get('default_shipping_method')
+                || '' === (string) Config::get('shipping_price_per_kg')
+                || !in_array($shipping_currency, array('CNY', 'IRR'), true)
+            )
+        ) {
             $warnings[] = 'missing_shipping';
         }
         if ($has_cny && '' === (string) Config::get('profit_margin_percent')) {
@@ -182,6 +190,14 @@ final class Product_Applicator {
         }
         $has_cny = '' !== $cny && 'CNY' === strtoupper((string) ($data['foreign_currency'] ?? ''));
         $effective_method = $has_cny ? (string) Config::get('default_shipping_method', 'air_express') : '';
+        $effective_shipping_price = $has_cny ? (string) Config::get('shipping_price_per_kg', '') : '';
+        $effective_shipping_currency = $has_cny ? (string) Config::get('shipping_price_per_kg_currency', '') : '';
+        $source_shipping_price = null === ($data['shipping_price_per_kg'] ?? null)
+            ? ''
+            : $this->scalar($data['shipping_price_per_kg']);
+        $source_shipping_currency = null === ($data['shipping_price_per_kg_currency'] ?? null)
+            ? ''
+            : (string) $data['shipping_price_per_kg_currency'];
 
         $meta = array(
             '_ashko_patris_product_code' => (string) ($data['product_code'] ?? ''),
@@ -199,8 +215,10 @@ final class Product_Applicator {
             '_ashko_patris_warehouse_stock' => wp_json_encode($data['warehouse_stock'] ?? array(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
             '_ashko_patris_shipping_method_id' => $effective_method,
             '_ashko_patris_source_shipping_method_id' => (string) ($data['shipping_method_id'] ?? ''),
-            '_ashko_patris_shipping_irr_per_kg' => $has_cny ? (string) Config::get('shipping_irr_per_kg', '') : '',
-            '_ashko_patris_source_shipping_price_per_kg_cny' => null === ($data['shipping_price_per_kg_cny'] ?? null) ? '' : $this->scalar($data['shipping_price_per_kg_cny']),
+            '_ashko_patris_shipping_price_per_kg' => $effective_shipping_price,
+            '_ashko_patris_shipping_price_per_kg_currency' => $effective_shipping_currency,
+            '_ashko_patris_source_shipping_price_per_kg' => $source_shipping_price,
+            '_ashko_patris_source_shipping_price_per_kg_currency' => $source_shipping_currency,
             '_ashko_patris_markup_percent' => $has_cny ? (string) Config::get('profit_margin_percent', '') : '',
             '_ashko_patris_source_markup_percent' => null === ($data['markup_percent'] ?? null) ? '' : $this->scalar($data['markup_percent']),
             '_ashko_patris_fx_irr_per_cny' => $has_cny ? (string) Config::get('fx_irr_per_cny', '') : '',
@@ -240,7 +258,8 @@ final class Product_Applicator {
             $data['foreign_price'],
             $data['weight_grams'],
             Config::get('fx_irr_per_cny', ''),
-            Config::get('shipping_irr_per_kg', ''),
+            Config::get('shipping_price_per_kg', ''),
+            Config::get('shipping_price_per_kg_currency', ''),
             Config::get('profit_margin_percent', '')
         );
     }

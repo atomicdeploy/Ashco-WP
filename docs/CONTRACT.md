@@ -10,7 +10,9 @@ Product hashes are SHA-256 identities of exactly the present product members oth
 
 Categories always contain `category_code`, `name`, `parent_code`, `depth`, `warnings`, and `record_hash`. An explicitly null source category name remains `name: null`; derived hierarchy fields remain non-null. Category hierarchy, catalog overlaps, source revision, event identity, ordering, and independently calculated final price are verified before a WooCommerce write.
 
-Only `shipping_method_id` and `shipping_price_per_kg_cny` are accepted for source shipping. Removed schema/formula selectors, the duplicate event name, and old shipping aliases are rejected as unknown fields. There is no fallback parser.
+Source shipping uses `shipping_method_id` plus the paired fields `shipping_price_per_kg` and `shipping_price_per_kg_currency`. The amount and currency keys must either both be omitted or both be present. A non-null currency must be exactly uppercase `CNY` or `IRR`; an explicit null is preserved but cannot participate in price calculation. Missing source values remain omitted, and no currency is inferred from the amount. Unknown envelope or product fields are rejected. There is no fallback parser.
+
+Canonical `final_price` remains IRT. Goods are converted from CNY with `irt_per_cny`. CNY freight is calculated per kilogram and converted with `irt_per_cny`; IRR freight is calculated per kilogram and divided by 10 to reach IRT. Goods and freight are combined, markup is applied once, and the receiver performs one final half-up rounding step in IRT. If either shipping field is absent or explicitly null, `final_price` must be omitted.
 
 Raw Paradox/Patris fields are rejected. Only transformed fields can reach WooCommerce. Application identity on Ashco is `serial`, never `product_code`; exact case-sensitive matches from the configured meta key and `_ashko_patris_serial` are unioned by Woo ID, and any collision is reported as ambiguous.
 

@@ -219,10 +219,26 @@ msgid "نرخ هر CNY به ریال"
 msgstr "نرخ هر CNY به ریال"
 
 #: includes\admin\class-admin.php:118
-msgid "هزینه هوایی/اکسپرس هر کیلو (ریال)"
-msgstr "هزینه هوایی/اکسپرس هر کیلو (ریال)"
+msgid "هزینه هوایی/اکسپرس هر کیلو"
+msgstr "هزینه هوایی/اکسپرس هر کیلو"
 
 #: includes\admin\class-admin.php:119
+msgid "ارز هزینه حمل هر کیلو"
+msgstr "ارز هزینه حمل هر کیلو"
+
+#: includes\admin\class-admin.php:122
+msgid "ریال ایران (IRR)"
+msgstr "ریال ایران (IRR)"
+
+#: includes\admin\class-admin.php:122
+msgid "یوان چین (CNY)"
+msgstr "یوان چین (CNY)"
+
+#: includes\admin\class-admin.php:123
+msgid "انتخاب ارز الزامی است و مبلغ حمل بر اساس همین ارز محاسبه می‌شود."
+msgstr "انتخاب ارز الزامی است و مبلغ حمل بر اساس همین ارز محاسبه می‌شود."
+
+#: includes\admin\class-admin.php:126
 msgid "حاشیه سود (درصد)"
 msgstr "حاشیه سود (درصد)"
 
