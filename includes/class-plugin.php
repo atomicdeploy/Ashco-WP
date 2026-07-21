@@ -12,6 +12,7 @@ final class Plugin {
         $stored = is_array($stored) ? $stored : array();
         update_option(Config::OPTION, Config::sanitize(array_merge(Config::defaults(), $stored)), false);
         add_option(Config::SOURCE_SCOPES_OPTION, array(), '', false);
+        add_option(Current_Catalog_Report::STAGED_OPTION, array('sources' => array()), '', false);
         Config::secret();
         Report_Repository::install();
         update_option('ashko_patris_db_version', self::DB_VERSION, false);

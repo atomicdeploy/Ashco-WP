@@ -684,6 +684,16 @@ class Product_Sync_Receiver {
             $source_state['products'] = is_array($source_state['products'] ?? null) ? $source_state['products'] : array();
             $source_state['categories'] = is_array($source_state['categories'] ?? null) ? $source_state['categories'] : array();
             $source_state['excluded_codes'] = is_array($source_state['excluded_codes'] ?? null) ? $source_state['excluded_codes'] : array();
+            $source_state['quarantined_codes'] = is_array($source_state['quarantined_codes'] ?? null) ? $source_state['quarantined_codes'] : array();
+            $source_state['preserved_quarantined_codes'] = is_array($source_state['preserved_quarantined_codes'] ?? null)
+                ? $source_state['preserved_quarantined_codes']
+                : array();
+            $source_state['preserved_product_generated_at'] = is_array($source_state['preserved_product_generated_at'] ?? null)
+                ? $source_state['preserved_product_generated_at']
+                : array();
+            $source_state['envelope_warnings'] = is_array($source_state['envelope_warnings'] ?? null)
+                ? $source_state['envelope_warnings']
+                : array();
             $source_state['applied_products'] = is_array($source_state['applied_products'] ?? null) ? $source_state['applied_products'] : array();
             $source_state['pending_products'] = is_array($source_state['pending_products'] ?? null) ? $source_state['pending_products'] : array();
             $source_state['deferred_products'] = is_array($source_state['deferred_products'] ?? null)
@@ -770,6 +780,16 @@ class Product_Sync_Receiver {
         }
 
         $delivery = $this->build_delivery_state($transition['products'], $transition['changed_products'], $envelope, $existing);
+        $preserved_product_generated_at = array();
+        $existing_preserved_dates = is_array($existing['preserved_product_generated_at'] ?? null)
+            ? $existing['preserved_product_generated_at']
+            : array();
+        foreach ($transition['preserved_quarantined_codes'] as $code) {
+            $preserved_at = (string) ($existing_preserved_dates[$code] ?? ($existing['generated_at'] ?? ''));
+            if ('' !== $preserved_at) {
+                $preserved_product_generated_at[$code] = $preserved_at;
+            }
+        }
         $source_state = array(
             'source' => $envelope['source'],
             'generated_at' => $envelope['generated_at'],
@@ -780,6 +800,9 @@ class Product_Sync_Receiver {
             'categories' => $transition['categories'],
             'excluded_codes' => $transition['excluded_codes'],
             'quarantined_codes' => $envelope['quarantined_codes'],
+            'preserved_quarantined_codes' => $transition['preserved_quarantined_codes'],
+            'preserved_product_generated_at' => $preserved_product_generated_at,
+            'envelope_warnings' => $envelope['warnings'],
             'recent_events' => $recent_events,
             'applied_products' => $delivery['applied_products'],
             'pending_products' => $delivery['pending_products'],
@@ -1489,6 +1512,7 @@ class Product_Sync_Receiver {
             $quarantined[$quarantined_code] = $quarantined_code;
         }
         $preserved = 0;
+        $preserved_codes = array();
 
         if ('snapshot' === $envelope['event_type']) {
             $next = $incoming;
@@ -1496,6 +1520,7 @@ class Product_Sync_Receiver {
                 if (isset($previous[$code])) {
                     $next[$code] = $previous[$code];
                     $preserved++;
+                    $preserved_codes[$code] = $code;
                 }
             }
             $revision_products = $incoming;
@@ -1516,6 +1541,7 @@ class Product_Sync_Receiver {
                 if (isset($previous[$code])) {
                     $next[$code] = $previous[$code];
                     $preserved++;
+                    $preserved_codes[$code] = $code;
                 }
             }
             $revision_products = $next;
@@ -1526,6 +1552,7 @@ class Product_Sync_Receiver {
 
         ksort($next, SORT_STRING);
         ksort($revision_products, SORT_STRING);
+        ksort($preserved_codes, SORT_STRING);
         $catalog_check = $this->validate_catalog_projection(
             array_values($next),
             array_values($categories),
@@ -1558,6 +1585,7 @@ class Product_Sync_Receiver {
                 ? count(array_diff(array_keys($previous), array_merge(array_keys($next), $envelope['quarantined_codes'])))
                 : ($deleted ?? 0),
             'preserved_quarantined' => $preserved,
+            'preserved_quarantined_codes' => array_values($preserved_codes),
         );
     }
 
@@ -1936,6 +1964,9 @@ class Product_Sync_Receiver {
             'stored_products' => count(is_array($source_state['products'] ?? null) ? $source_state['products'] : array()),
             'stored_categories' => count(is_array($source_state['categories'] ?? null) ? $source_state['categories'] : array()),
             'excluded_codes' => count(is_array($source_state['excluded_codes'] ?? null) ? $source_state['excluded_codes'] : array()),
+            'quarantined_codes' => count(is_array($source_state['quarantined_codes'] ?? null) ? $source_state['quarantined_codes'] : array()),
+            'preserved_quarantined_codes' => count(is_array($source_state['preserved_quarantined_codes'] ?? null) ? $source_state['preserved_quarantined_codes'] : array()),
+            'envelope_warnings' => count(is_array($source_state['envelope_warnings'] ?? null) ? $source_state['envelope_warnings'] : array()),
             'applied_products' => count(is_array($source_state['applied_products'] ?? null) ? $source_state['applied_products'] : array()),
             'pending_products' => count(is_array($source_state['pending_products'] ?? null) ? $source_state['pending_products'] : array()),
             'deferred_products' => count(is_array($source_state['deferred_products'] ?? null) ? $source_state['deferred_products'] : array()),
