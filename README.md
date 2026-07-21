@@ -87,6 +87,12 @@ Patris Code, Patris Serial, and sale unit are product facts, not descriptive cop
 
 The canonical `_ashko_patris_unit` is resolved from a selected variation first and then its parent. It is snapshotted when an item enters the cart, displayed once in cart/checkout, copied to the order line, and exposed through WooCommerce's standard formatted item metadata as `واحد فروش`. Account pages, email templates, and invoice plugins that use WooCommerce formatted order metadata therefore retain the unit that was actually ordered even if the product changes later.
 
+## Storefront price display
+
+WooCommerce continues to store, calculate, order, pay, report, and expose all prices in IRR. On non-transactional storefront pages only, an accessible Persian radio control lets a visitor display product prices as `ریال` or `تومان`; the تومان view is an exact browser-side division by 10 and never writes a price or changes the WooCommerce currency. Non-divisible IRR prices retain the exact decimal تومان value instead of being rounded.
+
+The preference is restricted to `IRR`/`IRT`, retained in local storage with a same-site cookie fallback, and applied to classic and block product prices added dynamically by themes or WooCommerce. It is intentionally absent from administration, REST/JSON/AJAX responses, feeds, cart, checkout, account, endpoint, order, payment, invoice, and mini-cart contexts. Original IRR markup stays in memory for each rendered amount. An inert markup checksum plus text-only original values lets an exact converted carousel clone restore punctuation, trailing decimals, and symbols without carrying executable markup or being divided twice; those values are assigned only to DOM text nodes and are never interpreted as HTML.
+
 The Settings tab includes a guarded maintenance action for the earlier one-time import sentence. It clears only an entire machine-generated excerpt whose title, Code, Serial, and unit exactly match the plugin-owned product metadata; merchant-written text and partial/mismatched sentences are preserved. Already-empty excerpts are excluded before the more expensive ownership scan, while any later trusted non-empty excerpt is still detected. The same operation is available as an auditable WP-CLI dry run and explicit apply:
 
 ```bash
@@ -122,6 +128,7 @@ Ashco is the public brand and the required spelling for new user-facing text and
 composer install
 composer lint
 composer test
+composer test:js
 pwsh ./scripts/build-plugin.ps1
 ```
 

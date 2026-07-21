@@ -4,6 +4,7 @@
 2. Install the ZIP and verify PHP memory can be raised to at least 192 MiB.
 3. Deploy the matching Patris Export contract change in the same cutover; previously generated documents are intentionally rejected.
 4. Confirm WooCommerce base currency is IRR and leave currency switchers inactive.
+   The built-in storefront control changes product-price display only: تومان is exactly IRR divided by 10. Cart, checkout, account, order, payment, invoice, administration, and API values remain IRR.
 5. Enter the shipping amount per kilogram and explicitly select its `IRR` or `CNY` currency; never infer currency from the amount.
 6. Configure exact `{source id,dataset}` scopes and copy the generated secret into the Patris service environment.
 7. Start the new receiver state with a complete snapshot. Do not begin with an update event.

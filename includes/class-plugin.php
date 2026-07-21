@@ -29,6 +29,7 @@ final class Plugin {
         Frontend_Stock::register();
         Product_Presentation::register();
         Product_Commerce::register();
+        Storefront_Price_Display::register();
         add_action('admin_notices', array(self::class, 'requirements_notice'));
         if (defined('WP_CLI') && WP_CLI) {
             CLI::register();

@@ -1,6 +1,9 @@
 <?php
 define('ABSPATH', __DIR__ . '/');
 define('ARRAY_A', 'ARRAY_A');
+define('ASHKO_WP_FILE', dirname(__DIR__) . '/ashko-wp.php');
+define('ASHKO_WP_DIR', dirname(__DIR__) . '/');
+define('ASHKO_WP_VERSION', '1.1.0');
 
 $GLOBALS['ashko_test_options'] = array(
     'woocommerce_currency' => 'IRR',
@@ -18,6 +21,10 @@ $GLOBALS['ashko_test_product_categories'] = array();
 $GLOBALS['ashko_test_raw_post_excerpts'] = array();
 $GLOBALS['ashko_test_get_posts_calls'] = array();
 $GLOBALS['ashko_test_excerpt_prefilter_calls'] = 0;
+$GLOBALS['ashko_test_request_context'] = array();
+$GLOBALS['ashko_test_enqueued_styles'] = array();
+$GLOBALS['ashko_test_enqueued_scripts'] = array();
+$GLOBALS['ashko_test_localized_scripts'] = array();
 
 class WP_Error {
     private $code;
@@ -89,6 +96,7 @@ function doing_action($hook = null) { return null === $hook ? !empty($GLOBALS['a
 function esc_attr($value) { return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8'); }
 function esc_html($value) { return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8'); }
 function esc_html__($value, $domain = null) { return esc_html($value); }
+function esc_attr__($value, $domain = null) { return esc_attr($value); }
 function wp_strip_all_tags($value, $remove_breaks = false) {
     $value = strip_tags((string) $value);
     return $remove_breaks ? preg_replace('/[\r\n\t ]+/', ' ', $value) : $value;
@@ -101,6 +109,26 @@ function wp_kses_post($value) {
 }
 function wp_add_inline_script($handle, $data, $position = 'after') {
     $GLOBALS['ashko_test_inline_scripts'][] = array('handle' => $handle, 'data' => $data, 'position' => $position);
+    return true;
+}
+function is_admin() { return !empty($GLOBALS['ashko_test_request_context']['admin']); }
+function wp_doing_ajax() { return !empty($GLOBALS['ashko_test_request_context']['ajax']); }
+function wp_is_json_request() { return !empty($GLOBALS['ashko_test_request_context']['json']); }
+function is_feed() { return !empty($GLOBALS['ashko_test_request_context']['feed']); }
+function is_embed() { return !empty($GLOBALS['ashko_test_request_context']['embed']); }
+function is_cart() { return !empty($GLOBALS['ashko_test_request_context']['cart']); }
+function is_checkout() { return !empty($GLOBALS['ashko_test_request_context']['checkout']); }
+function is_account_page() { return !empty($GLOBALS['ashko_test_request_context']['account']); }
+function is_wc_endpoint_url() { return !empty($GLOBALS['ashko_test_request_context']['wc_endpoint']); }
+function plugins_url($path = '', $plugin = '') { return 'https://example.test/wp-content/plugins/ashko-wp/' . ltrim((string) $path, '/'); }
+function wp_enqueue_style($handle, $src = '', $deps = array(), $version = false, $media = 'all') {
+    $GLOBALS['ashko_test_enqueued_styles'][] = compact('handle', 'src', 'deps', 'version', 'media');
+}
+function wp_enqueue_script($handle, $src = '', $deps = array(), $version = false, $args = array()) {
+    $GLOBALS['ashko_test_enqueued_scripts'][] = compact('handle', 'src', 'deps', 'version', 'args');
+}
+function wp_localize_script($handle, $object_name, $data) {
+    $GLOBALS['ashko_test_localized_scripts'][] = compact('handle', 'object_name', 'data');
     return true;
 }
 function admin_url($path = '') { return 'https://example.test/wp-admin/' . ltrim((string) $path, '/'); }
@@ -217,6 +245,7 @@ require_once $root . '/includes/class-serial-resolver.php';
 require_once $root . '/includes/class-product-applicator.php';
 require_once $root . '/includes/class-product-commerce.php';
 require_once $root . '/includes/class-product-presentation.php';
+require_once $root . '/includes/class-storefront-price-display.php';
 require_once $root . '/includes/class-jalali.php';
 require_once $root . '/includes/class-logger.php';
 require_once $root . '/includes/class-product-sync-receiver.php';

@@ -1,0 +1,98 @@
+.ashco-price-display-switch {
+    --ashco-price-display-accent: #b51f2e;
+    position: fixed;
+    inset-inline-start: 1rem;
+    bottom: 1rem;
+    z-index: 9998;
+    direction: rtl;
+    color: #202124;
+    font: inherit;
+}
+
+.ashco-price-display-switch__fieldset {
+    display: flex;
+    align-items: center;
+    gap: .25rem;
+    min-width: 0;
+    margin: 0;
+    padding: .35rem;
+    border: 1px solid rgba(32, 33, 36, .15);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .96);
+    box-shadow: 0 .4rem 1.5rem rgba(24, 28, 33, .14);
+    backdrop-filter: blur(8px);
+}
+
+.ashco-price-display-switch__legend {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.ashco-price-display-switch__choice {
+    position: relative;
+    display: inline-flex;
+    margin: 0;
+    cursor: pointer;
+}
+
+.ashco-price-display-switch__choice input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.ashco-price-display-switch__choice span {
+    display: block;
+    min-width: 3.75rem;
+    padding: .45rem .7rem;
+    border-radius: 999px;
+    color: #4c4f53;
+    line-height: 1.25;
+    text-align: center;
+    transition: background-color .16s ease, color .16s ease, box-shadow .16s ease;
+}
+
+.ashco-price-display-switch__choice input:checked + span {
+    color: #fff;
+    background: var(--ashco-price-display-accent);
+    box-shadow: 0 .15rem .5rem rgba(181, 31, 46, .25);
+}
+
+.ashco-price-display-switch__choice input:focus-visible + span {
+    outline: 3px solid #fff;
+    box-shadow: 0 0 0 5px var(--ashco-price-display-accent);
+}
+
+@media (max-width: 480px) {
+    .ashco-price-display-switch {
+        inset-inline-start: .65rem;
+        bottom: .65rem;
+    }
+
+    .ashco-price-display-switch__choice span {
+        min-width: 3.25rem;
+        padding: .4rem .55rem;
+        font-size: .875rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ashco-price-display-switch__choice span {
+        transition: none;
+    }
+}
+
+@media print {
+    .ashco-price-display-switch {
+        display: none !important;
+    }
+}
