@@ -28,6 +28,7 @@ final class Plugin {
         Admin::register();
         ACF_Integration::register();
         Frontend_Stock::register();
+        WooCommerce_Currency_Status::register();
         Product_Presentation::register();
         Product_Commerce::register();
         Storefront_Price_Display::register();

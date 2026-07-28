@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Corrected the Persian WooCommerce integration's tenfold IRR inflation in Rank Math Product offers, Facebook/OpenGraph price metadata, and native WooCommerce offer schema by restoring raw edit-context prices at a late priority; real zero remains authoritative and absent prices stay absent.
 - Made full current-catalog CSV downloads resilient on shared hosting: preflight filtering no longer duplicates the row graph, CSV bytes are completed in a file-backed temporary stream while rows are released, and the finished file is sent in bounded chunks under a bounded export runtime allowance.
 - Separated `partner_price_source` (Sharh1 slot 1) from `sale_price_source` (FOROSH/فی فروش), required `domestic / 0 / IRR` provenance for domestic price paths, and added a disabled-by-default exact direct-sale fallback with no margin, freight, FX, or rounding.
 - Changed positive source-stock allocation to `max(1, floor(total_stock × stock_percent / 100))` while preserving sparse no-write behavior and safe zero/negative handling.
