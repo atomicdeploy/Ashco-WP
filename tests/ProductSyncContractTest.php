@@ -269,6 +269,26 @@ final class ProductSyncContractTest extends TestCase {
         self::assertArrayNotHasKey('final_price', $validated);
     }
 
+    public function test_negative_raw_cny_is_rejected_before_partner_fallback(): void {
+        $payload = json_decode($this->fixture(), true);
+        $receiver = Product_Sync_Receiver::instance();
+        $validate = new ReflectionMethod(Product_Sync_Receiver::class, 'validate_product');
+        $hash = new ReflectionMethod(Product_Sync_Receiver::class, 'record_hash');
+        $product = $payload['products'][0];
+        $product['foreign_price'] = -1;
+        $product['price_source_amount'] = $product['sale_price_source'];
+        $product['price_source_currency'] = 'IRR';
+        $product['price_source_kind'] = 'partner_price';
+        $product['final_price'] = 13000;
+        $product['record_hash'] = $hash->invoke($receiver, $product);
+
+        $result = $validate->invoke($receiver, $product, 0);
+
+        self::assertSame('ashko_product_sync_field_invalid', $result->get_error_code());
+        self::assertSame('products[0].foreign_price', $result->get_error_data()['field']);
+        self::assertStringContainsString('must not be negative', $result->get_error_data()['reason']);
+    }
+
     public function test_selected_price_source_and_rounding_provenance_are_atomic(): void {
         $payload = json_decode($this->fixture(), true);
         $receiver = Product_Sync_Receiver::instance();

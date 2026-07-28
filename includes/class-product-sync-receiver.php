@@ -1218,6 +1218,16 @@ class Product_Sync_Receiver {
         ) {
             return $this->field_error($path . '.price_rounding_digits', 'must be an integer from 0 through 9');
         }
+        if (
+            array_key_exists('foreign_price', $product)
+            && null !== $product['foreign_price']
+            && $this->number_compare_zero($product['foreign_price']) < 0
+        ) {
+            return $this->field_error(
+                $path . '.foreign_price',
+                'must not be negative; zero remains a valid raw fact for partner-price fallback'
+            );
+        }
         $price_source_check = $this->validate_price_source_selection($product, $path);
         if (is_wp_error($price_source_check)) {
             return $price_source_check;
