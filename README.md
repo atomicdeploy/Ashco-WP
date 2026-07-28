@@ -22,20 +22,24 @@ Defaults are installed as editable settings:
 - shipping currency: `IRR` by default; the administrator must explicitly choose `IRR` or `CNY`
 - profit margin: `30%`
 - final-price rounding: nearest half-up to `10^0 IRT` by default; `price_rounding_digits` is configurable from `0` through `9`
-- saleable stock: `floor(ALLANBAR × 30%)`
+- saleable stock: omitted/null means no write; non-positive becomes `0`; positive becomes `max(1, floor(ALLANBAR × 30%))`
 - default shipping method for records with CNY: `air_express`
+- partner and direct domestic method: `domestic`, fixed at `0 IRR/kg`
+- direct FOROSH/فی فروش fallback: disabled by default
 
-The selected source is explicit. A positive CNY price wins. When it is unavailable or zero, a positive Patris partner price is selected in IRR. The CNY path is:
+The selected source is explicit. The positive CNY path wins only when weight, foreign shipping, FX, margin, and rounding are all usable. Otherwise a positive Patris `partner_price_source` (Sharh1 slot 1) uses the domestic path. `sale_price_source` is the separate FOROSH/فی فروش fact and is not the partner price. The CNY path is:
 
 ```text
 ((CNY × 300000) + ((weight_g / 1000) × 22000000)) × 1.30
 ```
 
-The partner-price path is `partner_IRR × 1.30`; freight, weight, and FX are not used on that path. When CNY shipping is configured in `CNY`, the freight component is converted with the same CNY-to-IRR rate before markup. When it is configured in `IRR`, it is added directly.
+The partner-price path is `partner_IRR × 1.30`; it records `domestic / 0 / IRR`, and freight, weight, and FX are not used. When CNY shipping is configured in `CNY`, the freight component is converted with the same CNY-to-IRR rate before markup. When it is configured in `IRR`, it is added directly.
+
+An optional last path can use positive FOROSH/فی فروش directly as Woo IRR when both calculated paths are unavailable. It applies no profit, freight, FX, or rounding and requires an exact integer IRT representation. The `use_sale_price_direct_fallback` setting is `no` by default and remains disabled for Ashco.
 
 The producer's independently validated `final_price` remains integer IRT. One configurable nearest-half-up operation is performed at the end in IRT, and Woo receives exactly `final_price × 10` IRR. For example, with two rounding digits, `123,456 IRT` becomes `123,500 IRT`. Raw zero remains distinct from an omitted or explicit-null source fact, but zero is never a usable selected price.
 
-Full source stock is stored in `_ashko_patris_allanbar_full`; only the floored 30% quantity is written to Woo stock. Ashco products remain visible when out of stock, and exact saleable quantity is shown on the storefront when enabled. The normal WooCommerce stock-HTML filter is authoritative; a duplicate-safe single-product fallback runs immediately after the standard add-to-cart slot so catalog-mode themes cannot silently remove synchronized quantities, including zero stock.
+Full source stock is stored in `_ashko_patris_allanbar_full`. Omitted/null stock causes no Woo stock write; negative and zero stock map to zero; any positive source stock maps to at least one through `max(1, floor(ALLANBAR × 30%))`. Ashco products remain visible when out of stock, and exact saleable quantity is shown on the storefront when enabled. The normal WooCommerce stock-HTML filter is authoritative; a duplicate-safe single-product fallback runs immediately after the standard add-to-cart slot so catalog-mode themes cannot silently remove synchronized quantities, including zero stock.
 
 ## REST endpoints
 
@@ -78,7 +82,7 @@ Core Woo fields are changed only when their desired value differs: regular/activ
 - full ALLANBAR and applied stock;
 - effective/source shipping amounts and their explicit currencies, margin, FX, and formula values;
 - canonical IRT, native IRR, both discrepancy measures;
-- raw partner price, selected price amount/currency/kind, and source/effective rounding provenance;
+- distinct raw partner price and FOROSH/فی فروش, selected price amount/currency/kind, and source/effective rounding provenance;
 - category, effective-date, catalog, source timestamp, Serial, Code, and record hash.
 
 Each dry-run/apply has a durable run record and per-product rows with old/new values. The Persian admin page groups warnings for missing CNY or any usable selected source, partner-price fallback, weight, unit, Serial, shipping amount/currency, margin, FX, rounding, or final price; duplicate Serial; negative stock; unmatched/ambiguous Woo targets; source warnings; formula discrepancies; and each publication-safety condition. CSV downloads are UTF-8 and include Gregorian and Jalali effective dates.

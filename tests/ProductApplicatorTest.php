@@ -87,10 +87,13 @@ final class ProductApplicatorTest extends TestCase {
     public function test_partner_price_fallback_uses_irr_without_weight_freight_or_fx(): void {
         $data = $this->data();
         $data['foreign_price'] = 0;
-        $data['sale_price_source'] = 1000000;
+        $data['partner_price_source'] = 1000000;
         $data['price_source_amount'] = 1000000;
         $data['price_source_currency'] = 'IRR';
         $data['price_source_kind'] = 'partner_price';
+        $data['shipping_method_id'] = 'domestic';
+        $data['shipping_price_per_kg'] = 0;
+        $data['shipping_price_per_kg_currency'] = 'IRR';
         unset($data['weight_grams']);
         $product = new Ashko_Test_Product(220, array(
             'regular_price' => '', 'price' => '', 'manage_stock' => true,
@@ -101,12 +104,88 @@ final class ProductApplicatorTest extends TestCase {
 
         self::assertSame('1300000', $plan['core_changes']['regular_price']['new']);
         self::assertSame('partner_price', $plan['meta_changes']['_ashko_patris_price_source_kind']['new']);
-        self::assertSame('', $plan['meta_changes']['_ashko_patris_shipping_price_per_kg']['new'] ?? '');
+        self::assertSame('1000000', $plan['meta_changes']['_ashko_patris_partner_price_source']['new']);
+        self::assertSame('', $plan['meta_changes']['_ashko_patris_sale_price_source']['new'] ?? '');
+        self::assertSame('domestic', $plan['meta_changes']['_ashko_patris_shipping_method_id']['new']);
+        self::assertSame('0', $plan['meta_changes']['_ashko_patris_shipping_price_per_kg']['new']);
+        self::assertSame('IRR', $plan['meta_changes']['_ashko_patris_shipping_price_per_kg_currency']['new']);
+        self::assertSame('domestic', $plan['meta_changes']['_ashko_patris_source_shipping_method_id']['new']);
+        self::assertSame('0', $plan['meta_changes']['_ashko_patris_source_shipping_price_per_kg']['new']);
+        self::assertSame('IRR', $plan['meta_changes']['_ashko_patris_source_shipping_price_per_kg_currency']['new']);
         self::assertContains('partner_price_source_used', $plan['warnings']);
         self::assertNotContains('missing_weight', $plan['warnings']);
         self::assertNotContains('missing_shipping', $plan['warnings']);
         self::assertNotContains('missing_fx', $plan['warnings']);
         self::assertNotContains('missing_final_price', $plan['warnings']);
+    }
+
+    public function test_direct_sale_price_path_is_explicitly_enabled_and_has_no_markup_or_rounding_effect(): void {
+        $GLOBALS['ashko_test_options'][Ashko\Patris\Config::OPTION] = array(
+            'use_sale_price_direct_fallback' => 'yes',
+            'profit_margin_percent' => '999',
+            'price_rounding_digits' => '9',
+        );
+        $data = $this->data();
+        $data['foreign_price'] = 0;
+        $data['sale_price_source'] = 1234560;
+        $data['price_source_amount'] = 1234560;
+        $data['price_source_currency'] = 'IRR';
+        $data['price_source_kind'] = 'sale_price_direct';
+        $data['shipping_method_id'] = 'domestic';
+        $data['shipping_price_per_kg'] = 0;
+        $data['shipping_price_per_kg_currency'] = 'IRR';
+        $data['final_price'] = 123456;
+        unset(
+            $data['weight_grams'],
+            $data['markup_percent'],
+            $data['irt_per_cny'],
+            $data['price_rounding_digits'],
+            $data['price_rounding_mode']
+        );
+        $product = new Ashko_Test_Product(225);
+
+        $plan = Product_Applicator::instance()->plan($product, $data);
+
+        self::assertSame('1234560', $plan['core_changes']['regular_price']['new']);
+        self::assertSame('sale_price_direct', $plan['meta_changes']['_ashko_patris_price_source_kind']['new']);
+        self::assertSame('', $plan['meta_changes']['_ashko_patris_markup_percent']['new'] ?? '');
+        self::assertSame('', $plan['meta_changes']['_ashko_patris_price_rounding_digits']['new'] ?? '');
+        self::assertSame('domestic', $plan['meta_changes']['_ashko_patris_shipping_method_id']['new']);
+        self::assertContains('direct_sale_price_source_used', $plan['warnings']);
+        self::assertNotContains('missing_margin', $plan['warnings']);
+        self::assertNotContains('missing_rounding', $plan['warnings']);
+    }
+
+    public function test_piecewise_stock_policy_is_shared_by_apply_dry_run_and_report_projection(): void {
+        $cases = array(
+            '__omitted__' => null,
+            '-5' => 0,
+            '0' => 0,
+            '1' => 1,
+            '2' => 1,
+            '3' => 1,
+            '4' => 1,
+            '2141' => 642,
+        );
+        foreach ($cases as $source_stock => $expected) {
+            $data = $this->data();
+            if ('__omitted__' === $source_stock) {
+                unset($data['total_stock']);
+            } else {
+                $data['total_stock'] = $source_stock;
+            }
+
+            $projection = Product_Applicator::instance()->report_projection($data);
+
+            if (null === $expected) {
+                self::assertArrayNotHasKey('stock_quantity', $projection['core']);
+                self::assertSame('', $projection['meta']['_ashko_patris_stock_applied']);
+                continue;
+            }
+            self::assertSame($expected, $projection['core']['stock_quantity'], 'source stock ' . $source_stock);
+            self::assertSame($expected > 0 ? 'instock' : 'outofstock', $projection['core']['stock_status']);
+            self::assertSame((string) $expected, $projection['meta']['_ashko_patris_stock_applied']);
+        }
     }
 
     public function test_publication_safety_drafts_only_when_all_three_conditions_hold(): void {

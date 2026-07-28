@@ -237,6 +237,10 @@ final class CurrentCatalogReportTest extends TestCase {
         }
         self::assertSame('300000', $report['provenance']['fx_irr_per_cny']);
         self::assertSame('IRR', $report['provenance']['shipping_price_per_kg_currency']);
+        self::assertSame('domestic', $report['provenance']['domestic_shipping_method_id']);
+        self::assertSame('0', $report['provenance']['domestic_shipping_price_per_kg']);
+        self::assertSame('IRR', $report['provenance']['domestic_shipping_price_per_kg_currency']);
+        self::assertSame('no', $report['provenance']['use_sale_price_direct_fallback']);
         self::assertSame(Ashko\Patris\Decimal_Calculator::PRICE_FORMULA, $report['provenance']['price_formula']);
         self::assertSame(Ashko\Patris\Decimal_Calculator::STOCK_FORMULA, $report['provenance']['stock_formula']);
     }
@@ -259,6 +263,33 @@ final class CurrentCatalogReportTest extends TestCase {
         self::assertSame('0', $report['provenance']['price_rounding_digits']);
         self::assertSame('nearest_half_up', $report['provenance']['price_rounding_mode']);
         self::assertSame('30', $report['provenance']['stock_percent']);
+    }
+
+    public function test_current_report_projects_minimum_one_for_low_positive_source_stock(): void {
+        $product = new Ashko_Test_Product(79, array(
+            'name' => 'کالا',
+            'manage_stock' => true,
+            'stock_quantity' => 0,
+            'stock_status' => 'outofstock',
+        ), array('_sku' => 'SER-79'));
+        $GLOBALS['ashko_test_serial_rows'] = array(
+            array('ID' => '79', 'post_type' => 'product', 'meta_key' => '_sku', 'meta_value' => 'SER-79'),
+        );
+        $source = array(
+            'product_code' => 'P79',
+            'name' => 'کالا',
+            'serial' => 'SER-79',
+            'total_stock' => 2,
+            'warnings' => array(),
+            'record_hash' => 'sha256:low-stock',
+        );
+
+        $report = (new Current_Catalog_Report())->build($this->state(array('P79' => $source)), array($product));
+        $row = $this->row($report['rows'], 'P79');
+
+        self::assertSame(1, $row['projection']['stock_quantity']);
+        self::assertSame(1, $row['core_changes']['stock_quantity']['new']);
+        self::assertTrue($row['drift']['stock']);
     }
 
     public function test_publication_safety_is_reported_as_an_independent_status_drift(): void {

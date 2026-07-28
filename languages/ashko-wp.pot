@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Ashco-WP Patris Sync 1.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-21 08:27+0330\n"
+"POT-Creation-Date: 2026-07-28 13:05+0330\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,12 +17,12 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: includes\admin\class-admin.php:575
+#: includes\admin\class-admin.php:668
 #, php-format
 msgid "%1$d توضیح کوتاه قدیمی پاک شد؛ تعداد خطا: %2$d."
 msgstr ""
 
-#: includes\admin\class-admin.php:187
+#: includes\admin\class-admin.php:214
 #, php-format
 msgid "%d فیلد متادیتا"
 msgstr ""
@@ -51,25 +51,21 @@ msgstr ""
 msgid "Ashco-WP برای همگام‌سازی کالا به WooCommerce نیاز دارد."
 msgstr ""
 
-#: includes\admin\class-admin.php:341
+#: includes\admin\class-admin.php:375
 msgid ""
 "Ashco-WP نرخ مرجع CNY و متادیتای محصول را مستقیماً مدیریت می‌کند؛ افزونه تبدیل "
 "ارز برای فروشگاه پایه IRR لازم نیست."
 msgstr ""
 
-#: includes\admin\class-admin.php:152
+#: includes\admin\class-admin.php:159
 msgid "CNY"
 msgstr ""
 
-#: includes\admin\class-admin.php:128
-msgid "CNY منبع"
+#: includes\admin\class-admin.php:191
+msgid "CNY خام:"
 msgstr ""
 
-#: includes\admin\class-admin.php:647
-msgid "CNY موجود نیست یا ارز آن صحیح نیست"
-msgstr ""
-
-#: includes\admin\class-admin.php:428
+#: includes\admin\class-admin.php:478
 msgid "CSV export stopped at the safe row limit."
 msgstr ""
 
@@ -82,8 +78,8 @@ msgid "Mutation requires an explicit administrator --user and --yes."
 msgstr ""
 
 #: includes\class-sync-service.php:92 includes\class-serial-resolver.php:140
-#: includes\class-product-sync-receiver.php:1701
 #: includes\class-current-catalog-report.php:86
+#: includes\class-product-sync-receiver.php:1785
 msgid "No WooCommerce product has that exact Serial."
 msgstr ""
 
@@ -99,11 +95,11 @@ msgstr ""
 msgid "Static kala.json input must be stored outside the Ashco web root."
 msgstr ""
 
-#: includes\class-current-catalog-report.php:530
+#: includes\class-current-catalog-report.php:536
 msgid "The Ashco product catalog could not be read."
 msgstr ""
 
-#: includes\class-current-catalog-report.php:533
+#: includes\class-current-catalog-report.php:539
 msgid "The Ashco product catalog exceeds the safe report limit."
 msgstr ""
 
@@ -194,41 +190,57 @@ msgstr ""
 msgid "Use --yes after reviewing an Ashco dry-run report."
 msgstr ""
 
-#: includes\admin\class-admin.php:176
+#: includes\admin\class-admin.php:184
 msgid "Woo فعلی:"
 msgstr ""
 
-#: includes\admin\class-admin.php:276
+#: includes\admin\class-admin.php:310
 msgid "null صریح منبع"
 msgstr ""
 
-#: includes\admin\class-admin.php:377
+#: includes\admin\class-admin.php:415
+msgid "آخرین جایگزین: استفاده مستقیم از فی فروش"
+msgstr ""
+
+#: includes\admin\class-admin.php:427
 msgid ""
 "اتصال به سرویس‌های خارجی به‌طور پیش‌فرض غیرفعال است و این نسخه هیچ داده‌ای را "
 "بدون پیکربندی صریح ارسال نمی‌کند."
 msgstr ""
 
-#: includes\admin\class-admin.php:294
+#: includes\admin\class-admin.php:328
 msgid "اجرای اخیر"
 msgstr ""
 
-#: includes\admin\class-admin.php:153
+#: includes\admin\class-admin.php:160
 msgid "ارز خارجی"
 msgstr ""
 
-#: includes\admin\class-admin.php:702
+#: includes\admin\class-admin.php:255
+msgid "ارز خرید داخلی"
+msgstr ""
+
+#: includes\admin\class-admin.php:809
 msgid "ارز قیمت خارجی"
 msgstr ""
 
-#: includes\admin\class-admin.php:225
+#: includes\admin\class-admin.php:817
+msgid "ارز منبع قیمت منتخب"
+msgstr ""
+
+#: includes\admin\class-admin.php:815
 msgid "ارز هزینه حمل"
 msgstr ""
 
-#: includes\admin\class-admin.php:361
+#: includes\admin\class-admin.php:252
+msgid "ارز هزینه حمل خارجی"
+msgstr ""
+
+#: includes\admin\class-admin.php:395
 msgid "ارز هزینه حمل هر کیلو"
 msgstr ""
 
-#: includes\admin\class-admin.php:221
+#: includes\admin\class-admin.php:248
 msgid "ارز پایه WooCommerce"
 msgstr ""
 
@@ -239,15 +251,19 @@ msgid ""
 "تبدیل روی اشکو نوشته نمی‌شود."
 msgstr ""
 
+#: includes\admin\class-admin.php:256
+msgid "استفاده مستقیم از فی فروش"
+msgstr ""
+
 #: includes\admin\class-admin.php:120
 msgid "اعمال فیلتر"
 msgstr ""
 
-#: includes\admin\class-admin.php:345
+#: includes\admin\class-admin.php:379
 msgid "افزونه تغییر ارز شناسایی نشد."
 msgstr ""
 
-#: includes\admin\class-admin.php:364
+#: includes\admin\class-admin.php:398
 msgid "انتخاب ارز الزامی است و مبلغ حمل بر اساس همین ارز محاسبه می‌شود."
 msgstr ""
 
@@ -255,10 +271,20 @@ msgstr ""
 msgid "انتخاب واحد نمایش قیمت"
 msgstr ""
 
-#: includes\admin\class-admin.php:567
+#: includes\admin\class-admin.php:203
+msgid "انتشار:"
+msgstr ""
+
+#: includes\admin\class-admin.php:660
 msgid ""
 "این ابزار فقط جملهٔ دقیق و ماشینیِ واردشده را پاک می‌کند. توضیح‌های نوشته‌شده "
 "توسط فروشنده بدون تغییر می‌مانند."
+msgstr ""
+
+#: includes\admin\class-admin.php:411
+msgid ""
+"این روش برای قیمت همکار اعمال می‌شود؛ هزینه وزن آن همیشه صفر است و در فرمول "
+"قیمت وارد نمی‌شود."
 msgstr ""
 
 #: includes\admin\class-admin.php:75
@@ -267,11 +293,18 @@ msgid ""
 "WooCommerce تطبیق می‌دهد و هیچ داده‌ای را تغییر نمی‌دهد."
 msgstr ""
 
+#: includes\admin\class-admin.php:417
+msgid ""
+"به‌طور پیش‌فرض غیرفعال است. در صورت فعال‌سازی، فقط وقتی مسیرهای CNY و قیمت "
+"همکار قابل محاسبه نیستند، مبلغ IRR منبع بدون سود، حمل یا گردکردن استفاده "
+"می‌شود."
+msgstr ""
+
 #: includes\class-acf-integration.php:33
 msgid "تاریخ مؤثر نرخ ارز"
 msgstr ""
 
-#: includes\admin\class-admin.php:325
+#: includes\admin\class-admin.php:359
 msgid "تاریخ نرخ (میلادی/جلالی)"
 msgstr ""
 
@@ -283,12 +316,24 @@ msgstr ""
 msgid "تصویر گزارش"
 msgstr ""
 
-#: includes\admin\class-admin.php:245 includes\admin\class-admin.php:712
+#: includes\admin\class-admin.php:278 includes\admin\class-admin.php:829
 msgid "تطبیق دقیق"
 msgstr ""
 
 #: includes\admin\class-admin.php:99
 msgid "تطبیق‌یافته"
+msgstr ""
+
+#: includes\admin\class-admin.php:403
+msgid "تعداد ارقام انتهایی گردکردن قیمت"
+msgstr ""
+
+#: includes\admin\class-admin.php:819
+msgid "تعداد ارقام گردکردن"
+msgstr ""
+
+#: includes\admin\class-admin.php:258
+msgid "تعداد ارقام گردکردن قیمت IRT"
 msgstr ""
 
 #: includes\admin\class-admin.php:115
@@ -300,23 +345,27 @@ msgstr ""
 msgid "تعداد نتیجه: %d"
 msgstr ""
 
-#: includes\admin\class-admin.php:608
+#: includes\admin\class-admin.php:701
 msgid "تعداد کالا"
 msgstr ""
 
-#: includes\admin\class-admin.php:319
+#: includes\admin\class-admin.php:353
 msgid "تغییرات فیلدهای ووکامرس"
 msgstr ""
 
-#: includes\admin\class-admin.php:320
+#: includes\admin\class-admin.php:354
 msgid "تغییرات متادیتا"
+msgstr ""
+
+#: includes\admin\class-admin.php:754
+msgid "تنظیم تعداد ارقام گردکردن معتبر نیست"
 msgstr ""
 
 #: includes\admin\class-admin.php:40
 msgid "تنظیمات قیمت و اتصال"
 msgstr ""
 
-#: includes\admin\class-admin.php:651
+#: includes\admin\class-admin.php:751
 msgid "تنظیمات مبلغ یا ارز حمل کامل نیست"
 msgstr ""
 
@@ -329,7 +378,7 @@ msgstr ""
 msgid "تومان"
 msgstr ""
 
-#: includes\admin\class-admin.php:317
+#: includes\admin\class-admin.php:351
 #, php-format
 msgid "جزئیات اجرای شماره %d"
 msgstr ""
@@ -338,31 +387,35 @@ msgstr ""
 msgid "جست‌وجو"
 msgstr ""
 
-#: includes\admin\class-admin.php:661
+#: includes\admin\class-admin.php:762
 msgid "جست‌وجوی دقیق سریال ناموفق بود"
 msgstr ""
 
-#: includes\admin\class-admin.php:366
+#: includes\admin\class-admin.php:400
 msgid "حاشیه سود (درصد)"
 msgstr ""
 
-#: includes\admin\class-admin.php:226
+#: includes\admin\class-admin.php:257
 msgid "حاشیه سود درصدی"
 msgstr ""
 
-#: includes\admin\class-admin.php:652
+#: includes\admin\class-admin.php:752
 msgid "حاشیه سود موجود نیست"
 msgstr ""
 
-#: includes\admin\class-admin.php:467
+#: includes\admin\class-admin.php:517
 msgid "خروجی CSV باز نشد."
 msgstr ""
 
-#: includes\admin\class-admin.php:681
+#: includes\admin\class-admin.php:149
+msgid "خرید داخلی (domestic)"
+msgstr ""
+
+#: includes\admin\class-admin.php:788
 msgid "داده قدیمی کالا به علت قرنطینه نگه‌داری شده است"
 msgstr ""
 
-#: includes\admin\class-admin.php:168
+#: includes\admin\class-admin.php:176
 #, php-format
 msgid "داده نگه‌داری‌شده از: %s"
 msgstr ""
@@ -383,33 +436,33 @@ msgstr ""
 msgid "دانلود CSV همین نتیجه"
 msgstr ""
 
-#: includes\admin\class-admin.php:318
+#: includes\admin\class-admin.php:352
 msgid "دانلود گزارش کامل CSV"
 msgstr ""
 
-#: includes\admin\class-admin.php:342
+#: includes\admin\class-admin.php:376
 msgid "در دسترس نیست؛ متادیتای استاندارد Ashco-WP بدون اختلال کار می‌کند."
 msgstr ""
 
-#: includes\admin\class-admin.php:342
+#: includes\admin\class-admin.php:376
 msgid "در دسترس؛ همگام‌سازی دوطرفه فعال است."
 msgstr ""
 
-#: includes\admin\class-admin.php:367
+#: includes\admin\class-admin.php:408
 msgid "درصد موجودی ALLANBAR قابل فروش"
 msgstr ""
 
-#: includes\admin\class-admin.php:227
+#: includes\admin\class-admin.php:260
 msgid "درصد موجودی قابل فروش"
 msgstr ""
 
-#: includes\admin\class-admin.php:33 includes\admin\class-admin.php:383
-#: includes\admin\class-admin.php:399 includes\admin\class-admin.php:436
-#: includes\admin\class-admin.php:549
+#: includes\admin\class-admin.php:33 includes\admin\class-admin.php:433
+#: includes\admin\class-admin.php:449 includes\admin\class-admin.php:486
+#: includes\admin\class-admin.php:642
 msgid "دسترسی کافی ندارید."
 msgstr ""
 
-#: includes\admin\class-admin.php:376
+#: includes\admin\class-admin.php:426
 msgid "ذخیره تنظیمات"
 msgstr ""
 
@@ -417,12 +470,32 @@ msgstr ""
 msgid "ردیفی مطابق فیلتر پیدا نشد."
 msgstr ""
 
-#: includes\admin\class-admin.php:223
-msgid "روش حمل"
+#: includes\admin\class-admin.php:194
+msgid "روش تأمین مؤثر:"
 msgstr ""
 
-#: includes\admin\class-admin.php:368
-msgid "روش پیش‌فرض حمل"
+#: includes\admin\class-admin.php:250
+msgid "روش حمل خارجی"
+msgstr ""
+
+#: includes\admin\class-admin.php:813
+msgid "روش حمل/تأمین"
+msgstr ""
+
+#: includes\admin\class-admin.php:253 includes\admin\class-admin.php:410
+msgid "روش خرید داخلی"
+msgstr ""
+
+#: includes\admin\class-admin.php:409
+msgid "روش پیش‌فرض حمل خارجی"
+msgstr ""
+
+#: includes\admin\class-admin.php:820
+msgid "روش گردکردن"
+msgstr ""
+
+#: includes\admin\class-admin.php:259
+msgid "روش گردکردن قیمت"
 msgstr ""
 
 #: includes\class-storefront-price-display.php:82
@@ -430,7 +503,7 @@ msgstr ""
 msgid "ریال"
 msgstr ""
 
-#: includes\admin\class-admin.php:363
+#: includes\admin\class-admin.php:397
 msgid "ریال ایران (IRR)"
 msgstr ""
 
@@ -439,30 +512,30 @@ msgstr ""
 msgid "زمان مرحله‌بندی: %s"
 msgstr ""
 
-#: includes\admin\class-admin.php:171
+#: includes\admin\class-admin.php:179
 #, php-format
 msgid "زمان منبع: %s"
 msgstr ""
 
-#: includes\admin\class-admin.php:660
+#: includes\admin\class-admin.php:761
 msgid "سریال در WooCommerce تکراری است"
 msgstr ""
 
-#: includes\admin\class-admin.php:659
+#: includes\admin\class-admin.php:760
 msgid "سریال در منبع تکراری است"
 msgstr ""
 
-#: includes\admin\class-admin.php:151
+#: includes\admin\class-admin.php:158
 msgid "سریال مرجع"
 msgstr ""
 
 #: includes\class-product-presentation.php:70
 #: includes\class-product-presentation.php:126
-#: includes\admin\class-admin.php:127 includes\admin\class-admin.php:701
+#: includes\admin\class-admin.php:127 includes\admin\class-admin.php:808
 msgid "سریال کالا"
 msgstr ""
 
-#: includes\admin\class-admin.php:650
+#: includes\admin\class-admin.php:750
 msgid "سریال کالا موجود نیست"
 msgstr ""
 
@@ -470,75 +543,97 @@ msgstr ""
 msgid "شناسه WooCommerce"
 msgstr ""
 
-#: includes\admin\class-admin.php:349
+#: includes\admin\class-admin.php:207
+msgid "شناسه تصویر:"
+msgstr ""
+
+#: includes\admin\class-admin.php:405
+msgid ""
+"عدد ۲ یعنی گردکردن به نزدیک‌ترین ۱۰۰ تومان؛ روش ثابت، نزدیک‌ترین مقدار با "
+"نیم‌به‌بالا است."
+msgstr ""
+
+#: includes\admin\class-admin.php:383
 msgid "غیرفعال (وضعیت توصیه‌شده)"
 msgstr ""
 
-#: includes\admin\class-admin.php:273
+#: includes\admin\class-admin.php:307
 msgid "فاقد داده منبع"
 msgstr ""
 
-#: includes\admin\class-admin.php:228
+#: includes\admin\class-admin.php:261
 msgid "فرمول قیمت"
 msgstr ""
 
-#: includes\admin\class-admin.php:229
+#: includes\admin\class-admin.php:262
 msgid "فرمول موجودی"
 msgstr ""
 
-#: includes\admin\class-admin.php:624
+#: includes\admin\class-admin.php:717
 msgid "فعال"
 msgstr ""
 
-#: includes\admin\class-admin.php:349
+#: includes\admin\class-admin.php:383
 msgid "فعال (احتمال تعارض)"
 msgstr ""
 
-#: includes\admin\class-admin.php:181
+#: includes\admin\class-admin.php:200
 msgid "فعلی:"
 msgstr ""
 
-#: includes\admin\class-admin.php:592
+#: includes\admin\class-admin.php:685
 msgid "فقط توضیح‌های ماشینیِ دقیق پاک شوند؟"
 msgstr ""
 
-#: includes\admin\class-admin.php:101 includes\admin\class-admin.php:248
-#: includes\admin\class-admin.php:714
+#: includes\admin\class-admin.php:101 includes\admin\class-admin.php:281
+#: includes\admin\class-admin.php:831
 msgid "فقط در WooCommerce"
 msgstr ""
 
-#: includes\admin\class-admin.php:100 includes\admin\class-admin.php:246
-#: includes\admin\class-admin.php:713
+#: includes\admin\class-admin.php:100 includes\admin\class-admin.php:279
+#: includes\admin\class-admin.php:830
 msgid "فقط در منبع"
 msgstr ""
 
-#: includes\admin\class-admin.php:324
+#: includes\admin\class-admin.php:358
 msgid "فهرست کالا/قیمت (۲۰۰ ردیف نخست)"
 msgstr ""
 
-#: includes\admin\class-admin.php:688
+#: includes\admin\class-admin.php:812
+msgid "فی فروش IRR"
+msgstr ""
+
+#: includes\admin\class-admin.php:747
+msgid "فی فروش IRR بدون سود، حمل یا گردکردن مستقیماً استفاده شده است"
+msgstr ""
+
+#: includes\admin\class-admin.php:193
+msgid "فی فروش خام:"
+msgstr ""
+
+#: includes\admin\class-admin.php:795
 #, php-format
 msgid "فیلد منبع حذف شده است: %s"
 msgstr ""
 
-#: includes\admin\class-admin.php:691
+#: includes\admin\class-admin.php:798
 #, php-format
 msgid "فیلد منبع دارای null صریح است: %s"
 msgstr ""
 
-#: includes\admin\class-admin.php:608
+#: includes\admin\class-admin.php:701
 msgid "فیلد/هشدار"
 msgstr ""
 
-#: includes\admin\class-admin.php:325
+#: includes\admin\class-admin.php:359
 msgid "فیلدها"
 msgstr ""
 
-#: includes\admin\class-admin.php:165
+#: includes\admin\class-admin.php:173
 msgid "قرنطینه"
 msgstr ""
 
-#: includes\admin\class-admin.php:251
+#: includes\admin\class-admin.php:284
 msgid "قرنطینه با داده قدیمی"
 msgstr ""
 
@@ -546,15 +641,15 @@ msgstr ""
 msgid "قرنطینه‌شده"
 msgstr ""
 
-#: includes\admin\class-admin.php:716
+#: includes\admin\class-admin.php:833
 msgid "قرنطینه‌شده در منبع"
 msgstr ""
 
-#: includes\admin\class-admin.php:146
+#: includes\admin\class-admin.php:153
 msgid "قیمت"
 msgstr ""
 
-#: includes\admin\class-admin.php:703
+#: includes\admin\class-admin.php:810
 msgid "قیمت CNY"
 msgstr ""
 
@@ -566,20 +661,40 @@ msgstr ""
 msgid "قیمت فعلی/محاسبه‌شده IRR"
 msgstr ""
 
-#: includes\admin\class-admin.php:325
+#: includes\admin\class-admin.php:744
+msgid "قیمت مثبت CNY موجود نیست یا ارز آن صحیح نیست"
+msgstr ""
+
+#: includes\admin\class-admin.php:359
 msgid "قیمت منبع IRT"
 msgstr ""
 
-#: includes\admin\class-admin.php:325
+#: includes\admin\class-admin.php:359
 msgid "قیمت نهایی IRR"
 msgstr ""
 
-#: includes\admin\class-admin.php:655
+#: includes\admin\class-admin.php:756
 msgid "قیمت نهایی قابل محاسبه نیست"
 msgstr ""
 
-#: includes\admin\class-admin.php:183
+#: includes\admin\class-admin.php:210
 msgid "قیمت نهایی منبع IRT:"
+msgstr ""
+
+#: includes\admin\class-admin.php:811
+msgid "قیمت همکار IRR"
+msgstr ""
+
+#: includes\admin\class-admin.php:746
+msgid "قیمت همکار IRR به‌عنوان منبع جایگزین استفاده شده است"
+msgstr ""
+
+#: includes\admin\class-admin.php:192
+msgid "قیمت همکار خام:"
+msgstr ""
+
+#: includes\admin\class-admin.php:782
+msgid "قیمت کالا تعیین نشده است"
 msgstr ""
 
 #: includes\class-storefront-price-display.php:87
@@ -595,96 +710,100 @@ msgstr ""
 msgid "قیمت‌گذاری پاتریس اشکو"
 msgstr ""
 
-#: includes\admin\class-admin.php:231
+#: includes\admin\class-admin.php:816
+msgid "مبلغ منبع قیمت منتخب"
+msgstr ""
+
+#: includes\admin\class-admin.php:264
 msgid "مبنای محاسبه این گزارش"
 msgstr ""
 
-#: includes\admin\class-admin.php:102 includes\admin\class-admin.php:249
-#: includes\admin\class-admin.php:715
+#: includes\admin\class-admin.php:102 includes\admin\class-admin.php:282
+#: includes\admin\class-admin.php:832
 msgid "مبهم"
 msgstr ""
 
-#: includes\admin\class-admin.php:157
+#: includes\admin\class-admin.php:164
 msgid "متادیتای قیمت‌گذاری"
 msgstr ""
 
-#: includes\admin\class-admin.php:156
+#: includes\admin\class-admin.php:163
 msgid "متادیتای موجودی"
 msgstr ""
 
-#: includes\admin\class-admin.php:155
+#: includes\admin\class-admin.php:162
 msgid "متای وزن منبع"
 msgstr ""
 
-#: includes\admin\class-admin.php:371
+#: includes\admin\class-admin.php:421
 msgid "محدوده منبع مجاز (JSON)"
 msgstr ""
 
-#: includes\admin\class-admin.php:672
+#: includes\admin\class-admin.php:773
 msgid "مغایرت CNY"
 msgstr ""
 
-#: includes\admin\class-admin.php:325
+#: includes\admin\class-admin.php:359
 msgid "مغایرت IRR"
 msgstr ""
 
-#: includes\admin\class-admin.php:673
+#: includes\admin\class-admin.php:774
 msgid "مغایرت ارز خارجی"
 msgstr ""
 
-#: includes\admin\class-admin.php:678
+#: includes\admin\class-admin.php:779
 msgid "مغایرت در متادیتای مدیریت‌شده"
 msgstr ""
 
-#: includes\admin\class-admin.php:671
+#: includes\admin\class-admin.php:772
 msgid "مغایرت سریال مرجع"
 msgstr ""
 
-#: includes\admin\class-admin.php:656
+#: includes\admin\class-admin.php:757
 msgid "مغایرت فرمول قیمت"
 msgstr ""
 
-#: includes\admin\class-admin.php:253 includes\admin\class-admin.php:666
+#: includes\admin\class-admin.php:286 includes\admin\class-admin.php:767
 msgid "مغایرت قیمت"
 msgstr ""
 
-#: includes\admin\class-admin.php:257
+#: includes\admin\class-admin.php:290
 msgid "مغایرت متادیتا"
 msgstr ""
 
-#: includes\admin\class-admin.php:677
+#: includes\admin\class-admin.php:778
 msgid "مغایرت متادیتای قیمت‌گذاری"
 msgstr ""
 
-#: includes\admin\class-admin.php:676
+#: includes\admin\class-admin.php:777
 msgid "مغایرت متادیتای موجودی"
 msgstr ""
 
-#: includes\admin\class-admin.php:675
+#: includes\admin\class-admin.php:776
 msgid "مغایرت متای وزن منبع"
 msgstr ""
 
-#: includes\admin\class-admin.php:254 includes\admin\class-admin.php:667
+#: includes\admin\class-admin.php:287 includes\admin\class-admin.php:768
 msgid "مغایرت موجودی"
 msgstr ""
 
-#: includes\admin\class-admin.php:256
+#: includes\admin\class-admin.php:289
 msgid "مغایرت هش"
 msgstr ""
 
-#: includes\admin\class-admin.php:669
+#: includes\admin\class-admin.php:770
 msgid "مغایرت هش رکورد"
 msgstr ""
 
-#: includes\admin\class-admin.php:674
+#: includes\admin\class-admin.php:775
 msgid "مغایرت واحد فروش"
 msgstr ""
 
-#: includes\admin\class-admin.php:255 includes\admin\class-admin.php:668
+#: includes\admin\class-admin.php:288 includes\admin\class-admin.php:769
 msgid "مغایرت وزن"
 msgstr ""
 
-#: includes\admin\class-admin.php:670
+#: includes\admin\class-admin.php:771
 msgid "مغایرت کد کالا"
 msgstr ""
 
@@ -698,7 +817,11 @@ msgid ""
 "می‌دهد."
 msgstr ""
 
-#: includes\admin\class-admin.php:147
+#: includes\admin\class-admin.php:128
+msgid "منبع قیمت منتخب"
+msgstr ""
+
+#: includes\admin\class-admin.php:154
 msgid "موجودی"
 msgstr ""
 
@@ -707,19 +830,19 @@ msgstr ""
 msgid "موجودی قابل فروش اشکو: %s"
 msgstr ""
 
-#: includes\admin\class-admin.php:247
+#: includes\admin\class-admin.php:280
 msgid "موجودی مثبت و فاقد Woo"
 msgstr ""
 
-#: includes\admin\class-admin.php:658
+#: includes\admin\class-admin.php:759
 msgid "موجودی منبع مثبت است اما کالای WooCommerce پیدا نشد"
 msgstr ""
 
-#: includes\admin\class-admin.php:654
+#: includes\admin\class-admin.php:755
 msgid "موجودی منبع منفی است"
 msgstr ""
 
-#: includes\admin\class-admin.php:706
+#: includes\admin\class-admin.php:823
 msgid "موجودی کل"
 msgstr ""
 
@@ -735,41 +858,41 @@ msgstr ""
 msgid "نام، کد، سریال یا شناسه"
 msgstr ""
 
-#: includes\admin\class-admin.php:325
+#: includes\admin\class-admin.php:359
 msgid "نتیجه"
 msgstr ""
 
-#: includes\admin\class-admin.php:456
+#: includes\admin\class-admin.php:506
 #, php-format
 msgid "نتیجه CSV از سقف امن %d ردیف بیشتر است؛ فیلتر محدودتری انتخاب کنید."
 msgstr ""
 
-#: includes\admin\class-admin.php:582
+#: includes\admin\class-admin.php:675
 #, php-format
 msgid "نتیجهٔ اجرای آزمایشی: %d توضیح کوتاه منطبق است."
 msgstr ""
 
-#: includes\admin\class-admin.php:222
+#: includes\admin\class-admin.php:249
 msgid "نرخ CNY به IRR"
 msgstr ""
 
-#: includes\admin\class-admin.php:653
+#: includes\admin\class-admin.php:753
 msgid "نرخ تبدیل CNY موجود نیست"
 msgstr ""
 
-#: includes\admin\class-admin.php:357
+#: includes\admin\class-admin.php:391
 msgid "نرخ هر CNY به ریال"
 msgstr ""
 
-#: includes\admin\class-admin.php:373
+#: includes\admin\class-admin.php:423
 msgid "نشانی اجرای خشک"
 msgstr ""
 
-#: includes\admin\class-admin.php:374
+#: includes\admin\class-admin.php:424
 msgid "نشانی اعمال"
 msgstr ""
 
-#: includes\admin\class-admin.php:369
+#: includes\admin\class-admin.php:419
 msgid "نمایش تعداد موجودی در سایت"
 msgstr ""
 
@@ -777,8 +900,20 @@ msgstr ""
 msgid "نمایش قیمت"
 msgstr ""
 
-#: includes\admin\class-admin.php:370
+#: includes\admin\class-admin.php:420
 msgid "نمایش کالاهای ناموجود"
+msgstr ""
+
+#: includes\admin\class-admin.php:818
+msgid "نوع منبع قیمت منتخب"
+msgstr ""
+
+#: includes\admin\class-admin.php:291
+msgid "نیازمند پیش‌نویس ایمنی"
+msgstr ""
+
+#: includes\admin\class-admin.php:784
+msgid "هر سه شرط ایمنی برقرار است و کالا باید پیش‌نویس شود"
 msgstr ""
 
 #: includes\class-storefront-price-display.php:110
@@ -787,15 +922,23 @@ msgid ""
 "می‌دهد."
 msgstr ""
 
-#: includes\admin\class-admin.php:224
+#: includes\admin\class-admin.php:251
+msgid "هزینه حمل خارجی هر کیلو"
+msgstr ""
+
+#: includes\admin\class-admin.php:392
+msgid "هزینه حمل خارجی هوایی/اکسپرس هر کیلو"
+msgstr ""
+
+#: includes\admin\class-admin.php:814
 msgid "هزینه حمل هر کیلو"
 msgstr ""
 
-#: includes\admin\class-admin.php:358
-msgid "هزینه هوایی/اکسپرس هر کیلو"
+#: includes\admin\class-admin.php:254
+msgid "هزینه خرید داخلی هر کیلو"
 msgstr ""
 
-#: includes\admin\class-admin.php:149
+#: includes\admin\class-admin.php:156
 msgid "هش رکورد"
 msgstr ""
 
@@ -803,20 +946,20 @@ msgstr ""
 msgid "هشدار"
 msgstr ""
 
-#: includes\admin\class-admin.php:682
+#: includes\admin\class-admin.php:789
 msgid "هشدار سراسری در تصویر منبع وجود دارد"
 msgstr ""
 
-#: includes\admin\class-admin.php:252 includes\admin\class-admin.php:717
+#: includes\admin\class-admin.php:285 includes\admin\class-admin.php:834
 msgid "هشدار سراسری منبع"
 msgstr ""
 
-#: includes\admin\class-admin.php:694
+#: includes\admin\class-admin.php:801
 #, php-format
 msgid "هشدار منبع: %s"
 msgstr ""
 
-#: includes\admin\class-admin.php:129 includes\admin\class-admin.php:325
+#: includes\admin\class-admin.php:129 includes\admin\class-admin.php:359
 msgid "هشدارها"
 msgstr ""
 
@@ -836,8 +979,12 @@ msgstr ""
 msgid "همه هشدارها"
 msgstr ""
 
-#: includes\admin\class-admin.php:289
+#: includes\admin\class-admin.php:323
 msgid "هنوز اجرای خشک یا اعمال ثبت نشده است."
+msgstr ""
+
+#: includes\admin\class-admin.php:745
+msgid "هیچ مسیر قیمت CNY، قیمت همکار یا فی فروش مستقیم انتخاب نشده است"
 msgstr ""
 
 #: includes\admin\class-admin.php:128
@@ -848,12 +995,12 @@ msgstr ""
 #: includes\class-product-presentation.php:127
 #: includes\class-product-commerce.php:110
 #: includes\class-product-commerce.php:171
-#: includes\class-product-commerce.php:179 includes\admin\class-admin.php:154
-#: includes\admin\class-admin.php:705
+#: includes\class-product-commerce.php:179 includes\admin\class-admin.php:161
+#: includes\admin\class-admin.php:822
 msgid "واحد فروش"
 msgstr ""
 
-#: includes\admin\class-admin.php:649
+#: includes\admin\class-admin.php:749
 msgid "واحد فروش موجود نیست"
 msgstr ""
 
@@ -861,15 +1008,15 @@ msgstr ""
 msgid "واحد فروش:"
 msgstr ""
 
-#: includes\admin\class-admin.php:258
+#: includes\admin\class-admin.php:292
 msgid "والد متغیر کنارگذاشته‌شده"
 msgstr ""
 
-#: includes\admin\class-admin.php:662
+#: includes\admin\class-admin.php:763
 msgid "والد کالای متغیر از تطبیق کنار گذاشته شد"
 msgstr ""
 
-#: includes\admin\class-admin.php:704
+#: includes\admin\class-admin.php:821
 msgid "وزن"
 msgstr ""
 
@@ -877,16 +1024,24 @@ msgstr ""
 msgid "وزن منبع"
 msgstr ""
 
-#: includes\admin\class-admin.php:648
+#: includes\admin\class-admin.php:748
 msgid "وزن موجود نیست"
 msgstr ""
 
-#: includes\admin\class-admin.php:148
+#: includes\admin\class-admin.php:155
 msgid "وزن ووکامرس"
 msgstr ""
 
 #: includes\admin\class-admin.php:127
 msgid "وضعیت"
+msgstr ""
+
+#: includes\admin\class-admin.php:165
+msgid "وضعیت انتشار"
+msgstr ""
+
+#: includes\admin\class-admin.php:780
+msgid "وضعیت انتشار باید برای ایمنی به پیش‌نویس تغییر کند"
 msgstr ""
 
 #: includes\admin\class-admin.php:38
@@ -897,7 +1052,7 @@ msgstr ""
 msgid "وضعیت پذیرفته‌شده فعلی"
 msgstr ""
 
-#: includes\admin\class-admin.php:340
+#: includes\admin\class-admin.php:374
 msgid "وضعیت یکپارچه‌سازی"
 msgstr ""
 
@@ -905,15 +1060,15 @@ msgstr ""
 msgid "پاتریس اشکو"
 msgstr ""
 
-#: includes\admin\class-admin.php:565
+#: includes\admin\class-admin.php:658
 msgid "پاک‌سازی توضیح کوتاه قدیمی"
 msgstr ""
 
-#: includes\admin\class-admin.php:591
+#: includes\admin\class-admin.php:684
 msgid "پاک‌سازی موارد منطبق"
 msgstr ""
 
-#: includes\admin\class-admin.php:356
+#: includes\admin\class-admin.php:390
 msgid "پیش‌فرض و مقدار تأییدشده سایت: _sku. تطبیق Code مجاز نیست."
 msgstr ""
 
@@ -925,61 +1080,73 @@ msgstr ""
 msgid "پیش‌نمایش معتبر و اعمال‌نشده"
 msgstr ""
 
-#: includes\admin\class-admin.php:664
+#: includes\admin\class-admin.php:781
+msgid "کالا تصویر مؤثر ندارد"
+msgstr ""
+
+#: includes\admin\class-admin.php:765
 msgid "کالا فقط در WooCommerce وجود دارد"
 msgstr ""
 
-#: includes\admin\class-admin.php:665
+#: includes\admin\class-admin.php:783
+msgid "کالا موجودی مثبت ندارد"
+msgstr ""
+
+#: includes\admin\class-admin.php:766
 msgid "کالای WooCommerce سریال ندارد"
 msgstr ""
 
-#: includes\admin\class-admin.php:663
+#: includes\admin\class-admin.php:764
 msgid "کالای WooCommerce قابل بارگذاری نیست"
 msgstr ""
 
-#: includes\admin\class-admin.php:657
+#: includes\admin\class-admin.php:758
 msgid "کالای متناظر در WooCommerce پیدا نشد"
 msgstr ""
 
-#: includes\admin\class-admin.php:244
+#: includes\admin\class-admin.php:277
 msgid "کالای منبع"
 msgstr ""
 
-#: includes\admin\class-admin.php:250
+#: includes\admin\class-admin.php:785
+msgid "کالای ناقص مطابق قاعده ایمنی در پیش‌نویس نگه داشته شده است"
+msgstr ""
+
+#: includes\admin\class-admin.php:283
 msgid "کد قرنطینه‌شده"
 msgstr ""
 
-#: includes\admin\class-admin.php:680
+#: includes\admin\class-admin.php:787
 msgid "کد قرنطینه‌شده داده کالای معتبر ندارد"
 msgstr ""
 
-#: includes\admin\class-admin.php:679
+#: includes\admin\class-admin.php:786
 msgid "کد منبع قرنطینه شده است"
 msgstr ""
 
 #: includes\class-product-presentation.php:64
 #: includes\class-product-presentation.php:125
-#: includes\admin\class-admin.php:127 includes\admin\class-admin.php:150
+#: includes\admin\class-admin.php:127 includes\admin\class-admin.php:157
 msgid "کد کالا"
 msgstr ""
 
-#: includes\admin\class-admin.php:356
+#: includes\admin\class-admin.php:390
 msgid "کلید متای دقیق Serial"
 msgstr ""
 
-#: includes\admin\class-admin.php:372
+#: includes\admin\class-admin.php:422
 msgid "کلید محرمانه REST"
 msgstr ""
 
-#: includes\admin\class-admin.php:321
+#: includes\admin\class-admin.php:355
 msgid "گروه‌های هشدار"
 msgstr ""
 
-#: includes\admin\class-admin.php:405
+#: includes\admin\class-admin.php:455
 msgid "گزارش پیدا نشد."
 msgstr ""
 
-#: includes\admin\class-admin.php:363
+#: includes\admin\class-admin.php:397
 msgid "یوان چین (CNY)"
 msgstr ""
 
@@ -987,84 +1154,4 @@ msgstr ""
 msgid ""
 "یک افزونه تغییر ارز فعال است. Ashco-WP نرخ CNY مرجع را خود مدیریت می‌کند؛ "
 "برای جلوگیری از تغییر قیمت IRR، وضعیت افزونه ارزی را بررسی کنید."
-msgstr ""
-msgid "منبع قیمت منتخب"
-msgstr ""
-
-msgid "وضعیت انتشار"
-msgstr ""
-
-msgid "CNY خام:"
-msgstr ""
-
-msgid "قیمت همکار خام:"
-msgstr ""
-
-msgid "انتشار:"
-msgstr ""
-
-msgid "شناسه تصویر:"
-msgstr ""
-
-msgid "تعداد ارقام گردکردن قیمت IRT"
-msgstr ""
-
-msgid "روش گردکردن قیمت"
-msgstr ""
-
-msgid "نیازمند پیش‌نویس ایمنی"
-msgstr ""
-
-msgid "تعداد ارقام انتهایی گردکردن قیمت"
-msgstr ""
-
-msgid "عدد ۲ یعنی گردکردن به نزدیک‌ترین ۱۰۰ تومان؛ روش ثابت، نزدیک‌ترین مقدار با نیم‌به‌بالا است."
-msgstr ""
-
-msgid "قیمت مثبت CNY موجود نیست یا ارز آن صحیح نیست"
-msgstr ""
-
-msgid "هیچ منبع قیمت مثبت CNY یا قیمت همکار انتخاب نشده است"
-msgstr ""
-
-msgid "قیمت همکار IRR به‌عنوان منبع جایگزین استفاده شده است"
-msgstr ""
-
-msgid "تنظیم تعداد ارقام گردکردن معتبر نیست"
-msgstr ""
-
-msgid "وضعیت انتشار باید برای ایمنی به پیش‌نویس تغییر کند"
-msgstr ""
-
-msgid "کالا تصویر مؤثر ندارد"
-msgstr ""
-
-msgid "قیمت کالا تعیین نشده است"
-msgstr ""
-
-msgid "کالا موجودی مثبت ندارد"
-msgstr ""
-
-msgid "هر سه شرط ایمنی برقرار است و کالا باید پیش‌نویس شود"
-msgstr ""
-
-msgid "کالای ناقص مطابق قاعده ایمنی در پیش‌نویس نگه داشته شده است"
-msgstr ""
-
-msgid "قیمت همکار IRR"
-msgstr ""
-
-msgid "مبلغ منبع قیمت منتخب"
-msgstr ""
-
-msgid "ارز منبع قیمت منتخب"
-msgstr ""
-
-msgid "نوع منبع قیمت منتخب"
-msgstr ""
-
-msgid "تعداد ارقام گردکردن"
-msgstr ""
-
-msgid "روش گردکردن"
 msgstr ""

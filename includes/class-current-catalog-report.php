@@ -386,6 +386,10 @@ final class Current_Catalog_Report {
             'shipping_method_id' => (string) Config::get('default_shipping_method', ''),
             'shipping_price_per_kg' => (string) Config::get('shipping_price_per_kg', ''),
             'shipping_price_per_kg_currency' => (string) Config::get('shipping_price_per_kg_currency', ''),
+            'domestic_shipping_method_id' => Decimal_Calculator::DOMESTIC_SHIPPING_METHOD,
+            'domestic_shipping_price_per_kg' => Decimal_Calculator::DOMESTIC_SHIPPING_PRICE_PER_KG,
+            'domestic_shipping_price_per_kg_currency' => Decimal_Calculator::DOMESTIC_SHIPPING_CURRENCY,
+            'use_sale_price_direct_fallback' => (string) Config::get('use_sale_price_direct_fallback', 'no'),
             'profit_margin_percent' => (string) Config::get('profit_margin_percent', ''),
             'price_rounding_digits' => (string) Config::get('price_rounding_digits', ''),
             'price_rounding_mode' => (string) Config::get('price_rounding_mode', ''),
@@ -562,8 +566,9 @@ final class Current_Catalog_Report {
         $warnings = $analysis['warnings'];
         $states = array();
         foreach (array(
-            'product_code', 'name', 'serial', 'sale_price_source', 'foreign_currency', 'foreign_price',
+            'product_code', 'name', 'serial', 'partner_price_source', 'sale_price_source', 'foreign_currency', 'foreign_price',
             'price_source_amount', 'price_source_currency', 'price_source_kind', 'weight_grams', 'unit',
+            'shipping_method_id', 'shipping_price_per_kg', 'shipping_price_per_kg_currency',
             'total_stock', 'price_rounding_digits', 'price_rounding_mode', 'final_price', 'record_hash',
         ) as $field) {
             $states[$field] = self::field_state($source, $field);
@@ -571,6 +576,7 @@ final class Current_Catalog_Report {
         foreach (array(
             'serial', 'foreign_currency', 'foreign_price', 'price_source_amount', 'price_source_currency',
             'price_source_kind', 'weight_grams', 'unit', 'total_stock',
+            'shipping_method_id', 'shipping_price_per_kg', 'shipping_price_per_kg_currency',
         ) as $field) {
             if ('omitted' === $states[$field]['state']) {
                 $warnings[] = 'source_omitted_' . $field;
@@ -689,8 +695,9 @@ final class Current_Catalog_Report {
         $source = $record['product'];
         $states = array();
         foreach (array(
-            'product_code', 'name', 'serial', 'sale_price_source', 'foreign_currency', 'foreign_price',
+            'product_code', 'name', 'serial', 'partner_price_source', 'sale_price_source', 'foreign_currency', 'foreign_price',
             'price_source_amount', 'price_source_currency', 'price_source_kind', 'weight_grams', 'unit',
+            'shipping_method_id', 'shipping_price_per_kg', 'shipping_price_per_kg_currency',
             'total_stock', 'price_rounding_digits', 'price_rounding_mode', 'final_price', 'record_hash',
         ) as $field) {
             $states[$field] = self::field_state($source, $field);
@@ -777,9 +784,10 @@ final class Current_Catalog_Report {
             $projection['price_irt'] = (string) $calculation['native_final_irt'];
         }
         if (array_key_exists('total_stock', $source) && null !== $source['total_stock']) {
-            $stock = is_numeric($source['total_stock']) && (float) $source['total_stock'] < 0
-                ? 0
-                : Decimal_Calculator::stock($source['total_stock'], (string) Config::get('stock_percent', '30'));
+            $stock = Decimal_Calculator::stock(
+                $source['total_stock'],
+                (string) Config::get('stock_percent', '30')
+            );
             if (null !== $stock) {
                 $projection['stock_quantity'] = $stock;
             }
@@ -807,9 +815,10 @@ final class Current_Catalog_Report {
 
         $stock = false;
         if (array_key_exists('total_stock', $source) && null !== $source['total_stock']) {
-            $expected_stock = is_numeric($source['total_stock']) && (float) $source['total_stock'] < 0
-                ? 0
-                : Decimal_Calculator::stock($source['total_stock'], (string) Config::get('stock_percent', '30'));
+            $expected_stock = Decimal_Calculator::stock(
+                $source['total_stock'],
+                (string) Config::get('stock_percent', '30')
+            );
             if (null !== $expected_stock) {
                 $stock = !$product->get_manage_stock('edit')
                     || null === $product->get_stock_quantity('edit')
