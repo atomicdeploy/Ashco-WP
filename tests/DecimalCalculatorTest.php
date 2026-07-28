@@ -3,27 +3,35 @@ use Ashko\Patris\Decimal_Calculator;
 use PHPUnit\Framework\TestCase;
 
 final class DecimalCalculatorTest extends TestCase {
-    public function test_native_irr_half_ties_are_not_rounded_through_irt(): void {
+    public function test_canonical_irt_half_ties_round_once_and_map_exactly_to_woo_irr(): void {
         $cases = array(
-            array('0.0215', '2', '65585', '6559'),
-            array('0.0769', '0.24', '36855', '3686'),
-            array('0.03', '0.025', '12415', '1242'),
+            array('0.0215', '2', '65590', '6559'),
+            array('0.0769', '0.24', '36860', '3686'),
+            array('0.03', '0.025', '12420', '1242'),
         );
         foreach ($cases as [$cny, $weight, $expected_irr, $expected_irt]) {
-            $result = Decimal_Calculator::price($cny, $weight, '300000', '22000000', 'IRR', '30');
+            $result = Decimal_Calculator::price(
+                $cny, 'CNY', 'foreign_price', $weight, '300000', '22000000', 'IRR', '30', '0'
+            );
             self::assertSame($expected_irr, $result['woo_final_irr']);
             self::assertSame($expected_irt, $result['native_final_irt']);
         }
     }
 
     public function test_price_uses_approved_native_irr_formula(): void {
-        $result = Decimal_Calculator::price('24.5', '240', '300000', '22000000', 'IRR', '30');
+        $result = Decimal_Calculator::price(
+            '24.5', 'CNY', 'foreign_price', '240', '300000', '22000000', 'IRR', '30', '0'
+        );
         self::assertSame('16419000', $result['woo_final_irr']);
     }
 
     public function test_equivalent_cny_and_irr_shipping_rates_produce_the_same_price(): void {
-        $irr = Decimal_Calculator::price('24.5', '240', '300000', '30000000', 'IRR', '30');
-        $cny = Decimal_Calculator::price('24.5', '240', '300000', '100', 'CNY', '30');
+        $irr = Decimal_Calculator::price(
+            '24.5', 'CNY', 'foreign_price', '240', '300000', '30000000', 'IRR', '30', '0'
+        );
+        $cny = Decimal_Calculator::price(
+            '24.5', 'CNY', 'foreign_price', '240', '300000', '100', 'CNY', '30', '0'
+        );
 
         self::assertSame('18915000', $irr['woo_final_irr']);
         self::assertSame($irr['woo_final_irr'], $cny['woo_final_irr']);
@@ -31,8 +39,50 @@ final class DecimalCalculatorTest extends TestCase {
     }
 
     public function test_shipping_currency_is_required_and_limited_to_cny_or_irr(): void {
-        self::assertNull(Decimal_Calculator::price('24.5', '240', '300000', '100', '', '30'));
-        self::assertNull(Decimal_Calculator::price('24.5', '240', '300000', '100', 'IRT', '30'));
+        self::assertNull(Decimal_Calculator::price(
+            '24.5', 'CNY', 'foreign_price', '240', '300000', '100', '', '30', '0'
+        ));
+        self::assertNull(Decimal_Calculator::price(
+            '24.5', 'CNY', 'foreign_price', '240', '300000', '100', 'IRT', '30', '0'
+        ));
+    }
+
+    public function test_partner_irr_price_needs_only_margin_and_rounding(): void {
+        $result = Decimal_Calculator::price(
+            '1000000', 'IRR', 'partner_price', null, null, null, null, '30', '0'
+        );
+
+        self::assertSame('130000', $result['native_final_irt']);
+        self::assertSame('1300000', $result['woo_final_irr']);
+        self::assertSame('partner_price', $result['price_source_kind']);
+        self::assertSame('', $result['shipping_price_per_kg_currency']);
+    }
+
+    public function test_configurable_digits_round_up_or_down_to_nearest_canonical_irt_increment(): void {
+        $up = Decimal_Calculator::price(
+            '1234560', 'IRR', 'partner_price', null, null, null, null, '0', '2'
+        );
+        $down = Decimal_Calculator::price(
+            '1234440', 'IRR', 'partner_price', null, null, null, null, '0', '2'
+        );
+        $tie = Decimal_Calculator::price(
+            '1234500', 'IRR', 'partner_price', null, null, null, null, '0', '2'
+        );
+
+        self::assertSame('123500', $up['native_final_irt']);
+        self::assertSame('1235000', $up['woo_final_irr']);
+        self::assertSame('123400', $down['native_final_irt']);
+        self::assertSame('123500', $tie['native_final_irt']);
+        self::assertSame('nearest_half_up', $tie['price_rounding_mode']);
+    }
+
+    public function test_zero_or_invalid_selected_price_is_not_determined(): void {
+        self::assertNull(Decimal_Calculator::price(
+            '0', 'IRR', 'partner_price', null, null, null, null, '30', '0'
+        ));
+        self::assertNull(Decimal_Calculator::price(
+            '100', 'CNY', 'partner_price', null, null, null, null, '30', '0'
+        ));
     }
 
     public function test_stock_is_floor_of_thirty_percent(): void {

@@ -387,6 +387,8 @@ final class Current_Catalog_Report {
             'shipping_price_per_kg' => (string) Config::get('shipping_price_per_kg', ''),
             'shipping_price_per_kg_currency' => (string) Config::get('shipping_price_per_kg_currency', ''),
             'profit_margin_percent' => (string) Config::get('profit_margin_percent', ''),
+            'price_rounding_digits' => (string) Config::get('price_rounding_digits', ''),
+            'price_rounding_mode' => (string) Config::get('price_rounding_mode', ''),
             'stock_percent' => (string) Config::get('stock_percent', ''),
             'price_formula' => Decimal_Calculator::PRICE_FORMULA,
             'stock_formula' => Decimal_Calculator::STOCK_FORMULA,
@@ -559,10 +561,17 @@ final class Current_Catalog_Report {
         $desired = $applicator->report_projection($source);
         $warnings = $analysis['warnings'];
         $states = array();
-        foreach (array('product_code', 'name', 'serial', 'foreign_currency', 'foreign_price', 'weight_grams', 'unit', 'total_stock', 'final_price', 'record_hash') as $field) {
+        foreach (array(
+            'product_code', 'name', 'serial', 'sale_price_source', 'foreign_currency', 'foreign_price',
+            'price_source_amount', 'price_source_currency', 'price_source_kind', 'weight_grams', 'unit',
+            'total_stock', 'price_rounding_digits', 'price_rounding_mode', 'final_price', 'record_hash',
+        ) as $field) {
             $states[$field] = self::field_state($source, $field);
         }
-        foreach (array('serial', 'foreign_currency', 'foreign_price', 'weight_grams', 'unit', 'total_stock') as $field) {
+        foreach (array(
+            'serial', 'foreign_currency', 'foreign_price', 'price_source_amount', 'price_source_currency',
+            'price_source_kind', 'weight_grams', 'unit', 'total_stock',
+        ) as $field) {
             if ('omitted' === $states[$field]['state']) {
                 $warnings[] = 'source_omitted_' . $field;
             } elseif ('null' === $states[$field]['state']) {
@@ -599,6 +608,8 @@ final class Current_Catalog_Report {
             'source_fields' => $states,
             'woo' => array(),
             'projection' => $this->projection($source, $desired),
+            'core_changes' => array(),
+            'publication_safety' => array(),
             'meta_drift' => array(),
             'drift' => $this->empty_drift(),
             'warnings' => array(),
@@ -637,13 +648,20 @@ final class Current_Catalog_Report {
                 $row['resolution'] = 'exact_serial';
                 $row['woo'] = $woo[$woo_id]['snapshot'];
                 $plan = $applicator->plan($woo[$woo_id]['product'], $source);
+                $row['core_changes'] = $plan['core_changes'];
+                $row['publication_safety'] = $plan['publication_safety'];
+                if (!empty($plan['publication_safety']['desired_status'])) {
+                    $row['projection']['post_status'] = $plan['publication_safety']['desired_status'];
+                }
                 $row['meta_drift'] = $plan['meta_changes'];
                 $row['drift'] = $this->drift(
                     $source,
                     $woo[$woo_id]['product'],
                     $analysis['calculation'],
-                    $plan['meta_changes']
+                    $plan['meta_changes'],
+                    $plan['core_changes']
                 );
+                $warnings = array_merge($warnings, $plan['warnings']);
                 foreach ($row['drift'] as $field => $drifted) {
                     if ($drifted) {
                         $warnings[] = $field . '_drift';
@@ -670,7 +688,11 @@ final class Current_Catalog_Report {
     private function non_product_source_row(array $record): array {
         $source = $record['product'];
         $states = array();
-        foreach (array('product_code', 'name', 'serial', 'foreign_currency', 'foreign_price', 'weight_grams', 'unit', 'total_stock', 'final_price', 'record_hash') as $field) {
+        foreach (array(
+            'product_code', 'name', 'serial', 'sale_price_source', 'foreign_currency', 'foreign_price',
+            'price_source_amount', 'price_source_currency', 'price_source_kind', 'weight_grams', 'unit',
+            'total_stock', 'price_rounding_digits', 'price_rounding_mode', 'final_price', 'record_hash',
+        ) as $field) {
             $states[$field] = self::field_state($source, $field);
         }
         $is_quarantine = 'quarantine' === (string) $record['record_type'];
@@ -700,6 +722,8 @@ final class Current_Catalog_Report {
             'source_fields' => $states,
             'woo' => array(),
             'projection' => array(),
+            'core_changes' => array(),
+            'publication_safety' => array(),
             'meta_drift' => array(),
             'drift' => $this->empty_drift(),
             'warnings' => $warnings,
@@ -734,6 +758,8 @@ final class Current_Catalog_Report {
             'source_fields' => array(),
             'woo' => $woo,
             'projection' => array(),
+            'core_changes' => array(),
+            'publication_safety' => array(),
             'meta_drift' => array(),
             'drift' => $this->empty_drift(),
             'warnings' => $warnings,
@@ -770,7 +796,7 @@ final class Current_Catalog_Report {
         return $projection;
     }
 
-    private function drift(array $source, $product, $calculation, array $meta_changes): array {
+    private function drift(array $source, $product, $calculation, array $meta_changes, array $core_changes): array {
         $price = false;
         if (is_array($calculation)) {
             $expected = $this->normalize_decimal((string) $calculation['woo_final_irr']);
@@ -823,9 +849,10 @@ final class Current_Catalog_Report {
             || str_contains($key, 'irt_per_cny')
         );
         $metadata = array() !== $meta_changes;
+        $publication = array_key_exists('status', $core_changes);
         return compact(
             'price', 'stock', 'weight', 'hash', 'product_code', 'serial', 'cny', 'foreign_currency',
-            'unit', 'source_weight', 'stock_metadata', 'pricing_metadata', 'metadata'
+            'unit', 'source_weight', 'stock_metadata', 'pricing_metadata', 'metadata', 'publication'
         );
     }
 
@@ -852,6 +879,8 @@ final class Current_Catalog_Report {
             'manage_stock' => (bool) $product->get_manage_stock('edit'),
             'stock_quantity' => null === $product->get_stock_quantity('edit') ? null : (int) $product->get_stock_quantity('edit'),
             'stock_status' => (string) $product->get_stock_status('edit'),
+            'post_status' => method_exists($product, 'get_status') ? (string) $product->get_status('edit') : '',
+            'image_id' => method_exists($product, 'get_image_id') ? (int) $product->get_image_id('edit') : 0,
             'weight' => (string) $product->get_weight('edit'),
             'record_hash' => (string) $product->get_meta('_ashko_patris_record_hash', true, 'edit'),
             'managed_meta' => $managed_meta,
@@ -873,6 +902,7 @@ final class Current_Catalog_Report {
             'stock_metadata' => false,
             'pricing_metadata' => false,
             'metadata' => false,
+            'publication' => false,
         );
     }
 

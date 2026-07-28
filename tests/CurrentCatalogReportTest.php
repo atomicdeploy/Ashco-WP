@@ -214,7 +214,10 @@ final class CurrentCatalogReportTest extends TestCase {
         );
         $source = array(
             'product_code' => 'P77', 'name' => 'کالا', 'serial' => 'SER-77', 'unit' => 'عدد',
-            'foreign_currency' => 'CNY', 'foreign_price' => '1', 'weight_grams' => '1',
+            'foreign_currency' => 'CNY', 'foreign_price' => '1',
+            'price_source_amount' => '1', 'price_source_currency' => 'CNY',
+            'price_source_kind' => 'foreign_price', 'price_rounding_digits' => 0,
+            'price_rounding_mode' => 'nearest_half_up', 'weight_grams' => '1',
             'total_stock' => '10', 'warnings' => array(), 'record_hash' => 'sha256:same',
         );
         $report = (new Current_Catalog_Report())->build($this->state(array('P77' => $source)), array($product));
@@ -253,13 +256,47 @@ final class CurrentCatalogReportTest extends TestCase {
         self::assertSame('73.5', $report['provenance']['shipping_price_per_kg']);
         self::assertSame('CNY', $report['provenance']['shipping_price_per_kg_currency']);
         self::assertSame('30', $report['provenance']['profit_margin_percent']);
+        self::assertSame('0', $report['provenance']['price_rounding_digits']);
+        self::assertSame('nearest_half_up', $report['provenance']['price_rounding_mode']);
         self::assertSame('30', $report['provenance']['stock_percent']);
+    }
+
+    public function test_publication_safety_is_reported_as_an_independent_status_drift(): void {
+        $product = new Ashko_Test_Product(88, array(
+            'name' => 'کالای ناقص', 'status' => 'publish', 'image_id' => 0,
+            'regular_price' => '', 'price' => '', 'sale_price' => '',
+            'manage_stock' => true, 'stock_quantity' => 0, 'stock_status' => 'outofstock',
+        ), array('_sku' => 'SER-88', '_ashko_patris_record_hash' => 'sha256:old'));
+        $GLOBALS['ashko_test_serial_rows'] = array(
+            array('ID' => '88', 'post_type' => 'product', 'meta_key' => '_sku', 'meta_value' => 'SER-88'),
+        );
+        $source = array(
+            'product_code' => 'P88', 'name' => 'کالای ناقص', 'serial' => 'SER-88',
+            'foreign_currency' => 'CNY', 'foreign_price' => 0, 'total_stock' => 0,
+            'warnings' => array(), 'record_hash' => 'sha256:new',
+        );
+
+        $report = (new Current_Catalog_Report())->build($this->state(array('P88' => $source)), array($product));
+        $row = $this->row($report['rows'], 'P88');
+
+        self::assertTrue($row['drift']['publication']);
+        self::assertSame(1, $report['summary']['publication_drift']);
+        self::assertSame('publish', $row['woo']['post_status']);
+        self::assertSame(0, $row['woo']['image_id']);
+        self::assertSame('draft', $row['projection']['post_status']);
+        self::assertSame('draft', $row['core_changes']['status']['new']);
+        self::assertTrue($row['publication_safety']['should_draft']);
+        self::assertContains('publication_safety_draft_required', $row['warnings']);
+        self::assertContains('publication_drift', $row['warnings']);
     }
 
     private function source(string $code, string $serial, int $stock, string $hash): array {
         return array(
             'product_code' => $code, 'name' => 'کالا ' . $code, 'serial' => $serial, 'unit' => 'عدد',
-            'foreign_currency' => 'CNY', 'foreign_price' => 1, 'weight_grams' => 0,
+            'foreign_currency' => 'CNY', 'foreign_price' => 1,
+            'price_source_amount' => 1, 'price_source_currency' => 'CNY',
+            'price_source_kind' => 'foreign_price', 'price_rounding_digits' => 0,
+            'price_rounding_mode' => 'nearest_half_up', 'weight_grams' => 0,
             'total_stock' => $stock, 'warnings' => array(), 'record_hash' => $hash,
         );
     }

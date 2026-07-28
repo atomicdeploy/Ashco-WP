@@ -15,9 +15,12 @@ final class ProductApplicatorTest extends TestCase {
         return array(
             'product_code' => '101023', 'category_code' => '101', 'name' => 'Part', 'serial' => 'B 32', 'unit' => 'عدد',
             'warehouse_stock' => array('1' => 10), 'total_stock' => 10, 'foreign_currency' => 'CNY',
-            'foreign_price' => 0.0215, 'weight_grams' => 2, 'shipping_method_id' => 'air_express',
+            'foreign_price' => 0.0215, 'price_source_amount' => 0.0215,
+            'price_source_currency' => 'CNY', 'price_source_kind' => 'foreign_price',
+            'weight_grams' => 2, 'shipping_method_id' => 'air_express',
             'shipping_price_per_kg' => 73.333333333333, 'shipping_price_per_kg_currency' => 'CNY',
             'markup_percent' => 30, 'irt_per_cny' => 30000,
+            'price_rounding_digits' => 0, 'price_rounding_mode' => 'nearest_half_up',
             'pricing_catalog_revision' => 'test', 'pricing_catalog_status' => 'static',
             'currency_effective_date' => '2026-07-20', 'final_price' => 6558,
             'source_updated_at' => '', 'warnings' => array(),
@@ -31,13 +34,13 @@ final class ProductApplicatorTest extends TestCase {
             'stock_quantity' => 10, 'stock_status' => 'instock', 'weight' => '',
         ));
         $plan = Product_Applicator::instance()->plan($product, $this->data());
-        self::assertSame('65585', $plan['core_changes']['regular_price']['new']);
+        self::assertSame('65590', $plan['core_changes']['regular_price']['new']);
         self::assertSame(3, $plan['core_changes']['stock_quantity']['new']);
         self::assertSame('2', $plan['core_changes']['weight']['new']);
         self::assertSame('عدد', $plan['meta_changes']['woodmart_price_unit_of_measure']['new']);
         self::assertSame('IRR', $plan['meta_changes']['_ashko_patris_shipping_price_per_kg_currency']['new']);
         self::assertSame('CNY', $plan['meta_changes']['_ashko_patris_source_shipping_price_per_kg_currency']['new']);
-        self::assertSame('5', $plan['meta_changes']['_ashko_patris_formula_discrepancy_irr']['new']);
+        self::assertSame('10', $plan['meta_changes']['_ashko_patris_formula_discrepancy_irr']['new']);
         self::assertContains('formula_discrepancy', $plan['warnings']);
     }
 
@@ -50,7 +53,7 @@ final class ProductApplicatorTest extends TestCase {
 
         $plan = Product_Applicator::instance()->plan($product, $this->data());
 
-        self::assertSame('65585', $plan['core_changes']['regular_price']['new']);
+        self::assertSame('65580', $plan['core_changes']['regular_price']['new']);
         self::assertSame('CNY', $plan['meta_changes']['_ashko_patris_shipping_price_per_kg_currency']['new']);
         self::assertNotContains('missing_shipping', $plan['warnings']);
     }
@@ -79,5 +82,158 @@ final class ProductApplicatorTest extends TestCase {
         self::assertSame(1, $product->save_count);
         $again = Product_Applicator::instance()->plan($product, $this->data());
         self::assertFalse($again['changed']);
+    }
+
+    public function test_partner_price_fallback_uses_irr_without_weight_freight_or_fx(): void {
+        $data = $this->data();
+        $data['foreign_price'] = 0;
+        $data['sale_price_source'] = 1000000;
+        $data['price_source_amount'] = 1000000;
+        $data['price_source_currency'] = 'IRR';
+        $data['price_source_kind'] = 'partner_price';
+        unset($data['weight_grams']);
+        $product = new Ashko_Test_Product(220, array(
+            'regular_price' => '', 'price' => '', 'manage_stock' => true,
+            'stock_quantity' => 3, 'stock_status' => 'instock',
+        ));
+
+        $plan = Product_Applicator::instance()->plan($product, $data);
+
+        self::assertSame('1300000', $plan['core_changes']['regular_price']['new']);
+        self::assertSame('partner_price', $plan['meta_changes']['_ashko_patris_price_source_kind']['new']);
+        self::assertSame('', $plan['meta_changes']['_ashko_patris_shipping_price_per_kg']['new'] ?? '');
+        self::assertContains('partner_price_source_used', $plan['warnings']);
+        self::assertNotContains('missing_weight', $plan['warnings']);
+        self::assertNotContains('missing_shipping', $plan['warnings']);
+        self::assertNotContains('missing_fx', $plan['warnings']);
+        self::assertNotContains('missing_final_price', $plan['warnings']);
+    }
+
+    public function test_publication_safety_drafts_only_when_all_three_conditions_hold(): void {
+        $data = $this->data();
+        $data['foreign_price'] = 0;
+        $data['total_stock'] = 0;
+        unset(
+            $data['price_source_amount'],
+            $data['price_source_currency'],
+            $data['price_source_kind'],
+            $data['final_price']
+        );
+        $product = new Ashko_Test_Product(221, array(
+            'status' => 'publish', 'image_id' => 0, 'regular_price' => '', 'price' => '',
+            'sale_price' => '', 'manage_stock' => true, 'stock_quantity' => 0, 'stock_status' => 'outofstock',
+        ));
+
+        $plan = Product_Applicator::instance()->plan($product, $data);
+
+        self::assertSame('draft', $plan['core_changes']['status']['new']);
+        self::assertSame('draft_incomplete', $plan['meta_changes']['_ashko_patris_publication_safety']['new']);
+        self::assertTrue($plan['publication_safety']['should_draft']);
+        self::assertContains('publication_safety_draft_required', $plan['warnings']);
+
+        Product_Applicator::instance()->apply_product_feed($product, $data);
+        $again = Product_Applicator::instance()->plan($product, $data);
+        self::assertArrayNotHasKey('status', $again['core_changes']);
+        self::assertContains('publication_safety_kept_draft', $again['warnings']);
+    }
+
+    /**
+     * @dataProvider publicationSafetyExceptions
+     */
+    public function test_publication_safety_does_not_draft_when_any_condition_is_not_met(
+        array $core,
+        array $data_changes
+    ): void {
+        $data = $this->data();
+        $data['foreign_price'] = 0;
+        $data['total_stock'] = 0;
+        unset(
+            $data['price_source_amount'],
+            $data['price_source_currency'],
+            $data['price_source_kind'],
+            $data['final_price']
+        );
+        foreach ($data_changes as $key => $value) {
+            if ('__unset__' === $value) {
+                unset($data[$key]);
+            } else {
+                $data[$key] = $value;
+            }
+        }
+        $product = new Ashko_Test_Product(300 + count($core) + count($data_changes), array_merge(array(
+            'status' => 'publish', 'image_id' => 0, 'regular_price' => '', 'price' => '',
+            'sale_price' => '', 'manage_stock' => true, 'stock_quantity' => 0, 'stock_status' => 'outofstock',
+        ), $core));
+
+        $plan = Product_Applicator::instance()->plan($product, $data);
+
+        self::assertArrayNotHasKey('status', $plan['core_changes']);
+        self::assertFalse($plan['publication_safety']['should_draft']);
+    }
+
+    public static function publicationSafetyExceptions(): array {
+        return array(
+            'has image' => array(array('image_id' => 99), array()),
+            'has existing price' => array(array('regular_price' => '5000', 'price' => '5000'), array()),
+            'source stock is positive' => array(array(), array('total_stock' => 1)),
+            'source stock is omitted, not zero' => array(array(), array('total_stock' => '__unset__')),
+            'source stock is explicitly null, not zero' => array(array(), array('total_stock' => null)),
+        );
+    }
+
+    public function test_explicit_zero_source_stock_overrides_stale_positive_woo_stock_for_safety(): void {
+        $data = $this->data();
+        $data['foreign_price'] = 0;
+        $data['total_stock'] = 0;
+        unset(
+            $data['price_source_amount'],
+            $data['price_source_currency'],
+            $data['price_source_kind'],
+            $data['final_price']
+        );
+        $product = new Ashko_Test_Product(450, array(
+            'status' => 'publish', 'image_id' => 0, 'regular_price' => '', 'price' => '',
+            'stock_quantity' => 8, 'stock_status' => 'instock',
+        ));
+
+        $plan = Product_Applicator::instance()->plan($product, $data);
+
+        self::assertSame(0, $plan['core_changes']['stock_quantity']['new']);
+        self::assertSame('draft', $plan['core_changes']['status']['new']);
+        self::assertTrue($plan['publication_safety']['no_positive_stock']);
+        self::assertTrue($plan['publication_safety']['woo_stock_is_positive']);
+    }
+
+    public function test_variation_inheriting_parent_image_is_not_drafted(): void {
+        new Ashko_Test_Product(500, array('image_id' => 88, 'type' => 'variable'));
+        $data = $this->data();
+        $data['foreign_price'] = 0;
+        $data['total_stock'] = 0;
+        unset(
+            $data['price_source_amount'],
+            $data['price_source_currency'],
+            $data['price_source_kind'],
+            $data['final_price']
+        );
+        $variation = new Ashko_Test_Product(501, array(
+            'type' => 'variation', 'parent_id' => 500, 'image_id' => 0, 'status' => 'publish',
+            'regular_price' => '', 'price' => '', 'stock_quantity' => 0,
+        ));
+
+        $plan = Product_Applicator::instance()->plan($variation, $data);
+
+        self::assertArrayNotHasKey('status', $plan['core_changes']);
+        self::assertFalse($plan['publication_safety']['image_missing']);
+    }
+
+    public function test_complete_data_never_auto_publishes_an_existing_draft(): void {
+        $product = new Ashko_Test_Product(600, array(
+            'status' => 'draft', 'image_id' => 1, 'regular_price' => '', 'price' => '',
+            'stock_quantity' => 0,
+        ));
+
+        $plan = Product_Applicator::instance()->plan($product, $this->data());
+
+        self::assertArrayNotHasKey('status', $plan['core_changes']);
     }
 }

@@ -3,57 +3,88 @@ namespace Ashko\Patris;
 
 /** Exact non-negative decimal arithmetic for Ashco pricing and stock policy. */
 final class Decimal_Calculator {
-    public const PRICE_FORMULA = '((CNY × FX_IRR) + freight_IRR) × (1 + margin ÷ 100), where freight uses the declared CNY or IRR rate; one final half-up round in IRR';
+    public const PRICE_FORMULA = 'foreign_price/CNY: ((amount × FX_IRR) + freight_IRR) × (1 + margin ÷ 100); partner_price/IRR: amount × (1 + margin ÷ 100); one final nearest-half-up round to 10^price_rounding_digits IRT, then ×10 for Woo IRR';
     public const STOCK_FORMULA = 'floor(max(total_stock, 0) × stock_percent ÷ 100)';
 
-    /** Calculate the approved expression in IRR and round once, at the end. */
+    /**
+     * Calculate the selected living price-source expression.
+     *
+     * Rounding precision is expressed in canonical IRT digits. WooCommerce is
+     * therefore written with the exact rounded canonical result multiplied by
+     * ten, so both representations remain identical.
+     */
     public static function price(
-        $foreign_cny,
+        $price_source_amount,
+        $price_source_currency,
+        $price_source_kind,
         $weight_grams,
         $fx_irr,
         $shipping_price_per_kg,
         $shipping_price_per_kg_currency,
-        $margin_percent
+        $margin_percent,
+        $price_rounding_digits
     ): ?array {
-        $cny = self::parts($foreign_cny);
-        $weight = self::parts($weight_grams);
-        $fx = self::parts($fx_irr);
-        $shipping_rate = self::parts($shipping_price_per_kg);
+        $amount = self::parts($price_source_amount);
         $margin = self::parts($margin_percent);
-        $shipping_currency = (string) $shipping_price_per_kg_currency;
-        if (
-            null === $cny
-            || null === $weight
-            || null === $fx
-            || null === $shipping_rate
-            || null === $margin
-            || !in_array($shipping_currency, array('CNY', 'IRR'), true)
-        ) {
+        $source_currency = (string) $price_source_currency;
+        $source_kind = (string) $price_source_kind;
+        $rounding_digits = self::rounding_digits($price_rounding_digits);
+        if (null === $amount || '0' === $amount['digits'] || null === $margin || null === $rounding_digits) {
             return null;
         }
 
-        $goods_irr = self::multiply($cny, $fx);
-        $shipping_irr = self::multiply($weight, $shipping_rate);
-        $shipping_irr['scale'] += 3;
-        if ('CNY' === $shipping_currency) {
-            $shipping_irr = self::multiply($shipping_irr, $fx);
+        if ('foreign_price' === $source_kind && 'CNY' === $source_currency) {
+            $weight = self::parts($weight_grams);
+            $fx = self::parts($fx_irr);
+            $shipping_rate = self::parts($shipping_price_per_kg);
+            $shipping_currency = (string) $shipping_price_per_kg_currency;
+            if (
+                null === $weight
+                || null === $fx
+                || null === $shipping_rate
+                || !in_array($shipping_currency, array('CNY', 'IRR'), true)
+            ) {
+                return null;
+            }
+            $goods_irr = self::multiply($amount, $fx);
+            $shipping_irr = self::multiply($weight, $shipping_rate);
+            $shipping_irr['scale'] += 3;
+            if ('CNY' === $shipping_currency) {
+                $shipping_irr = self::multiply($shipping_irr, $fx);
+            }
+            $base_irr = self::add($goods_irr, $shipping_irr);
+        } elseif ('partner_price' === $source_kind && 'IRR' === $source_currency) {
+            $base_irr = $amount;
+            $shipping_currency = '';
+        } else {
+            return null;
         }
-        $landed_irr = self::add($goods_irr, $shipping_irr);
+
         $multiplier = self::add(self::parts('100'), $margin);
-        $sale_irr = self::multiply($landed_irr, $multiplier);
+        $sale_irr = self::multiply($base_irr, $multiplier);
         $sale_irr['scale'] += 2;
 
-        $woo_irr = self::round_half_up($sale_irr);
         $sale_irt = $sale_irr;
         $sale_irt['scale'] += 1;
-        $native_irt = self::round_half_up($sale_irt);
+        $native_irt = self::round_half_up_to_digits($sale_irt, $rounding_digits);
+        $woo_irr = self::multiply_integer($native_irt, '10');
 
         return array(
             'native_final_irt' => $native_irt,
             'woo_final_irr' => $woo_irr,
             'formula' => self::PRICE_FORMULA,
+            'price_source_amount' => self::text($amount),
+            'price_source_currency' => $source_currency,
+            'price_source_kind' => $source_kind,
+            'price_rounding_digits' => (string) $rounding_digits,
+            'price_rounding_mode' => 'nearest_half_up',
             'shipping_price_per_kg_currency' => $shipping_currency,
         );
+    }
+
+    public static function positive_decimal($value): bool {
+        $parts = self::parts($value);
+        return null !== $parts && '0' !== $parts['digits'];
     }
 
     public static function stock($total_stock, $percent = '30'): ?int {
@@ -124,6 +155,26 @@ final class Decimal_Calculator {
         $padded = str_pad($decimal['digits'], $decimal['scale'] + 1, '0', STR_PAD_LEFT);
         $cut = strlen($padded) - $decimal['scale'];
         return (int) $padded[$cut] >= 5 ? self::add_integer($integer, '1') : $integer;
+    }
+
+    private static function round_half_up_to_digits(array $decimal, int $digits): string {
+        $scaled = $decimal;
+        $scaled['scale'] += $digits;
+        return self::normalize(self::round_half_up($scaled) . str_repeat('0', $digits));
+    }
+
+    private static function rounding_digits($value): ?int {
+        $text = (string) $value;
+        return preg_match('/^[0-9]$/', $text) ? (int) $text : null;
+    }
+
+    private static function text(array $decimal): string {
+        if (0 === $decimal['scale']) {
+            return self::normalize($decimal['digits']);
+        }
+        $digits = str_pad($decimal['digits'], $decimal['scale'] + 1, '0', STR_PAD_LEFT);
+        $cut = strlen($digits) - $decimal['scale'];
+        return self::normalize(substr($digits, 0, $cut)) . '.' . substr($digits, $cut);
     }
 
     private static function add_integer(string $left, string $right): string {

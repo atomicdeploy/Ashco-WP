@@ -14,6 +14,8 @@ final class Config {
             'shipping_price_per_kg' => '22000000',
             'shipping_price_per_kg_currency' => 'IRR',
             'profit_margin_percent' => '30',
+            'price_rounding_digits' => '0',
+            'price_rounding_mode' => 'nearest_half_up',
             'stock_percent' => '30',
             'default_shipping_method' => 'air_express',
             'show_exact_stock' => 'yes',
@@ -66,6 +68,10 @@ final class Config {
                 $input['shipping_price_per_kg_currency'] ?? $defaults['shipping_price_per_kg_currency']
             ),
             'profit_margin_percent' => self::decimal($input['profit_margin_percent'] ?? $defaults['profit_margin_percent']),
+            'price_rounding_digits' => self::rounding_digits(
+                $input['price_rounding_digits'] ?? $defaults['price_rounding_digits']
+            ),
+            'price_rounding_mode' => 'nearest_half_up',
             'stock_percent' => self::decimal($input['stock_percent'] ?? $defaults['stock_percent']),
             'default_shipping_method' => sanitize_key((string) ($input['default_shipping_method'] ?? 'air_express')),
             'show_exact_stock' => self::yes_no($input['show_exact_stock'] ?? 'no'),
@@ -114,6 +120,11 @@ final class Config {
     private static function shipping_currency($value): string {
         $currency = strtoupper(trim((string) $value));
         return in_array($currency, array('CNY', 'IRR'), true) ? $currency : '';
+    }
+
+    private static function rounding_digits($value): string {
+        $digits = trim((string) $value);
+        return preg_match('/^[0-9]$/', $digits) ? $digits : '0';
     }
 
     private static function yes_no($value): string {

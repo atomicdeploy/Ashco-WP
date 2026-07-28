@@ -16,6 +16,10 @@ final class ProductSyncContractTest extends TestCase {
         self::assertSame('landed_price', $preview['envelope']['formula_id']);
         self::assertCount(2, $preview['transition']['categories']);
         self::assertSame(array('999010'), $preview['transition']['excluded_codes']);
+        self::assertSame('foreign_price', $preview['envelope']['products'][0]['price_source_kind']);
+        self::assertSame('CNY', $preview['envelope']['products'][0]['price_source_currency']);
+        self::assertSame(0, $preview['envelope']['products'][0]['price_rounding_digits']);
+        self::assertSame('nearest_half_up', $preview['envelope']['products'][0]['price_rounding_mode']);
     }
 
     public function test_absent_and_explicit_null_values_remain_distinct(): void {
@@ -185,6 +189,178 @@ final class ProductSyncContractTest extends TestCase {
         self::assertNull($validated['shipping_price_per_kg']);
         self::assertArrayHasKey('shipping_price_per_kg_currency', $validated);
         self::assertNull($validated['shipping_price_per_kg_currency']);
+    }
+
+    public function test_positive_cny_has_priority_over_partner_price(): void {
+        $payload = json_decode($this->fixture(), true);
+        $receiver = Product_Sync_Receiver::instance();
+        $validate = new ReflectionMethod(Product_Sync_Receiver::class, 'validate_product');
+        $hash = new ReflectionMethod(Product_Sync_Receiver::class, 'record_hash');
+        $product = $payload['products'][0];
+        $product['price_source_amount'] = $product['sale_price_source'];
+        $product['price_source_currency'] = 'IRR';
+        $product['price_source_kind'] = 'partner_price';
+        $product['record_hash'] = $hash->invoke($receiver, $product);
+
+        $result = $validate->invoke($receiver, $product, 0);
+
+        self::assertSame('ashko_product_sync_field_invalid', $result->get_error_code());
+        self::assertSame('products[0].price_source_amount', $result->get_error_data()['field']);
+        self::assertStringContainsString('priority', $result->get_error_data()['reason']);
+    }
+
+    public function test_partner_irr_fallback_is_valid_without_weight_freight_or_fx(): void {
+        $payload = json_decode($this->fixture(), true);
+        $receiver = Product_Sync_Receiver::instance();
+        $validate = new ReflectionMethod(Product_Sync_Receiver::class, 'validate_product');
+        $hash = new ReflectionMethod(Product_Sync_Receiver::class, 'record_hash');
+        $product = $payload['products'][0];
+        $product['foreign_price'] = 0;
+        $product['sale_price_source'] = 1000000;
+        $product['price_source_amount'] = 1000000;
+        $product['price_source_currency'] = 'IRR';
+        $product['price_source_kind'] = 'partner_price';
+        $product['price_rounding_digits'] = 2;
+        $product['markup_percent'] = 30;
+        $product['final_price'] = 130000;
+        unset(
+            $product['weight_grams'],
+            $product['shipping_method_id'],
+            $product['shipping_price_per_kg'],
+            $product['shipping_price_per_kg_currency'],
+            $product['irt_per_cny']
+        );
+        $product['record_hash'] = $hash->invoke($receiver, $product);
+
+        $validated = $validate->invoke($receiver, $product, 0);
+
+        self::assertFalse(is_wp_error($validated), is_wp_error($validated) ? $validated->get_error_message() : '');
+        self::assertSame('0', $validated['foreign_price']);
+        self::assertSame('1000000', $validated['sale_price_source']);
+        self::assertSame('1000000', $validated['price_source_amount']);
+        self::assertSame('partner_price', $validated['price_source_kind']);
+        self::assertSame(130000, $validated['final_price']);
+    }
+
+    public function test_zero_prices_are_preserved_but_do_not_form_a_selected_source(): void {
+        $payload = json_decode($this->fixture(), true);
+        $receiver = Product_Sync_Receiver::instance();
+        $validate = new ReflectionMethod(Product_Sync_Receiver::class, 'validate_product');
+        $hash = new ReflectionMethod(Product_Sync_Receiver::class, 'record_hash');
+        $product = $payload['products'][0];
+        $product['foreign_price'] = 0;
+        $product['sale_price_source'] = 0;
+        unset(
+            $product['price_source_amount'],
+            $product['price_source_currency'],
+            $product['price_source_kind'],
+            $product['final_price']
+        );
+        $product['record_hash'] = $hash->invoke($receiver, $product);
+
+        $validated = $validate->invoke($receiver, $product, 0);
+
+        self::assertFalse(is_wp_error($validated), is_wp_error($validated) ? $validated->get_error_message() : '');
+        self::assertArrayHasKey('foreign_price', $validated);
+        self::assertSame('0', $validated['foreign_price']);
+        self::assertArrayHasKey('sale_price_source', $validated);
+        self::assertSame('0', $validated['sale_price_source']);
+        self::assertArrayNotHasKey('price_source_amount', $validated);
+        self::assertArrayNotHasKey('final_price', $validated);
+    }
+
+    public function test_negative_raw_cny_is_rejected_before_partner_fallback(): void {
+        $payload = json_decode($this->fixture(), true);
+        $receiver = Product_Sync_Receiver::instance();
+        $validate = new ReflectionMethod(Product_Sync_Receiver::class, 'validate_product');
+        $hash = new ReflectionMethod(Product_Sync_Receiver::class, 'record_hash');
+        $product = $payload['products'][0];
+        $product['foreign_price'] = -1;
+        $product['price_source_amount'] = $product['sale_price_source'];
+        $product['price_source_currency'] = 'IRR';
+        $product['price_source_kind'] = 'partner_price';
+        $product['final_price'] = 13000;
+        $product['record_hash'] = $hash->invoke($receiver, $product);
+
+        $result = $validate->invoke($receiver, $product, 0);
+
+        self::assertSame('ashko_product_sync_field_invalid', $result->get_error_code());
+        self::assertSame('products[0].foreign_price', $result->get_error_data()['field']);
+        self::assertStringContainsString('must not be negative', $result->get_error_data()['reason']);
+    }
+
+    public function test_selected_price_source_and_rounding_provenance_are_atomic(): void {
+        $payload = json_decode($this->fixture(), true);
+        $receiver = Product_Sync_Receiver::instance();
+        $validate = new ReflectionMethod(Product_Sync_Receiver::class, 'validate_product');
+
+        $product = $payload['products'][0];
+        unset($product['price_source_currency']);
+        $result = $validate->invoke($receiver, $product, 0);
+        self::assertSame('ashko_product_sync_price_source_shape_invalid', $result->get_error_code());
+        self::assertContains('price_source_currency', $result->get_error_data()['missing']);
+
+        $product = $payload['products'][0];
+        unset($product['price_rounding_mode']);
+        $result = $validate->invoke($receiver, $product, 0);
+        self::assertSame('ashko_product_sync_rounding_shape_invalid', $result->get_error_code());
+        self::assertContains('price_rounding_mode', $result->get_error_data()['missing']);
+    }
+
+    public function test_explicit_null_rounding_digits_preserve_source_null_without_mode(): void {
+        $payload = json_decode($this->fixture(), true);
+        $receiver = Product_Sync_Receiver::instance();
+        $validate = new ReflectionMethod(Product_Sync_Receiver::class, 'validate_product');
+        $hash = new ReflectionMethod(Product_Sync_Receiver::class, 'record_hash');
+        $product = $payload['products'][0];
+        $product['price_rounding_digits'] = null;
+        unset($product['price_rounding_mode']);
+        unset($product['final_price']);
+        $product['record_hash'] = $hash->invoke($receiver, $product);
+
+        $validated = $validate->invoke($receiver, $product, 0);
+
+        self::assertFalse(is_wp_error($validated), is_wp_error($validated) ? $validated->get_error_message() : '');
+        self::assertSame('24.5', $validated['price_source_amount']);
+        self::assertSame('CNY', $validated['price_source_currency']);
+        self::assertSame('foreign_price', $validated['price_source_kind']);
+        self::assertArrayHasKey('price_rounding_digits', $validated);
+        self::assertNull($validated['price_rounding_digits']);
+        self::assertArrayNotHasKey('price_rounding_mode', $validated);
+        self::assertArrayNotHasKey('final_price', $validated);
+
+        $product['price_rounding_mode'] = 'nearest_half_up';
+        $product['record_hash'] = $hash->invoke($receiver, $product);
+        $result = $validate->invoke($receiver, $product, 0);
+        self::assertSame('ashko_product_sync_field_invalid', $result->get_error_code());
+        self::assertSame('products[0].price_rounding_mode', $result->get_error_data()['field']);
+    }
+
+    public function test_rounding_digits_use_nearest_half_up_in_canonical_irt(): void {
+        $payload = json_decode($this->fixture(), true);
+        $receiver = Product_Sync_Receiver::instance();
+        $validate = new ReflectionMethod(Product_Sync_Receiver::class, 'validate_product');
+        $hash = new ReflectionMethod(Product_Sync_Receiver::class, 'record_hash');
+        $product = $payload['products'][0];
+        $product['foreign_price'] = 0;
+        $product['sale_price_source'] = 1234560;
+        $product['price_source_amount'] = 1234560;
+        $product['price_source_currency'] = 'IRR';
+        $product['price_source_kind'] = 'partner_price';
+        $product['markup_percent'] = 0;
+        $product['price_rounding_digits'] = 2;
+        $product['final_price'] = 123500;
+        $product['record_hash'] = $hash->invoke($receiver, $product);
+
+        $validated = $validate->invoke($receiver, $product, 0);
+        self::assertFalse(is_wp_error($validated), is_wp_error($validated) ? $validated->get_error_message() : '');
+
+        $product['final_price'] = 123400;
+        $product['record_hash'] = $hash->invoke($receiver, $product);
+        $result = $validate->invoke($receiver, $product, 0);
+        self::assertSame('ashko_product_sync_final_price_mismatch', $result->get_error_code());
+        self::assertSame(123500, $result->get_error_data()['expected']);
+        self::assertSame(123400, $result->get_error_data()['actual']);
     }
 
     public function test_unknown_contract_fields_are_rejected_without_fallback(): void {
