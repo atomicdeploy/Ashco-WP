@@ -206,7 +206,7 @@ final class Ashko_Test_Product {
         $this->core = array_merge(array(
             'regular_price' => '', 'price' => '', 'sale_price' => '', 'weight' => '',
             'manage_stock' => false, 'stock_quantity' => null, 'stock_status' => 'outofstock',
-            'name' => '', 'type' => 'simple',
+            'name' => '', 'type' => 'simple', 'status' => 'publish', 'image_id' => 1, 'parent_id' => 0,
         ), $core);
         $this->meta = $meta;
         $GLOBALS['ashko_test_products'][$id] = $this;
@@ -221,6 +221,9 @@ final class Ashko_Test_Product {
     public function get_stock_status($context = 'view') { return $this->core['stock_status']; }
     public function get_name($context = 'view') { return $this->core['name']; }
     public function get_type() { return $this->core['type']; }
+    public function get_status($context = 'view') { return $this->core['status']; }
+    public function get_image_id($context = 'view') { return $this->core['image_id']; }
+    public function get_parent_id() { return $this->core['parent_id']; }
     public function is_type($type) { return (string) $type === $this->core['type']; }
     public function get_meta($key, $single = true, $context = 'view') { return $this->meta[$key] ?? ''; }
     public function set_regular_price($value) { $this->core['regular_price'] = (string) $value; }
@@ -230,6 +233,7 @@ final class Ashko_Test_Product {
     public function set_manage_stock($value) { $this->core['manage_stock'] = (bool) $value; }
     public function set_stock_quantity($value) { $this->core['stock_quantity'] = (int) $value; }
     public function set_stock_status($value) { $this->core['stock_status'] = (string) $value; }
+    public function set_status($value) { $this->core['status'] = (string) $value; }
     public function update_meta_data($key, $value) { $this->meta[$key] = (string) $value; }
     public function delete_meta_data_exact($key, $value = '') {
         if (!array_key_exists($key, $this->meta)) { return false; }

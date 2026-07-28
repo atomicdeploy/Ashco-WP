@@ -1,13 +1,13 @@
 {
   "schema": "patris.product-sync",
   "event_type": "snapshot",
-  "event_id": "sha256:2f2104e5230930fa885770b3de8fe5202e06886c70009e273354fdfd426ca643",
+  "event_id": "sha256:7f287c92d56e757cfb597e0c678e7f9310d400566cf27327fb9b41de09d516da",
   "local_currency": "IRT",
   "formula_id": "landed_price",
   "source": {
     "id": "synthetic-fixture",
     "dataset": "synthetic-kala.db",
-    "revision": "sha256:b6343b768a7bd1ea597cf24d911473c7e53c16b1e795eefe157a8b4dc569b335"
+    "revision": "sha256:441d0ebdbffc090d82d178792980192b3da744d25c383945f4f45de759131923"
   },
   "generated_at": "2026-01-02T03:04:05Z",
   "products": [
@@ -27,6 +27,9 @@
       "minimum_stock": 1,
       "foreign_currency": "CNY",
       "foreign_price": 24.5,
+      "price_source_amount": 24.5,
+      "price_source_currency": "CNY",
+      "price_source_kind": "foreign_price",
       "weight_grams": 240,
       "location": "",
       "shipping_method_id": "synthetic-air",
@@ -34,13 +37,15 @@
       "shipping_price_per_kg_currency": "CNY",
       "markup_percent": 30,
       "irt_per_cny": 29000,
+      "price_rounding_digits": 0,
+      "price_rounding_mode": "nearest_half_up",
       "pricing_catalog_revision": "synthetic-catalog",
       "pricing_catalog_status": "static",
       "currency_effective_date": "2026-01-01",
       "final_price": 2009410,
       "source_updated_at": "2026-01-01T00:00:00Z",
       "warnings": [],
-      "record_hash": "sha256:1a22f4d320f7f966d838d4ee6eb276a9298f84a9a020dac32db4805a773b69ba"
+      "record_hash": "sha256:93706d0a2f6c9fad813f3a3f68154b2acde17cd01d76b1d345a23d1e840b5a7a"
     },
     {
       "product_code": "101001002",
@@ -52,6 +57,8 @@
       "total_stock": 0,
       "foreign_currency": "CNY",
       "location": null,
+      "price_rounding_digits": 0,
+      "price_rounding_mode": "nearest_half_up",
       "pricing_catalog_revision": "synthetic-catalog",
       "pricing_catalog_status": "static",
       "currency_effective_date": "2026-01-01",
@@ -65,7 +72,7 @@
         "shipping_rate_missing",
         "weight_missing"
       ],
-      "record_hash": "sha256:9bc503265e1117898d3bb5ab0f6cb8d34d72bf9c7b337034e19a58608fee4e0d"
+      "record_hash": "sha256:5aad6b3e6a76899b32007300f4a5dde7ae8f2581da1906d5cd5ea9d43f62b844"
     }
   ],
   "categories": [

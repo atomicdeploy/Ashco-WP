@@ -51,4 +51,19 @@ final class ConfigTest extends TestCase {
             $GLOBALS['ashko_test_options'][Config::OPTION]
         );
     }
+
+    public function test_rounding_digits_are_bounded_and_mode_is_canonical(): void {
+        $settings = Config::sanitize(array(
+            'price_rounding_digits' => '2',
+            'price_rounding_mode' => 'anything',
+        ));
+        self::assertSame('2', $settings['price_rounding_digits']);
+        self::assertSame('nearest_half_up', $settings['price_rounding_mode']);
+
+        foreach (array('-1', '10', '2.5', 'x') as $invalid) {
+            $settings = Config::sanitize(array('price_rounding_digits' => $invalid));
+            self::assertSame('0', $settings['price_rounding_digits']);
+            self::assertSame('nearest_half_up', $settings['price_rounding_mode']);
+        }
+    }
 }

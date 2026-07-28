@@ -21,18 +21,19 @@ Defaults are installed as editable settings:
 - Air/Express shipping amount: `22,000,000` per kilogram
 - shipping currency: `IRR` by default; the administrator must explicitly choose `IRR` or `CNY`
 - profit margin: `30%`
+- final-price rounding: nearest half-up to `10^0 IRT` by default; `price_rounding_digits` is configurable from `0` through `9`
 - saleable stock: `floor(ALLANBAR × 30%)`
 - default shipping method for records with CNY: `air_express`
 
-Production Woo price is evaluated natively in IRR and rounded half-up once, at the end:
+The selected source is explicit. A positive CNY price wins. When it is unavailable or zero, a positive Patris partner price is selected in IRR. The CNY path is:
 
 ```text
 ((CNY × 300000) + ((weight_g / 1000) × 22000000)) × 1.30
 ```
 
-When shipping is configured in `CNY`, the freight component is converted with the same CNY-to-IRR rate before markup. When it is configured in `IRR`, it is added directly. Goods and freight are combined before markup, and the result is rounded only once in IRR.
+The partner-price path is `partner_IRR × 1.30`; freight, weight, and FX are not used on that path. When CNY shipping is configured in `CNY`, the freight component is converted with the same CNY-to-IRR rate before markup. When it is configured in `IRR`, it is added directly.
 
-The producer's independently validated `final_price` remains IRT. Reports retain `final_price × 10`, the native IRR result, their IRR difference, and the independently rounded native IRT comparison. This avoids routing Woo pricing through an IRT rounding boundary. For example, the native prices for the three known half-ties are 65,585; 36,855; and 12,415 IRR.
+The producer's independently validated `final_price` remains integer IRT. One configurable nearest-half-up operation is performed at the end in IRT, and Woo receives exactly `final_price × 10` IRR. For example, with two rounding digits, `123,456 IRT` becomes `123,500 IRT`. Raw zero remains distinct from an omitted or explicit-null source fact, but zero is never a usable selected price.
 
 Full source stock is stored in `_ashko_patris_allanbar_full`; only the floored 30% quantity is written to Woo stock. Ashco products remain visible when out of stock, and exact saleable quantity is shown on the storefront when enabled. The normal WooCommerce stock-HTML filter is authoritative; a duplicate-safe single-product fallback runs immediately after the standard add-to-cart slot so catalog-mode themes cannot silently remove synchronized quantities, including zero stock.
 
@@ -71,19 +72,22 @@ The receiver calls WordPress's supported `wp_raise_memory_limit('admin')` before
 
 ## Product fields and reports
 
-Core Woo fields are changed only when their desired value differs: regular/active price, stale sale price, store-unit weight, manage-stock state, stock quantity, and stock status. Meta changes are counted separately, including:
+Core Woo fields are changed only when their desired value differs: regular/active price, stale sale price, store-unit weight, manage-stock state, stock quantity, stock status, and the narrowly scoped incomplete-product draft action. Meta changes are counted separately, including:
 
 - CNY, exact grams, unit, Woodmart `woodmart_price_unit_of_measure`;
 - full ALLANBAR and applied stock;
 - effective/source shipping amounts and their explicit currencies, margin, FX, and formula values;
 - canonical IRT, native IRR, both discrepancy measures;
+- raw partner price, selected price amount/currency/kind, and source/effective rounding provenance;
 - category, effective-date, catalog, source timestamp, Serial, Code, and record hash.
 
-Each dry-run/apply has a durable run record and per-product rows with old/new values. The Persian admin page groups warnings for missing CNY, weight, unit, Serial, shipping amount/currency, margin, FX, or final price; duplicate Serial; negative stock; unmatched/ambiguous Woo targets; source warnings; and formula discrepancies. CSV downloads are UTF-8 and include Gregorian and Jalali effective dates.
+Each dry-run/apply has a durable run record and per-product rows with old/new values. The Persian admin page groups warnings for missing CNY or any usable selected source, partner-price fallback, weight, unit, Serial, shipping amount/currency, margin, FX, rounding, or final price; duplicate Serial; negative stock; unmatched/ambiguous Woo targets; source warnings; formula discrepancies; and each publication-safety condition. CSV downloads are UTF-8 and include Gregorian and Jalali effective dates.
 
 The separate **Current product and price status** tab does not replace or alter that durable history. Every validated dry-run stages its complete candidate projection in a private, non-authoritative option; the selector can therefore reconcile that unapplied candidate or the accepted receiver state against the complete current WooCommerce catalog before any product write. Matching remains exact, case-sensitive Serial. The report includes matched, source-only, positive-stock source-only, ambiguous, Woo-only, quarantined, and source-warning rows. It identifies retained stale data for quarantined codes, preserves every envelope warning, and excludes variable parent containers while retaining purchasable variations.
 
 Core price, saleable stock, and store-unit weight are evaluated independently. Every plugin-managed product fact is also compared directly rather than trusting the stored source hash: product Code, canonical Serial, CNY and currency, unit, source weight and stock facts, shipping amount/currency/method, margin, FX, formula, final-price facts, effective date, and record identity. The report and CSV state the exact FX, freight amount and currency, margin, stock percentage, and formulas used for the current projection. Search, scope, warning filters, paging, and the filtered UTF-8 CSV export operate over the selected complete projection. CSV exports are capped at 20,000 rows, cap individual cells, and neutralize spreadsheet formula prefixes.
+
+Publication status is another independent report dimension. A matched product is changed to `draft` only if it has no effective product or inherited parent image, has neither a positive calculated/canonical nor existing Woo price, and the source explicitly reports non-positive stock. The incoming source stock is authoritative because the same apply replaces Woo stock, so a stale positive Woo quantity does not suppress this safeguard. All three conditions and the pending status change appear in dry-run history and current-catalog CSV. Omitted/null source stock never means zero, and complete products are never auto-published.
 
 The current report explicitly shows `فاقد داده منبع` for an omitted source key and `null صریح منبع` for a present key whose value is JSON null. Omitted fields are not materialized as null in report data.
 

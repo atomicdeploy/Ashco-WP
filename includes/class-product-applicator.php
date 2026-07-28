@@ -16,6 +16,12 @@ final class Product_Applicator {
     public function plan($product, array $data): array {
         $warnings = $this->warning_codes($data);
         $desired = $this->desired_values($data);
+        $publication_safety = $this->publication_safety($product, $data, $desired['calculation']);
+        $warnings = array_merge($warnings, $publication_safety['warnings']);
+        if ($publication_safety['should_draft']) {
+            $desired['core']['status'] = 'draft';
+            $desired['meta']['_ashko_patris_publication_safety'] = 'draft_incomplete';
+        }
         $core_changes = array();
         $meta_changes = array();
 
@@ -32,12 +38,16 @@ final class Product_Applicator {
             }
         }
 
+        $warnings = array_values(array_unique($warnings));
+        sort($warnings, SORT_STRING);
+
         return array(
             'changed' => array() !== $core_changes || array() !== $meta_changes,
             'core_changes' => $core_changes,
             'meta_changes' => $meta_changes,
             'warnings' => $warnings,
             'calculation' => $desired['calculation'],
+            'publication_safety' => $publication_safety,
         );
     }
 
@@ -98,6 +108,9 @@ final class Product_Applicator {
                 case 'stock_status':
                     $product->set_stock_status((string) $value);
                     break;
+                case 'status':
+                    $product->set_status((string) $value);
+                    break;
             }
         }
         foreach ($plan['meta_changes'] as $key => $change) {
@@ -115,11 +128,20 @@ final class Product_Applicator {
 
     public function warning_codes(array $data): array {
         $warnings = array();
-        $has_cny = null !== ($data['foreign_price'] ?? null) && 'CNY' === strtoupper((string) ($data['foreign_currency'] ?? ''));
-        if (!$has_cny) {
+        $source = $this->selected_price_source($data);
+        $uses_cny = is_array($source) && 'foreign_price' === $source['kind'];
+        $uses_partner_price = is_array($source) && 'partner_price' === $source['kind'];
+        $has_raw_cny = Decimal_Calculator::positive_decimal($data['foreign_price'] ?? null)
+            && 'CNY' === strtoupper((string) ($data['foreign_currency'] ?? ''));
+        if (!$has_raw_cny) {
             $warnings[] = 'missing_cny';
         }
-        if (null === ($data['weight_grams'] ?? null)) {
+        if (null === $source) {
+            $warnings[] = 'missing_price_source';
+        } elseif ($uses_partner_price) {
+            $warnings[] = 'partner_price_source_used';
+        }
+        if ($uses_cny && null === ($data['weight_grams'] ?? null)) {
             $warnings[] = 'missing_weight';
         }
         if ('' === (string) ($data['unit'] ?? '')) {
@@ -130,7 +152,7 @@ final class Product_Applicator {
         }
         $shipping_currency = (string) Config::get('shipping_price_per_kg_currency', '');
         if (
-            $has_cny
+            $uses_cny
             && (
                 '' === (string) Config::get('default_shipping_method')
                 || '' === (string) Config::get('shipping_price_per_kg')
@@ -139,11 +161,14 @@ final class Product_Applicator {
         ) {
             $warnings[] = 'missing_shipping';
         }
-        if ($has_cny && '' === (string) Config::get('profit_margin_percent')) {
+        if (null !== $source && '' === (string) Config::get('profit_margin_percent')) {
             $warnings[] = 'missing_margin';
         }
-        if ($has_cny && '' === (string) Config::get('fx_irr_per_cny')) {
+        if ($uses_cny && '' === (string) Config::get('fx_irr_per_cny')) {
             $warnings[] = 'missing_fx';
+        }
+        if (!preg_match('/^[0-9]$/', (string) Config::get('price_rounding_digits', ''))) {
+            $warnings[] = 'missing_rounding';
         }
         if (is_numeric($data['total_stock'] ?? null) && (float) $data['total_stock'] < 0) {
             $warnings[] = 'negative_stock';
@@ -207,10 +232,12 @@ final class Product_Applicator {
             $difference = Decimal_Calculator::difference($native_final_irt, $source_final_irt);
             $difference_irr = Decimal_Calculator::difference($final_irr, $source_final_irr);
         }
-        $has_cny = '' !== $cny && 'CNY' === strtoupper((string) ($data['foreign_currency'] ?? ''));
-        $effective_method = $has_cny ? (string) Config::get('default_shipping_method', 'air_express') : '';
-        $effective_shipping_price = $has_cny ? (string) Config::get('shipping_price_per_kg', '') : '';
-        $effective_shipping_currency = $has_cny ? (string) Config::get('shipping_price_per_kg_currency', '') : '';
+        $selected_source = $this->selected_price_source($data);
+        $uses_cny = is_array($selected_source) && 'foreign_price' === $selected_source['kind'];
+        $has_selected_source = is_array($selected_source);
+        $effective_method = $uses_cny ? (string) Config::get('default_shipping_method', 'air_express') : '';
+        $effective_shipping_price = $uses_cny ? (string) Config::get('shipping_price_per_kg', '') : '';
+        $effective_shipping_currency = $uses_cny ? (string) Config::get('shipping_price_per_kg_currency', '') : '';
         $source_shipping_price = null === ($data['shipping_price_per_kg'] ?? null)
             ? ''
             : $this->scalar($data['shipping_price_per_kg']);
@@ -227,6 +254,15 @@ final class Product_Applicator {
             '_ashko_patris_cny' => $cny,
             'ashko_cny_price' => $cny,
             '_ashko_patris_foreign_currency' => (string) ($data['foreign_currency'] ?? ''),
+            '_ashko_patris_sale_price_source' => null === ($data['sale_price_source'] ?? null)
+                ? ''
+                : $this->scalar($data['sale_price_source']),
+            '_ashko_patris_purchase_price_source' => null === ($data['purchase_price_source'] ?? null)
+                ? ''
+                : $this->scalar($data['purchase_price_source']),
+            '_ashko_patris_price_source_amount' => $has_selected_source ? $selected_source['amount'] : '',
+            '_ashko_patris_price_source_currency' => $has_selected_source ? $selected_source['currency'] : '',
+            '_ashko_patris_price_source_kind' => $has_selected_source ? $selected_source['kind'] : '',
             '_ashko_patris_weight_grams' => $weight,
             '_ashko_patris_allanbar_full' => $full_stock,
             '_ashko_patris_stock_percent' => (string) Config::get('stock_percent', '30'),
@@ -238,10 +274,20 @@ final class Product_Applicator {
             '_ashko_patris_shipping_price_per_kg_currency' => $effective_shipping_currency,
             '_ashko_patris_source_shipping_price_per_kg' => $source_shipping_price,
             '_ashko_patris_source_shipping_price_per_kg_currency' => $source_shipping_currency,
-            '_ashko_patris_markup_percent' => $has_cny ? (string) Config::get('profit_margin_percent', '') : '',
+            '_ashko_patris_markup_percent' => $has_selected_source ? (string) Config::get('profit_margin_percent', '') : '',
             '_ashko_patris_source_markup_percent' => null === ($data['markup_percent'] ?? null) ? '' : $this->scalar($data['markup_percent']),
-            '_ashko_patris_fx_irr_per_cny' => $has_cny ? (string) Config::get('fx_irr_per_cny', '') : '',
+            '_ashko_patris_fx_irr_per_cny' => $uses_cny ? (string) Config::get('fx_irr_per_cny', '') : '',
             '_ashko_patris_source_irt_per_cny' => null === ($data['irt_per_cny'] ?? null) ? '' : $this->scalar($data['irt_per_cny']),
+            '_ashko_patris_price_rounding_digits' => $has_selected_source
+                ? (string) Config::get('price_rounding_digits', '0')
+                : '',
+            '_ashko_patris_price_rounding_mode' => $has_selected_source ? 'nearest_half_up' : '',
+            '_ashko_patris_source_price_rounding_digits' => null === ($data['price_rounding_digits'] ?? null)
+                ? ''
+                : $this->scalar($data['price_rounding_digits']),
+            '_ashko_patris_source_price_rounding_mode' => null === ($data['price_rounding_mode'] ?? null)
+                ? ''
+                : (string) $data['price_rounding_mode'],
             '_ashko_patris_source_final_irt' => $source_final_irt,
             '_ashko_patris_source_final_irr' => $source_final_irr,
             '_ashko_patris_native_final_irt' => $native_final_irt,
@@ -257,6 +303,7 @@ final class Product_Applicator {
             '_ashko_patris_source_updated_at' => (string) ($data['source_updated_at'] ?? ''),
             '_ashko_patris_record_hash' => (string) ($data['record_hash'] ?? ''),
             '_ashko_patris_warnings' => wp_json_encode($this->warning_codes_without_recursion($data), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            '_ashko_patris_publication_safety' => '',
         );
 
         return array('core' => $core, 'meta' => $meta, 'calculation' => $calculation);
@@ -269,18 +316,123 @@ final class Product_Applicator {
     }
 
     private function calculate(array $data): ?array {
-        $has_cny = null !== ($data['foreign_price'] ?? null) && 'CNY' === strtoupper((string) ($data['foreign_currency'] ?? ''));
-        if (!$has_cny || null === ($data['weight_grams'] ?? null)) {
+        $source = $this->selected_price_source($data);
+        if (null === $source) {
             return null;
         }
         return Decimal_Calculator::price(
-            $data['foreign_price'],
-            $data['weight_grams'],
+            $source['amount'],
+            $source['currency'],
+            $source['kind'],
+            $data['weight_grams'] ?? null,
             Config::get('fx_irr_per_cny', ''),
             Config::get('shipping_price_per_kg', ''),
             Config::get('shipping_price_per_kg_currency', ''),
-            Config::get('profit_margin_percent', '')
+            Config::get('profit_margin_percent', ''),
+            Config::get('price_rounding_digits', '')
         );
+    }
+
+    private function selected_price_source(array $data): ?array {
+        if (
+            !array_key_exists('price_source_amount', $data)
+            || !array_key_exists('price_source_currency', $data)
+            || !array_key_exists('price_source_kind', $data)
+            || !Decimal_Calculator::positive_decimal($data['price_source_amount'])
+        ) {
+            return null;
+        }
+        $currency = (string) $data['price_source_currency'];
+        $kind = (string) $data['price_source_kind'];
+        if (
+            !(
+                ('foreign_price' === $kind && 'CNY' === $currency)
+                || ('partner_price' === $kind && 'IRR' === $currency)
+            )
+        ) {
+            return null;
+        }
+        return array(
+            'amount' => $this->scalar($data['price_source_amount']),
+            'currency' => $currency,
+            'kind' => $kind,
+        );
+    }
+
+    private function publication_safety($product, array $data, ?array $calculation): array {
+        $source_stock_is_known_nonpositive = array_key_exists('total_stock', $data)
+            && null !== $data['total_stock']
+            && is_numeric($data['total_stock'])
+            && (float) $data['total_stock'] <= 0;
+        $woo_stock_is_positive = method_exists($product, 'get_stock_quantity')
+            && null !== $product->get_stock_quantity('edit')
+            && (float) $product->get_stock_quantity('edit') > 0;
+        // The incoming snapshot is authoritative for stock because this apply also
+        // replaces Woo's quantity. A positive Woo quantity can therefore be stale.
+        $no_positive_stock = $source_stock_is_known_nonpositive;
+
+        $canonical_price_is_positive = array_key_exists('final_price', $data)
+            && null !== $data['final_price']
+            && Decimal_Calculator::positive_decimal($data['final_price']);
+        $calculated_price_is_positive = is_array($calculation)
+            && Decimal_Calculator::positive_decimal($calculation['woo_final_irr'] ?? null);
+        $woo_price_is_positive = false;
+        foreach (array('get_regular_price', 'get_price', 'get_sale_price') as $getter) {
+            if (method_exists($product, $getter) && Decimal_Calculator::positive_decimal($product->{$getter}('edit'))) {
+                $woo_price_is_positive = true;
+                break;
+            }
+        }
+        $price_undetermined = !$calculated_price_is_positive
+            && !$canonical_price_is_positive
+            && !$woo_price_is_positive;
+        $image_missing = $this->image_is_known_missing($product);
+        $should_draft = $image_missing && $price_undetermined && $no_positive_stock;
+        $current_status = method_exists($product, 'get_status') ? (string) $product->get_status('edit') : '';
+
+        $warnings = array();
+        if ($image_missing) {
+            $warnings[] = 'publication_missing_image';
+        }
+        if ($price_undetermined) {
+            $warnings[] = 'publication_price_undetermined';
+        }
+        if ($no_positive_stock) {
+            $warnings[] = 'publication_no_positive_stock';
+        }
+        if ($should_draft) {
+            $warnings[] = 'draft' === $current_status
+                ? 'publication_safety_kept_draft'
+                : 'publication_safety_draft_required';
+        }
+
+        return array(
+            'should_draft' => $should_draft,
+            'image_missing' => $image_missing,
+            'price_undetermined' => $price_undetermined,
+            'no_positive_stock' => $no_positive_stock,
+            'woo_stock_is_positive' => $woo_stock_is_positive,
+            'current_status' => $current_status,
+            'desired_status' => $should_draft ? 'draft' : '',
+            'warnings' => $warnings,
+        );
+    }
+
+    private function image_is_known_missing($product): bool {
+        if (!method_exists($product, 'get_image_id')) {
+            return false;
+        }
+        if ((int) $product->get_image_id('edit') > 0) {
+            return false;
+        }
+        if (method_exists($product, 'get_parent_id') && (int) $product->get_parent_id() > 0) {
+            $parent = wc_get_product((int) $product->get_parent_id());
+            if (!$parent || !method_exists($parent, 'get_image_id')) {
+                return false;
+            }
+            return (int) $parent->get_image_id('edit') <= 0;
+        }
+        return true;
     }
 
     private function read_core($product, string $field) {
@@ -292,6 +444,7 @@ final class Product_Applicator {
             case 'manage_stock': return (bool) $product->get_manage_stock('edit');
             case 'stock_quantity': return null === $product->get_stock_quantity('edit') ? null : (int) $product->get_stock_quantity('edit');
             case 'stock_status': return (string) $product->get_stock_status('edit');
+            case 'status': return method_exists($product, 'get_status') ? (string) $product->get_status('edit') : '';
         }
         return null;
     }
