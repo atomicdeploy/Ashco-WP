@@ -49,4 +49,101 @@ final class ReceiverBatchTest extends TestCase {
         self::assertCount(25, $state['applied_products']);
         self::assertSame(25, array_sum(array_map(static fn($product) => $product->save_count, $GLOBALS['ashko_test_products'])));
     }
+
+    public function test_same_hash_applied_rows_are_audited_and_drift_remains_retryable_across_batches(): void {
+        $products = array();
+        $applied = array();
+        for ($index = 1; $index <= 30; $index++) {
+            $code = 'D' . str_pad((string) $index, 3, '0', STR_PAD_LEFT);
+            $serial = 'DRIFT-' . $index;
+            $hash = 'sha256:' . hash('sha256', $code);
+            $products[$code] = array(
+                'product_code' => $code, 'category_code' => '', 'name' => 'Drifted part ' . $index,
+                'serial' => $serial, 'unit' => 'عدد', 'warehouse_stock' => array('1' => 10),
+                'total_stock' => 10, 'foreign_currency' => 'CNY', 'foreign_price' => 1,
+                'price_source_amount' => 1, 'price_source_currency' => 'CNY',
+                'price_source_kind' => 'foreign_price', 'weight_grams' => 1,
+                'shipping_method_id' => 'air_express', 'shipping_price_per_kg' => 22000000,
+                'shipping_price_per_kg_currency' => 'IRR', 'markup_percent' => 30,
+                'irt_per_cny' => 30000, 'price_rounding_digits' => 0,
+                'price_rounding_mode' => 'nearest_half_up', 'pricing_catalog_revision' => 'test',
+                'pricing_catalog_status' => 'static', 'currency_effective_date' => '2026-07-20',
+                'final_price' => 32860, 'source_updated_at' => '', 'warnings' => array(),
+                'record_hash' => $hash,
+            );
+            $applied[$code] = array(
+                'product_code' => $code,
+                'record_hash' => $hash,
+                'woocommerce_id' => (string) $index,
+            );
+            $GLOBALS['ashko_test_serial_rows'][] = array(
+                'ID' => (string) $index, 'post_type' => 'product', 'meta_key' => '_sku', 'meta_value' => $serial,
+            );
+            new Ashko_Test_Product(
+                $index,
+                array('regular_price' => '1', 'price' => '1', 'stock_quantity' => 1),
+                array('_sku' => $serial, '_ashko_patris_record_hash' => $hash)
+            );
+        }
+
+        $receiver = Product_Sync_Receiver::instance();
+        $build = new ReflectionMethod(Product_Sync_Receiver::class, 'build_delivery_state');
+        $delivery = $build->invoke(
+            $receiver,
+            $products,
+            array_values($products),
+            array('event_id' => 'sha256:' . str_repeat('e', 64)),
+            array(
+                'applied_products' => $applied,
+                'pending_products' => array(),
+                'deferred_products' => array(),
+            )
+        );
+        self::assertSame(array(), $delivery['pending_products']);
+        self::assertCount(30, $delivery['live_audit_products']);
+
+        $state = array_merge(array('products' => $products), $delivery);
+        $drain = new ReflectionMethod(Product_Sync_Receiver::class, 'drain_delivery_products');
+        $arguments = array(&$state, true, false);
+        $first = $drain->invokeArgs($receiver, $arguments);
+
+        self::assertSame(25, $first['write_attempts']);
+        self::assertSame(25, $first['updated']);
+        self::assertTrue($first['batch_limited']);
+        self::assertCount(5, $state['live_audit_products']);
+        self::assertSame(25, array_sum(array_map(static fn($product) => $product->save_count, $GLOBALS['ashko_test_products'])));
+
+        $result_state = new ReflectionMethod(Product_Sync_Receiver::class, 'delivery_result_state');
+        $partial = $result_state->invoke($receiver, $state);
+        self::assertFalse($partial['fully_applied']);
+        self::assertTrue($partial['retryable']);
+        self::assertSame(5, $partial['pending_products']);
+        self::assertSame(5, $partial['live_audit_products']);
+
+        $arguments = array(&$state, true, false);
+        $second = $drain->invokeArgs($receiver, $arguments);
+        self::assertSame(5, $second['write_attempts']);
+        self::assertSame(5, $second['updated']);
+        self::assertSame(0, $second['live_audit_pending']);
+        self::assertSame(30, array_sum(array_map(static fn($product) => $product->save_count, $GLOBALS['ashko_test_products'])));
+        self::assertTrue($result_state->invoke($receiver, $state)['fully_applied']);
+
+        $delivery = $build->invoke(
+            $receiver,
+            $products,
+            array_values($products),
+            array('event_id' => 'sha256:' . str_repeat('f', 64)),
+            $state
+        );
+        $state = array_merge(array('products' => $products), $delivery);
+        $arguments = array(&$state, true, false);
+        $current = $drain->invokeArgs($receiver, $arguments);
+
+        self::assertSame(30, $current['live_audit_attempted']);
+        self::assertSame(30, $current['live_audit_current']);
+        self::assertSame(0, $current['write_attempts']);
+        self::assertSame(0, $current['updated']);
+        self::assertSame(30, array_sum(array_map(static fn($product) => $product->save_count, $GLOBALS['ashko_test_products'])));
+        self::assertTrue($result_state->invoke($receiver, $state)['fully_applied']);
+    }
 }

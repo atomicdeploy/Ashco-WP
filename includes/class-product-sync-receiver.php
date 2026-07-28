@@ -252,6 +252,7 @@ class Product_Sync_Receiver {
     private const MAX_RESULT_ERRORS = 100;
     private const MAX_DEFERRED_PRODUCTS = self::MAX_PRODUCTS;
     private const MAX_WOO_WRITES_PER_REQUEST = 25;
+    private const MAX_LIVE_AUDITS_PER_REQUEST = 100;
     private const DELIVERY_TIME_BUDGET_SECONDS = 15.0;
     private const MAX_CODE_LENGTH = 191;
     private const MAX_FORMULA_INTEGER_DIGITS = 15;
@@ -597,8 +598,9 @@ class Product_Sync_Receiver {
     /**
      * Retry only durable delivery work, without changing source ordering.
      *
-     * Applied records are never replayed. Deferred reconciliation and any
-     * transient pending writes are attempted under the receiver lock.
+     * Applied records are inspected only when a new event queued a bounded
+     * live-state audit. Current rows are cleared without a write; deferred
+     * reconciliation and transient writes are attempted under the receiver lock.
      *
      * @param string|null $source_id Optional exact source id.
      * @param string|null $dataset Optional exact source dataset.
@@ -709,6 +711,9 @@ class Product_Sync_Receiver {
                 : array();
             $source_state['applied_products'] = is_array($source_state['applied_products'] ?? null) ? $source_state['applied_products'] : array();
             $source_state['pending_products'] = is_array($source_state['pending_products'] ?? null) ? $source_state['pending_products'] : array();
+            $source_state['live_audit_products'] = is_array($source_state['live_audit_products'] ?? null)
+                ? array_slice($source_state['live_audit_products'], 0, self::MAX_PRODUCTS, true)
+                : array();
             $source_state['deferred_products'] = is_array($source_state['deferred_products'] ?? null)
                 ? array_slice($source_state['deferred_products'], 0, self::MAX_DEFERRED_PRODUCTS, true)
                 : array();
@@ -748,7 +753,7 @@ class Product_Sync_Receiver {
         }
 
         if (is_array($existing) && isset($existing['recent_events'][$envelope['event_id']])) {
-            if (empty($existing['pending_products'])) {
+            if (!$this->has_retryable_delivery_work($existing)) {
                 return $this->replay_result($envelope, $existing);
             }
 
@@ -819,6 +824,7 @@ class Product_Sync_Receiver {
             'recent_events' => $recent_events,
             'applied_products' => $delivery['applied_products'],
             'pending_products' => $delivery['pending_products'],
+            'live_audit_products' => $delivery['live_audit_products'],
             'deferred_products' => $delivery['deferred_products'],
             'received_at' => current_time('mysql'),
         );
@@ -839,7 +845,7 @@ class Product_Sync_Receiver {
             }
         }
 
-        $fully_applied = empty($source_state['pending_products']);
+        $fully_applied = !$this->has_retryable_delivery_work($source_state);
         $result = array_merge(array(
             'status' => $fully_applied ? ($same_revision ? 'already_current' : 'accepted') : 'partially_applied',
             'replayed' => false,
@@ -872,7 +878,7 @@ class Product_Sync_Receiver {
             }
         }
 
-        $fully_applied = empty($source_state['pending_products']);
+        $fully_applied = !$this->has_retryable_delivery_work($source_state);
         $result = array_merge(array(
             'status' => $fully_applied ? 'recovered' : 'retry_pending',
             'replayed' => true,
@@ -1631,6 +1637,7 @@ class Product_Sync_Receiver {
         $applied = is_array($existing['applied_products'] ?? null) ? $existing['applied_products'] : array();
         $pending = is_array($existing['pending_products'] ?? null) ? $existing['pending_products'] : array();
         $deferred = is_array($existing['deferred_products'] ?? null) ? $existing['deferred_products'] : array();
+        $live_audit = array();
 
         foreach ($applied as $code_key => $entry) {
             $product_code = $this->delivery_product_code($products, $code_key, $entry);
@@ -1651,6 +1658,10 @@ class Product_Sync_Receiver {
             if (isset($applied_entry['record_hash']) && hash_equals((string) $applied_entry['record_hash'], $record_hash)) {
                 unset($pending[$code]);
                 unset($deferred[$code]);
+                $live_audit[$code] = array(
+                    'product_code' => $code,
+                    'record_hash' => $record_hash,
+                );
                 continue;
             }
 
@@ -1671,10 +1682,12 @@ class Product_Sync_Receiver {
 
         ksort($applied, SORT_STRING);
         ksort($pending, SORT_STRING);
+        ksort($live_audit, SORT_STRING);
         ksort($deferred, SORT_STRING);
         return array(
             'applied_products' => $applied,
             'pending_products' => $pending,
+            'live_audit_products' => $live_audit,
             'deferred_products' => array_slice($deferred, 0, self::MAX_DEFERRED_PRODUCTS, true),
         );
     }
@@ -1700,12 +1713,18 @@ class Product_Sync_Receiver {
             'write_attempts' => 0,
             'batch_limited' => false,
             'time_budget_exhausted' => false,
+            'live_audit_attempted' => 0,
+            'live_audit_current' => 0,
+            'live_drift_detected' => 0,
         );
         $started_at = microtime(true);
         $products = is_array($source_state['products'] ?? null) ? $source_state['products'] : array();
         $pending = is_array($source_state['pending_products'] ?? null) ? $source_state['pending_products'] : array();
         $deferred = is_array($source_state['deferred_products'] ?? null) ? $source_state['deferred_products'] : array();
         $applied = is_array($source_state['applied_products'] ?? null) ? $source_state['applied_products'] : array();
+        $live_audit = is_array($source_state['live_audit_products'] ?? null)
+            ? $this->prune_delivery_set($products, $source_state['live_audit_products'])
+            : array();
         $work = array();
         if ($include_deferred) {
             $work = $deferred;
@@ -1714,6 +1733,13 @@ class Product_Sync_Receiver {
             $work = array_replace($work, $pending);
         }
         ksort($work, SORT_STRING);
+        foreach (array_slice($live_audit, 0, self::MAX_LIVE_AUDITS_PER_REQUEST, true) as $code_key => $audit_entry) {
+            if (array_key_exists($code_key, $work)) {
+                continue;
+            }
+            $audit_entry['audit_required'] = true;
+            $work[$code_key] = $audit_entry;
+        }
         $serial_resolutions = Serial_Resolver::instance()->resolve_catalog(array_values($products));
 
         foreach ($work as $code_key => $delivery_entry) {
@@ -1726,13 +1752,18 @@ class Product_Sync_Receiver {
             if (null === $product_code) {
                 unset($pending[$code_key]);
                 unset($deferred[$code_key]);
+                unset($live_audit[$code_key]);
                 continue;
             }
             $delivery_entry['product_code'] = $product_code;
             $product_data = $products[$code_key];
             $record_hash = (string) $delivery_entry['record_hash'];
+            $audit_required = !empty($delivery_entry['audit_required']);
 
             $result['attempted']++;
+            if ($audit_required) {
+                $result['live_audit_attempted']++;
+            }
             $resolved = $serial_resolutions[$product_code] ?? new WP_Error(
                 'ashko_product_identifier_not_found',
                 __('No WooCommerce product has that exact Serial.', 'ashko-wp'),
@@ -1749,6 +1780,7 @@ class Product_Sync_Receiver {
                     $result['failed']++;
                 }
                 $this->mark_delivery_failure($delivery_entry, $error_code);
+                unset($live_audit[$code_key]);
                 if (null !== $deferred_reason) {
                     $delivery_entry['reason'] = $deferred_reason;
                     $deferred[$code_key] = $delivery_entry;
@@ -1769,6 +1801,8 @@ class Product_Sync_Receiver {
             $woocommerce_id = (int) $resolved['woocommerce_id'];
             $applied_entry = is_array($applied[$code_key] ?? null) ? $applied[$code_key] : array();
             if (
+                !$audit_required
+                &&
                 isset($applied_entry['record_hash'], $applied_entry['woocommerce_id'])
                 && hash_equals((string) $applied_entry['record_hash'], $record_hash)
                 && (string) $applied_entry['woocommerce_id'] === (string) $woocommerce_id
@@ -1780,7 +1814,7 @@ class Product_Sync_Receiver {
             }
 
             $persisted_hash = (string) get_post_meta($woocommerce_id, '_ashko_patris_record_hash', true);
-            if ('' !== $persisted_hash && hash_equals($record_hash, $persisted_hash)) {
+            if (!$audit_required && '' !== $persisted_hash && hash_equals($record_hash, $persisted_hash)) {
                 $applied[$code_key] = array(
                     'product_code' => $product_code,
                     'record_hash' => $record_hash,
@@ -1792,16 +1826,16 @@ class Product_Sync_Receiver {
                 continue;
             }
 
-            if ($result['write_attempts'] >= self::MAX_WOO_WRITES_PER_REQUEST) {
+            if (!$audit_required && $result['write_attempts'] >= self::MAX_WOO_WRITES_PER_REQUEST) {
                 $result['batch_limited'] = true;
                 break;
             }
-            $result['write_attempts']++;
 
             $product = wc_get_product($woocommerce_id);
             if (!$product) {
                 $result['failed']++;
                 $this->mark_delivery_failure($delivery_entry, 'ashko_product_sync_woocommerce_product_unavailable');
+                unset($live_audit[$code_key]);
                 unset($delivery_entry['reason']);
                 $pending[$code_key] = $delivery_entry;
                 unset($deferred[$code_key]);
@@ -1814,6 +1848,29 @@ class Product_Sync_Receiver {
             }
 
             try {
+                if ($audit_required) {
+                    $plan = Product_Applicator::instance()->plan($product, $product_data);
+                    if (!$plan['changed']) {
+                        unset($delivery_entry['audit_required']);
+                        $applied[$code_key] = array(
+                            'product_code' => $product_code,
+                            'record_hash' => $record_hash,
+                            'woocommerce_id' => (string) $woocommerce_id,
+                        );
+                        unset($pending[$code_key]);
+                        unset($deferred[$code_key]);
+                        unset($live_audit[$code_key]);
+                        $result['already_applied']++;
+                        $result['live_audit_current']++;
+                        continue;
+                    }
+                    $result['live_drift_detected']++;
+                    if ($result['write_attempts'] >= self::MAX_WOO_WRITES_PER_REQUEST) {
+                        $result['batch_limited'] = true;
+                        break;
+                    }
+                }
+                $result['write_attempts']++;
                 Product_Applicator::instance()->apply_product_feed($product, $product_data);
                 $persisted_hash = (string) get_post_meta($woocommerce_id, '_ashko_patris_record_hash', true);
                 if ('' === $persisted_hash || !hash_equals($record_hash, $persisted_hash)) {
@@ -1826,10 +1883,12 @@ class Product_Sync_Receiver {
                 );
                 unset($pending[$code_key]);
                 unset($deferred[$code_key]);
+                unset($live_audit[$code_key]);
                 $result['updated']++;
             } catch (Throwable $exception) {
                 $result['failed']++;
                 $this->mark_delivery_failure($delivery_entry, 'ashko_product_sync_woocommerce_write_failed');
+                unset($live_audit[$code_key]);
                 unset($delivery_entry['reason']);
                 $pending[$code_key] = $delivery_entry;
                 unset($deferred[$code_key]);
@@ -1844,10 +1903,13 @@ class Product_Sync_Receiver {
         ksort($pending, SORT_STRING);
         ksort($deferred, SORT_STRING);
         ksort($applied, SORT_STRING);
+        ksort($live_audit, SORT_STRING);
         $source_state['pending_products'] = $pending;
         $source_state['deferred_products'] = array_slice($deferred, 0, self::MAX_DEFERRED_PRODUCTS, true);
         $source_state['applied_products'] = $applied;
-        $result['pending'] = count($pending);
+        $source_state['live_audit_products'] = array_slice($live_audit, 0, self::MAX_PRODUCTS, true);
+        $result['pending'] = count($pending) + count($source_state['live_audit_products']);
+        $result['live_audit_pending'] = count($source_state['live_audit_products']);
         $result['deferred'] = count($source_state['deferred_products']);
 
         return $result;
@@ -1973,22 +2035,37 @@ class Product_Sync_Receiver {
         $pending = is_array($source_state['pending_products'] ?? null)
             ? $source_state['pending_products']
             : array();
+        $live_audit = is_array($source_state['live_audit_products'] ?? null)
+            ? $source_state['live_audit_products']
+            : array();
         $deferred = is_array($source_state['deferred_products'] ?? null)
             ? $source_state['deferred_products']
             : array();
-        $fully_applied = empty($pending);
+        $pending_count = count($pending) + count($live_audit);
+        $fully_applied = 0 === $pending_count;
 
         return array(
             'fully_applied' => $fully_applied,
             'retryable' => !$fully_applied,
-            'pending_products' => count($pending),
+            'pending_products' => $pending_count,
+            'live_audit_products' => count($live_audit),
             'deferred_products' => count($deferred),
             'deferred_reconciliation' => $this->deferred_summary($deferred),
         );
     }
 
+    private function has_retryable_delivery_work($source_state) {
+        return !empty($source_state['pending_products']) || !empty($source_state['live_audit_products']);
+    }
+
     private function source_status($source_state) {
         $source = is_array($source_state['source'] ?? null) ? $source_state['source'] : array();
+        $pending = is_array($source_state['pending_products'] ?? null)
+            ? count($source_state['pending_products'])
+            : 0;
+        $live_audit = is_array($source_state['live_audit_products'] ?? null)
+            ? count($source_state['live_audit_products'])
+            : 0;
 
         return array(
             'source' => array(
@@ -2005,7 +2082,8 @@ class Product_Sync_Receiver {
             'preserved_quarantined_codes' => count(is_array($source_state['preserved_quarantined_codes'] ?? null) ? $source_state['preserved_quarantined_codes'] : array()),
             'envelope_warnings' => count(is_array($source_state['envelope_warnings'] ?? null) ? $source_state['envelope_warnings'] : array()),
             'applied_products' => count(is_array($source_state['applied_products'] ?? null) ? $source_state['applied_products'] : array()),
-            'pending_products' => count(is_array($source_state['pending_products'] ?? null) ? $source_state['pending_products'] : array()),
+            'pending_products' => $pending + $live_audit,
+            'live_audit_products' => $live_audit,
             'deferred_products' => count(is_array($source_state['deferred_products'] ?? null) ? $source_state['deferred_products'] : array()),
         );
     }
