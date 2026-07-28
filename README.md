@@ -62,7 +62,7 @@ Shared hosting has a short request timeout, so report planning and Woo writes ar
 - a report call processes at most 200 products or about 12 seconds;
 - an apply/reconcile call attempts at most 25 Woo writes or about 15 seconds;
 - receiver state and the durable outbox are committed after every apply batch;
-- full snapshots queue only products whose incoming `record_hash` differs from the receiver's applied hash; unchanged hashes are not written again;
+- full snapshots queue changed hashes for delivery and place same-hash applied rows in a bounded live-state audit; current rows are cleared without a Woo write, while drifted rows re-enter the normal 25-write delivery batches;
 - identical event calls resume the same report and then retry only pending delivery work;
 - successful POST responses use one wrapper: `{success:true,data:{...}}`; `data` always exposes non-null `status`, `event_id`, `retryable`, `pending_products`, and `deferred_products`, plus the durable `run_id`.
 
