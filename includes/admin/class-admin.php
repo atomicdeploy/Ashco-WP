@@ -141,6 +141,13 @@ final class Admin {
             $projected_price = array_key_exists('price_irr', $projection) ? (string) $projection['price_irr'] : '—';
             $current_stock = array_key_exists('stock_quantity', $woo) && null !== $woo['stock_quantity'] ? (string) $woo['stock_quantity'] : '—';
             $projected_stock = array_key_exists('stock_quantity', $projection) ? (string) $projection['stock_quantity'] : '—';
+            $projected_meta = is_array($projection['managed_meta'] ?? null) ? $projection['managed_meta'] : array();
+            $effective_shipping_method = (string) ($projected_meta['_ashko_patris_shipping_method_id'] ?? '');
+            $effective_shipping_rate = (string) ($projected_meta['_ashko_patris_shipping_price_per_kg'] ?? '');
+            $effective_shipping_currency = (string) ($projected_meta['_ashko_patris_shipping_price_per_kg_currency'] ?? '');
+            $effective_shipping_label = 'domestic' === $effective_shipping_method
+                ? __('خرید داخلی (domestic)', 'ashko-wp')
+                : $effective_shipping_method;
             $drifts = array();
             foreach (array(
                 'price' => __('قیمت', 'ashko-wp'),
@@ -182,7 +189,13 @@ final class Admin {
                 . self::source_field_html($row, 'price_source_currency') . ' / '
                 . self::source_field_html($row, 'price_source_kind') . '</small><br><small>'
                 . esc_html__('CNY خام:', 'ashko-wp') . ' ' . self::source_field_html($row, 'foreign_price')
-                . ' — ' . esc_html__('قیمت همکار خام:', 'ashko-wp') . ' ' . self::source_field_html($row, 'sale_price_source')
+                . ' — ' . esc_html__('قیمت همکار خام:', 'ashko-wp') . ' ' . self::source_field_html($row, 'partner_price_source')
+                . ' — ' . esc_html__('فی فروش خام:', 'ashko-wp') . ' ' . self::source_field_html($row, 'sale_price_source')
+                . '</small><br><small>' . esc_html__('روش تأمین مؤثر:', 'ashko-wp') . ' '
+                . ('' === $effective_shipping_label ? '—' : '<code>' . esc_html($effective_shipping_label) . '</code>')
+                . ('' === $effective_shipping_rate
+                    ? ''
+                    : ' — <span dir="ltr">' . esc_html($effective_shipping_rate . ' ' . $effective_shipping_currency . '/kg') . '</span>')
                 . '</small></td><td>' . self::source_field_html($row, 'weight_grams') . '</td><td>' . self::source_field_html($row, 'unit') . '</td>';
             echo '<td>' . self::source_field_html($row, 'total_stock') . ' / ' . esc_html($projected_stock) . '<br><small>' . esc_html__('فعلی:', 'ashko-wp') . ' ' . esc_html($current_stock) . '</small></td>';
             echo '<td>' . (isset($woo['id']) ? '<a href="' . esc_url(get_edit_post_link((int) $woo['id'])) . '">' . (int) $woo['id'] . '</a>' : '—');
@@ -234,9 +247,13 @@ final class Admin {
         $labels = array(
             'store_currency' => __('ارز پایه WooCommerce', 'ashko-wp'),
             'fx_irr_per_cny' => __('نرخ CNY به IRR', 'ashko-wp'),
-            'shipping_method_id' => __('روش حمل', 'ashko-wp'),
-            'shipping_price_per_kg' => __('هزینه حمل هر کیلو', 'ashko-wp'),
-            'shipping_price_per_kg_currency' => __('ارز هزینه حمل', 'ashko-wp'),
+            'shipping_method_id' => __('روش حمل خارجی', 'ashko-wp'),
+            'shipping_price_per_kg' => __('هزینه حمل خارجی هر کیلو', 'ashko-wp'),
+            'shipping_price_per_kg_currency' => __('ارز هزینه حمل خارجی', 'ashko-wp'),
+            'domestic_shipping_method_id' => __('روش خرید داخلی', 'ashko-wp'),
+            'domestic_shipping_price_per_kg' => __('هزینه خرید داخلی هر کیلو', 'ashko-wp'),
+            'domestic_shipping_price_per_kg_currency' => __('ارز خرید داخلی', 'ashko-wp'),
+            'use_sale_price_direct_fallback' => __('استفاده مستقیم از فی فروش', 'ashko-wp'),
             'profit_margin_percent' => __('حاشیه سود درصدی', 'ashko-wp'),
             'price_rounding_digits' => __('تعداد ارقام گردکردن قیمت IRT', 'ashko-wp'),
             'price_rounding_mode' => __('روش گردکردن قیمت', 'ashko-wp'),
@@ -372,7 +389,7 @@ final class Admin {
         echo '<table class="form-table"><tbody>';
         self::input('serial_meta_key', __('کلید متای دقیق Serial', 'ashko-wp'), $settings['serial_meta_key'], __('پیش‌فرض و مقدار تأییدشده سایت: _sku. تطبیق Code مجاز نیست.', 'ashko-wp'));
         self::input('fx_irr_per_cny', __('نرخ هر CNY به ریال', 'ashko-wp'), $settings['fx_irr_per_cny']);
-        self::input('shipping_price_per_kg', __('هزینه هوایی/اکسپرس هر کیلو', 'ashko-wp'), $settings['shipping_price_per_kg']);
+        self::input('shipping_price_per_kg', __('هزینه حمل خارجی هوایی/اکسپرس هر کیلو', 'ashko-wp'), $settings['shipping_price_per_kg']);
         self::select(
             'shipping_price_per_kg_currency',
             __('ارز هزینه حمل هر کیلو', 'ashko-wp'),
@@ -389,7 +406,16 @@ final class Admin {
         );
         echo '<input type="hidden" name="price_rounding_mode" value="nearest_half_up">';
         self::input('stock_percent', __('درصد موجودی ALLANBAR قابل فروش', 'ashko-wp'), $settings['stock_percent']);
-        self::input('default_shipping_method', __('روش پیش‌فرض حمل', 'ashko-wp'), $settings['default_shipping_method']);
+        self::input('default_shipping_method', __('روش پیش‌فرض حمل خارجی', 'ashko-wp'), $settings['default_shipping_method']);
+        echo '<tr><th>' . esc_html__('روش خرید داخلی', 'ashko-wp') . '</th><td><code dir="ltr">domestic — 0 IRR/kg</code><p class="description">'
+            . esc_html__('این روش برای قیمت همکار اعمال می‌شود؛ هزینه وزن آن همیشه صفر است و در فرمول قیمت وارد نمی‌شود.', 'ashko-wp')
+            . '</p></td></tr>';
+        self::checkbox(
+            'use_sale_price_direct_fallback',
+            __('آخرین جایگزین: استفاده مستقیم از فی فروش', 'ashko-wp'),
+            $settings['use_sale_price_direct_fallback'],
+            __('به‌طور پیش‌فرض غیرفعال است. در صورت فعال‌سازی، فقط وقتی مسیرهای CNY و قیمت همکار قابل محاسبه نیستند، مبلغ IRR منبع بدون سود، حمل یا گردکردن استفاده می‌شود.', 'ashko-wp')
+        );
         self::checkbox('show_exact_stock', __('نمایش تعداد موجودی در سایت', 'ashko-wp'), $settings['show_exact_stock']);
         self::checkbox('keep_out_of_stock_visible', __('نمایش کالاهای ناموجود', 'ashko-wp'), $settings['keep_out_of_stock_visible']);
         echo '<tr><th>' . esc_html__('محدوده منبع مجاز (JSON)', 'ashko-wp') . '</th><td><textarea name="source_scopes" rows="6" cols="70" dir="ltr">' . esc_textarea($scopes_json) . '</textarea><p class="description">[{"id":"patris-office","dataset":"kala.db"}] — [] یعنی راه‌اندازی اولیه بدون محدودیت.</p></td></tr>';
@@ -497,15 +523,22 @@ final class Admin {
             'envelope_warnings', 'product_code_state', 'product_code',
             'name_state', 'name', 'serial_state', 'serial', 'foreign_currency_state', 'foreign_currency',
             'cny_state', 'cny', 'partner_price_state', 'partner_price_irr',
+            'direct_sale_price_state', 'direct_sale_price_irr',
             'price_source_amount_state', 'price_source_amount', 'price_source_currency_state', 'price_source_currency',
             'price_source_kind_state', 'price_source_kind', 'price_rounding_digits_state', 'price_rounding_digits',
             'price_rounding_mode_state', 'price_rounding_mode',
+            'source_shipping_method_state', 'source_shipping_method_id',
+            'source_shipping_rate_state', 'source_shipping_price_per_kg',
+            'source_shipping_currency_state', 'source_shipping_price_per_kg_currency',
             'weight_state', 'weight_grams', 'unit_state', 'unit',
             'stock_state', 'total_stock', 'woo_id', 'woo_name', 'woo_serials', 'woo_regular_price_irr',
             'woo_post_status', 'projected_post_status', 'woo_image_id',
             'source_final_price_state', 'source_final_price_irt', 'projected_price_irr', 'woo_stock', 'projected_stock',
             'woo_weight', 'projected_weight', 'source_record_hash_state', 'source_record_hash',
             'store_currency', 'fx_irr_per_cny', 'shipping_method_id', 'shipping_price_per_kg', 'shipping_price_per_kg_currency',
+            'effective_shipping_method_id', 'effective_shipping_price_per_kg', 'effective_shipping_price_per_kg_currency',
+            'domestic_shipping_method_id', 'domestic_shipping_price_per_kg', 'domestic_shipping_price_per_kg_currency',
+            'use_sale_price_direct_fallback',
             'profit_margin_percent', 'effective_price_rounding_digits', 'effective_price_rounding_mode',
             'stock_percent', 'price_formula', 'stock_formula',
             'woo_product_code_meta', 'expected_product_code_meta', 'woo_canonical_serial_meta', 'expected_canonical_serial_meta',
@@ -523,12 +556,16 @@ final class Admin {
             $serial = self::csv_source_field($row, 'serial');
             $foreign_currency = self::csv_source_field($row, 'foreign_currency');
             $cny = self::csv_source_field($row, 'foreign_price');
-            $partner_price = self::csv_source_field($row, 'sale_price_source');
+            $partner_price = self::csv_source_field($row, 'partner_price_source');
+            $direct_sale_price = self::csv_source_field($row, 'sale_price_source');
             $price_source_amount = self::csv_source_field($row, 'price_source_amount');
             $price_source_currency = self::csv_source_field($row, 'price_source_currency');
             $price_source_kind = self::csv_source_field($row, 'price_source_kind');
             $rounding_digits = self::csv_source_field($row, 'price_rounding_digits');
             $rounding_mode = self::csv_source_field($row, 'price_rounding_mode');
+            $source_shipping_method = self::csv_source_field($row, 'shipping_method_id');
+            $source_shipping_rate = self::csv_source_field($row, 'shipping_price_per_kg');
+            $source_shipping_currency = self::csv_source_field($row, 'shipping_price_per_kg_currency');
             $weight = self::csv_source_field($row, 'weight_grams');
             $unit = self::csv_source_field($row, 'unit');
             $stock = self::csv_source_field($row, 'total_stock');
@@ -548,11 +585,15 @@ final class Admin {
                 $serial['state'], $serial['value'], $foreign_currency['state'], $foreign_currency['value'],
                 $cny['state'], $cny['value'],
                 $partner_price['state'], $partner_price['value'],
+                $direct_sale_price['state'], $direct_sale_price['value'],
                 $price_source_amount['state'], $price_source_amount['value'],
                 $price_source_currency['state'], $price_source_currency['value'],
                 $price_source_kind['state'], $price_source_kind['value'],
                 $rounding_digits['state'], $rounding_digits['value'],
                 $rounding_mode['state'], $rounding_mode['value'],
+                $source_shipping_method['state'], $source_shipping_method['value'],
+                $source_shipping_rate['state'], $source_shipping_rate['value'],
+                $source_shipping_currency['state'], $source_shipping_currency['value'],
                 $weight['state'], $weight['value'], $unit['state'], $unit['value'], $stock['state'], $stock['value'],
                 $woo['id'] ?? '', $woo['name'] ?? '', implode('|', $woo['serials'] ?? array()),
                 $woo['regular_price'] ?? '', $woo['post_status'] ?? '', $projection['post_status'] ?? '',
@@ -562,6 +603,12 @@ final class Admin {
                 $source_hash['state'], $source_hash['value'],
                 $provenance['store_currency'] ?? '', $provenance['fx_irr_per_cny'] ?? '', $provenance['shipping_method_id'] ?? '',
                 $provenance['shipping_price_per_kg'] ?? '', $provenance['shipping_price_per_kg_currency'] ?? '',
+                $expected_meta['_ashko_patris_shipping_method_id'] ?? '',
+                $expected_meta['_ashko_patris_shipping_price_per_kg'] ?? '',
+                $expected_meta['_ashko_patris_shipping_price_per_kg_currency'] ?? '',
+                $provenance['domestic_shipping_method_id'] ?? '', $provenance['domestic_shipping_price_per_kg'] ?? '',
+                $provenance['domestic_shipping_price_per_kg_currency'] ?? '',
+                $provenance['use_sale_price_direct_fallback'] ?? '',
                 $provenance['profit_margin_percent'] ?? '', $provenance['price_rounding_digits'] ?? '',
                 $provenance['price_rounding_mode'] ?? '', $provenance['stock_percent'] ?? '',
                 $provenance['price_formula'] ?? '', $provenance['stock_formula'] ?? '',
@@ -666,8 +713,12 @@ final class Admin {
         echo '</td></tr>';
     }
 
-    private static function checkbox(string $name, string $label, string $value): void {
-        echo '<tr><th>' . esc_html($label) . '</th><td><label><input type="checkbox" name="' . esc_attr($name) . '" value="yes" ' . checked('yes', $value, false) . '> ' . esc_html__('فعال', 'ashko-wp') . '</label></td></tr>';
+    private static function checkbox(string $name, string $label, string $value, string $description = ''): void {
+        echo '<tr><th>' . esc_html($label) . '</th><td><label><input type="checkbox" name="' . esc_attr($name) . '" value="yes" ' . checked('yes', $value, false) . '> ' . esc_html__('فعال', 'ashko-wp') . '</label>';
+        if ('' !== $description) {
+            echo '<p class="description">' . esc_html($description) . '</p>';
+        }
+        echo '</td></tr>';
     }
 
     private static function select(string $name, string $label, string $value, array $options, string $description = ''): void {
@@ -691,8 +742,9 @@ final class Admin {
     private static function warning_label(string $warning): string {
         $labels = array(
             'missing_cny' => __('قیمت مثبت CNY موجود نیست یا ارز آن صحیح نیست', 'ashko-wp'),
-            'missing_price_source' => __('هیچ منبع قیمت مثبت CNY یا قیمت همکار انتخاب نشده است', 'ashko-wp'),
+            'missing_price_source' => __('هیچ مسیر قیمت CNY، قیمت همکار یا فی فروش مستقیم انتخاب نشده است', 'ashko-wp'),
             'partner_price_source_used' => __('قیمت همکار IRR به‌عنوان منبع جایگزین استفاده شده است', 'ashko-wp'),
+            'direct_sale_price_source_used' => __('فی فروش IRR بدون سود، حمل یا گردکردن مستقیماً استفاده شده است', 'ashko-wp'),
             'missing_weight' => __('وزن موجود نیست', 'ashko-wp'),
             'missing_unit' => __('واحد فروش موجود نیست', 'ashko-wp'),
             'missing_serial' => __('سریال کالا موجود نیست', 'ashko-wp'),
@@ -756,7 +808,11 @@ final class Admin {
             'serial' => __('سریال کالا', 'ashko-wp'),
             'foreign_currency' => __('ارز قیمت خارجی', 'ashko-wp'),
             'foreign_price' => __('قیمت CNY', 'ashko-wp'),
-            'sale_price_source' => __('قیمت همکار IRR', 'ashko-wp'),
+            'partner_price_source' => __('قیمت همکار IRR', 'ashko-wp'),
+            'sale_price_source' => __('فی فروش IRR', 'ashko-wp'),
+            'shipping_method_id' => __('روش حمل/تأمین', 'ashko-wp'),
+            'shipping_price_per_kg' => __('هزینه حمل هر کیلو', 'ashko-wp'),
+            'shipping_price_per_kg_currency' => __('ارز هزینه حمل', 'ashko-wp'),
             'price_source_amount' => __('مبلغ منبع قیمت منتخب', 'ashko-wp'),
             'price_source_currency' => __('ارز منبع قیمت منتخب', 'ashko-wp'),
             'price_source_kind' => __('نوع منبع قیمت منتخب', 'ashko-wp'),

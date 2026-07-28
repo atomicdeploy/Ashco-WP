@@ -131,6 +131,7 @@ final class Product_Applicator {
         $source = $this->selected_price_source($data);
         $uses_cny = is_array($source) && 'foreign_price' === $source['kind'];
         $uses_partner_price = is_array($source) && 'partner_price' === $source['kind'];
+        $uses_direct_sale_price = is_array($source) && 'sale_price_direct' === $source['kind'];
         $has_raw_cny = Decimal_Calculator::positive_decimal($data['foreign_price'] ?? null)
             && 'CNY' === strtoupper((string) ($data['foreign_currency'] ?? ''));
         if (!$has_raw_cny) {
@@ -140,6 +141,8 @@ final class Product_Applicator {
             $warnings[] = 'missing_price_source';
         } elseif ($uses_partner_price) {
             $warnings[] = 'partner_price_source_used';
+        } elseif ($uses_direct_sale_price) {
+            $warnings[] = 'direct_sale_price_source_used';
         }
         if ($uses_cny && null === ($data['weight_grams'] ?? null)) {
             $warnings[] = 'missing_weight';
@@ -161,13 +164,13 @@ final class Product_Applicator {
         ) {
             $warnings[] = 'missing_shipping';
         }
-        if (null !== $source && '' === (string) Config::get('profit_margin_percent')) {
+        if (null !== $source && !$uses_direct_sale_price && '' === (string) Config::get('profit_margin_percent')) {
             $warnings[] = 'missing_margin';
         }
         if ($uses_cny && '' === (string) Config::get('fx_irr_per_cny')) {
             $warnings[] = 'missing_fx';
         }
-        if (!preg_match('/^[0-9]$/', (string) Config::get('price_rounding_digits', ''))) {
+        if (!$uses_direct_sale_price && !preg_match('/^[0-9]$/', (string) Config::get('price_rounding_digits', ''))) {
             $warnings[] = 'missing_rounding';
         }
         if (is_numeric($data['total_stock'] ?? null) && (float) $data['total_stock'] < 0) {
@@ -199,9 +202,7 @@ final class Product_Applicator {
     private function desired_values(array $data): array {
         $calculation = $this->calculate($data);
         $stock = null;
-        if (is_numeric($data['total_stock'] ?? null) && (float) $data['total_stock'] < 0) {
-            $stock = 0;
-        } elseif (null !== ($data['total_stock'] ?? null)) {
+        if (null !== ($data['total_stock'] ?? null)) {
             $stock = Decimal_Calculator::stock($data['total_stock'], (string) Config::get('stock_percent', '30'));
         }
         $core = array();
@@ -234,10 +235,17 @@ final class Product_Applicator {
         }
         $selected_source = $this->selected_price_source($data);
         $uses_cny = is_array($selected_source) && 'foreign_price' === $selected_source['kind'];
+        $uses_direct_sale_price = is_array($selected_source) && 'sale_price_direct' === $selected_source['kind'];
         $has_selected_source = is_array($selected_source);
-        $effective_method = $uses_cny ? (string) Config::get('default_shipping_method', 'air_express') : '';
-        $effective_shipping_price = $uses_cny ? (string) Config::get('shipping_price_per_kg', '') : '';
-        $effective_shipping_currency = $uses_cny ? (string) Config::get('shipping_price_per_kg_currency', '') : '';
+        $effective_method = $uses_cny
+            ? (string) Config::get('default_shipping_method', 'air_express')
+            : ($has_selected_source ? Decimal_Calculator::DOMESTIC_SHIPPING_METHOD : '');
+        $effective_shipping_price = $uses_cny
+            ? (string) Config::get('shipping_price_per_kg', '')
+            : ($has_selected_source ? Decimal_Calculator::DOMESTIC_SHIPPING_PRICE_PER_KG : '');
+        $effective_shipping_currency = $uses_cny
+            ? (string) Config::get('shipping_price_per_kg_currency', '')
+            : ($has_selected_source ? Decimal_Calculator::DOMESTIC_SHIPPING_CURRENCY : '');
         $source_shipping_price = null === ($data['shipping_price_per_kg'] ?? null)
             ? ''
             : $this->scalar($data['shipping_price_per_kg']);
@@ -254,6 +262,9 @@ final class Product_Applicator {
             '_ashko_patris_cny' => $cny,
             'ashko_cny_price' => $cny,
             '_ashko_patris_foreign_currency' => (string) ($data['foreign_currency'] ?? ''),
+            '_ashko_patris_partner_price_source' => null === ($data['partner_price_source'] ?? null)
+                ? ''
+                : $this->scalar($data['partner_price_source']),
             '_ashko_patris_sale_price_source' => null === ($data['sale_price_source'] ?? null)
                 ? ''
                 : $this->scalar($data['sale_price_source']),
@@ -274,14 +285,18 @@ final class Product_Applicator {
             '_ashko_patris_shipping_price_per_kg_currency' => $effective_shipping_currency,
             '_ashko_patris_source_shipping_price_per_kg' => $source_shipping_price,
             '_ashko_patris_source_shipping_price_per_kg_currency' => $source_shipping_currency,
-            '_ashko_patris_markup_percent' => $has_selected_source ? (string) Config::get('profit_margin_percent', '') : '',
+            '_ashko_patris_markup_percent' => $has_selected_source && !$uses_direct_sale_price
+                ? (string) Config::get('profit_margin_percent', '')
+                : '',
             '_ashko_patris_source_markup_percent' => null === ($data['markup_percent'] ?? null) ? '' : $this->scalar($data['markup_percent']),
             '_ashko_patris_fx_irr_per_cny' => $uses_cny ? (string) Config::get('fx_irr_per_cny', '') : '',
             '_ashko_patris_source_irt_per_cny' => null === ($data['irt_per_cny'] ?? null) ? '' : $this->scalar($data['irt_per_cny']),
-            '_ashko_patris_price_rounding_digits' => $has_selected_source
+            '_ashko_patris_price_rounding_digits' => $has_selected_source && !$uses_direct_sale_price
                 ? (string) Config::get('price_rounding_digits', '0')
                 : '',
-            '_ashko_patris_price_rounding_mode' => $has_selected_source ? 'nearest_half_up' : '',
+            '_ashko_patris_price_rounding_mode' => $has_selected_source && !$uses_direct_sale_price
+                ? 'nearest_half_up'
+                : '',
             '_ashko_patris_source_price_rounding_digits' => null === ($data['price_rounding_digits'] ?? null)
                 ? ''
                 : $this->scalar($data['price_rounding_digits']),
@@ -348,6 +363,11 @@ final class Product_Applicator {
             !(
                 ('foreign_price' === $kind && 'CNY' === $currency)
                 || ('partner_price' === $kind && 'IRR' === $currency)
+                || (
+                    'sale_price_direct' === $kind
+                    && 'IRR' === $currency
+                    && 'yes' === (string) Config::get('use_sale_price_direct_fallback', 'no')
+                )
             )
         ) {
             return null;

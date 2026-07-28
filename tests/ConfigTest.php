@@ -66,4 +66,16 @@ final class ConfigTest extends TestCase {
             self::assertSame('nearest_half_up', $settings['price_rounding_mode']);
         }
     }
+
+    public function test_direct_sale_price_fallback_is_disabled_by_default_and_requires_explicit_opt_in(): void {
+        self::assertSame('no', Config::defaults()['use_sale_price_direct_fallback']);
+        self::assertSame(
+            'no',
+            Config::sanitize(array('use_sale_price_direct_fallback' => 'no'))['use_sale_price_direct_fallback']
+        );
+        self::assertSame(
+            'yes',
+            Config::sanitize(array('use_sale_price_direct_fallback' => 'on'))['use_sale_price_direct_fallback']
+        );
+    }
 }

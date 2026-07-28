@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Separated `partner_price_source` (Sharh1 slot 1) from `sale_price_source` (FOROSH/فی فروش), required `domestic / 0 / IRR` provenance for domestic price paths, and added a disabled-by-default exact direct-sale fallback with no margin, freight, FX, or rounding.
+- Changed positive source-stock allocation to `max(1, floor(total_stock × stock_percent / 100))` while preserving sparse no-write behavior and safe zero/negative handling.
 - Added a read-only full current-catalog reconciliation and price-list projection with exact Serial matching, one-sided catalog sets, independent price/stock/weight/hash drift, explicit omitted/null states, filters, paging, and bounded formula-safe CSV export.
 - Made validated dry-run candidates inspectable before apply through separate non-authoritative staging; surfaced quarantine, retained-stale records and envelope warnings; added direct drift checks for every managed WooCommerce product fact; and included exact FX, freight currency/rate, margin, stock policy, and formula provenance in the Persian UI and CSV.
 - Hardened static canonical `kala.json` CLI ingestion with resolved outside-web-root paths, pre-read and open-file size verification, locked reads, and explicit administrator `--user` plus `--yes` requirements for mutation.

@@ -3,8 +3,11 @@ namespace Ashko\Patris;
 
 /** Exact non-negative decimal arithmetic for Ashco pricing and stock policy. */
 final class Decimal_Calculator {
-    public const PRICE_FORMULA = 'foreign_price/CNY: ((amount × FX_IRR) + freight_IRR) × (1 + margin ÷ 100); partner_price/IRR: amount × (1 + margin ÷ 100); one final nearest-half-up round to 10^price_rounding_digits IRT, then ×10 for Woo IRR';
-    public const STOCK_FORMULA = 'floor(max(total_stock, 0) × stock_percent ÷ 100)';
+    public const DOMESTIC_SHIPPING_METHOD = 'domestic';
+    public const DOMESTIC_SHIPPING_PRICE_PER_KG = '0';
+    public const DOMESTIC_SHIPPING_CURRENCY = 'IRR';
+    public const PRICE_FORMULA = 'foreign_price/CNY: ((amount × FX_IRR) + freight_IRR) × (1 + margin ÷ 100); partner_price/IRR: amount × (1 + margin ÷ 100), with domestic freight fixed at 0 IRR/kg; sale_price_direct/IRR (disabled by default): use source IRR unchanged and convert exactly to integer IRT; calculated paths use one final nearest-half-up round to 10^price_rounding_digits IRT, then ×10 for Woo IRR';
+    public const STOCK_FORMULA = 'omitted or null total_stock: no stock write; total_stock <= 0: 0; total_stock > 0: max(1, floor(total_stock × stock_percent ÷ 100))';
 
     /**
      * Calculate the selected living price-source expression.
@@ -25,11 +28,35 @@ final class Decimal_Calculator {
         $price_rounding_digits
     ): ?array {
         $amount = self::parts($price_source_amount);
-        $margin = self::parts($margin_percent);
         $source_currency = (string) $price_source_currency;
         $source_kind = (string) $price_source_kind;
+        if (null === $amount || '0' === $amount['digits']) {
+            return null;
+        }
+
+        if ('sale_price_direct' === $source_kind && 'IRR' === $source_currency) {
+            $native_irt = $amount;
+            $native_irt['scale'] += 1;
+            if (!self::is_integer($native_irt)) {
+                return null;
+            }
+            $native_irt = self::floor_integer($native_irt);
+            return array(
+                'native_final_irt' => $native_irt,
+                'woo_final_irr' => self::text($amount),
+                'formula' => self::PRICE_FORMULA,
+                'price_source_amount' => self::text($amount),
+                'price_source_currency' => $source_currency,
+                'price_source_kind' => $source_kind,
+                'price_rounding_digits' => '',
+                'price_rounding_mode' => '',
+                'shipping_price_per_kg_currency' => self::DOMESTIC_SHIPPING_CURRENCY,
+            );
+        }
+
+        $margin = self::parts($margin_percent);
         $rounding_digits = self::rounding_digits($price_rounding_digits);
-        if (null === $amount || '0' === $amount['digits'] || null === $margin || null === $rounding_digits) {
+        if (null === $margin || null === $rounding_digits) {
             return null;
         }
 
@@ -55,7 +82,7 @@ final class Decimal_Calculator {
             $base_irr = self::add($goods_irr, $shipping_irr);
         } elseif ('partner_price' === $source_kind && 'IRR' === $source_currency) {
             $base_irr = $amount;
-            $shipping_currency = '';
+            $shipping_currency = self::DOMESTIC_SHIPPING_CURRENCY;
         } else {
             return null;
         }
@@ -88,14 +115,32 @@ final class Decimal_Calculator {
     }
 
     public static function stock($total_stock, $percent = '30'): ?int {
+        if (null === $total_stock || '' === $total_stock) {
+            return null;
+        }
+        $stock_text = is_float($total_stock)
+            ? json_encode($total_stock, JSON_PRESERVE_ZERO_FRACTION)
+            : (string) $total_stock;
+        if (preg_match('/^-(?:0|[1-9][0-9]*)(?:\.[0-9]+)?$/', $stock_text)) {
+            return 0;
+        }
         $stock = self::parts($total_stock);
+        if (null === $stock) {
+            return null;
+        }
+        if ('0' === $stock['digits']) {
+            return 0;
+        }
         $factor = self::parts($percent);
-        if (null === $stock || null === $factor) {
+        if (null === $factor) {
             return null;
         }
         $scaled = self::multiply($stock, $factor);
         $scaled['scale'] += 2;
         $floor = self::floor_integer($scaled);
+        if ('0' !== $stock['digits'] && '0' === $floor) {
+            $floor = '1';
+        }
         if (self::compare_integer($floor, (string) PHP_INT_MAX) > 0) {
             return PHP_INT_MAX;
         }
@@ -145,6 +190,14 @@ final class Decimal_Calculator {
         }
         $padded = str_pad($decimal['digits'], $decimal['scale'] + 1, '0', STR_PAD_LEFT);
         return self::normalize(substr($padded, 0, strlen($padded) - $decimal['scale']));
+    }
+
+    private static function is_integer(array $decimal): bool {
+        if ($decimal['scale'] <= 0) {
+            return true;
+        }
+        $padded = str_pad($decimal['digits'], $decimal['scale'] + 1, '0', STR_PAD_LEFT);
+        return '' === trim(substr($padded, -$decimal['scale']), '0');
     }
 
     private static function round_half_up(array $decimal): string {

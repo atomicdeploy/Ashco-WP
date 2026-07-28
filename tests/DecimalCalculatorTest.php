@@ -55,7 +55,7 @@ final class DecimalCalculatorTest extends TestCase {
         self::assertSame('130000', $result['native_final_irt']);
         self::assertSame('1300000', $result['woo_final_irr']);
         self::assertSame('partner_price', $result['price_source_kind']);
-        self::assertSame('', $result['shipping_price_per_kg_currency']);
+        self::assertSame('IRR', $result['shipping_price_per_kg_currency']);
     }
 
     public function test_configurable_digits_round_up_or_down_to_nearest_canonical_irt_increment(): void {
@@ -76,6 +76,22 @@ final class DecimalCalculatorTest extends TestCase {
         self::assertSame('nearest_half_up', $tie['price_rounding_mode']);
     }
 
+    public function test_direct_sale_price_uses_source_irr_unchanged_without_margin_freight_or_rounding(): void {
+        $result = Decimal_Calculator::price(
+            '1234560', 'IRR', 'sale_price_direct', null, null, null, null, null, null
+        );
+
+        self::assertSame('123456', $result['native_final_irt']);
+        self::assertSame('1234560', $result['woo_final_irr']);
+        self::assertSame('sale_price_direct', $result['price_source_kind']);
+        self::assertSame('', $result['price_rounding_digits']);
+        self::assertSame('IRR', $result['shipping_price_per_kg_currency']);
+
+        self::assertNull(Decimal_Calculator::price(
+            '1234561', 'IRR', 'sale_price_direct', null, null, null, null, null, null
+        ));
+    }
+
     public function test_zero_or_invalid_selected_price_is_not_determined(): void {
         self::assertNull(Decimal_Calculator::price(
             '0', 'IRR', 'partner_price', null, null, null, null, '30', '0'
@@ -85,9 +101,15 @@ final class DecimalCalculatorTest extends TestCase {
         ));
     }
 
-    public function test_stock_is_floor_of_thirty_percent(): void {
+    public function test_stock_is_floored_but_any_positive_source_stock_has_a_minimum_of_one(): void {
         self::assertSame(642, Decimal_Calculator::stock('2141', '30'));
-        self::assertSame(0, Decimal_Calculator::stock('3', '30'));
+        self::assertSame(1, Decimal_Calculator::stock('1', '30'));
+        self::assertSame(1, Decimal_Calculator::stock('2', '30'));
+        self::assertSame(1, Decimal_Calculator::stock('3', '30'));
         self::assertSame(1, Decimal_Calculator::stock('6.5', '30'));
+        self::assertSame(0, Decimal_Calculator::stock('0', '30'));
+        self::assertSame(0, Decimal_Calculator::stock('-5', '30'));
+        self::assertNull(Decimal_Calculator::stock(null, '30'));
+        self::assertNull(Decimal_Calculator::stock('invalid', '30'));
     }
 }
