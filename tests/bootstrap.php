@@ -258,3 +258,5 @@ require_once $root . '/includes/class-jalali.php';
 require_once $root . '/includes/class-logger.php';
 require_once $root . '/includes/class-product-sync-receiver.php';
 require_once $root . '/includes/class-frontend-stock.php';
+require_once $root . '/includes/class-current-catalog-report.php';
+require_once $root . '/includes/class-current-catalog-csv-exporter.php';

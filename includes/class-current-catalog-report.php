@@ -249,40 +249,59 @@ final class Current_Catalog_Report {
     }
 
     public function filtered_rows(array $report, array $criteria): array {
-        $search = $this->lower(trim((string) ($criteria['search'] ?? '')));
-        $scope = (string) ($criteria['scope'] ?? 'all');
-        $warning = (string) ($criteria['warning'] ?? '');
-        $allowed_scopes = array('all', 'matched', 'source_only', 'woo_only', 'ambiguous', 'drift', 'quarantined', 'source_warning');
-        if (!in_array($scope, $allowed_scopes, true)) {
-            $scope = 'all';
+        $filter = $this->normalized_filter($criteria);
+        $filtered = array();
+        foreach ($report['rows'] ?? array() as $row) {
+            if ($this->row_matches_filter($row, $filter)) {
+                $filtered[] = $row;
+            }
+        }
+        return $filtered;
+    }
+
+    /**
+     * Count matching rows without allocating a second array of the report graph.
+     *
+     * When $stop_after is positive, counting stops at that number. CSV export
+     * uses MAX_CSV_ROWS + 1 so the safety limit is known before any bytes are
+     * sent to the browser.
+     */
+    public function filtered_row_count(array $report, array $criteria, int $stop_after = 0): int {
+        $filter = $this->normalized_filter($criteria);
+        $rows = is_array($report['rows'] ?? null) ? $report['rows'] : array();
+        if ('' === $filter['search'] && 'all' === $filter['scope'] && '' === $filter['warning']) {
+            $count = count($rows);
+            return $stop_after > 0 ? min($count, $stop_after) : $count;
         }
 
-        return array_values(array_filter($report['rows'] ?? array(), static function ($row) use ($search, $scope, $warning): bool {
-            if ('all' !== $scope) {
-                if ('drift' === $scope) {
-                    if (empty(array_filter($row['drift'] ?? array()))) {
-                        return false;
-                    }
-                } elseif ('quarantined' === $scope) {
-                    if (empty($row['quarantined'])) {
-                        return false;
-                    }
-                } elseif ('source_warning' === $scope) {
-                    if (empty($row['envelope_warnings'])) {
-                        return false;
-                    }
-                } elseif ($scope !== (string) ($row['kind'] ?? '')) {
-                    return false;
-                }
+        $count = 0;
+        foreach ($rows as $row) {
+            if (!$this->row_matches_filter($row, $filter)) {
+                continue;
             }
-            if ('' !== $warning && !in_array($warning, $row['warnings'] ?? array(), true)) {
-                return false;
+            ++$count;
+            if ($stop_after > 0 && $count >= $stop_after) {
+                break;
             }
-            if ('' !== $search && !str_contains((string) ($row['search'] ?? ''), $search)) {
-                return false;
+        }
+        return $count;
+    }
+
+    /**
+     * Yield matching rows while releasing every visited row from the source
+     * array. This is intentionally destructive and reserved for one-shot
+     * exports, where retaining the complete report would multiply peak memory.
+     *
+     * @return \Generator<int,array>
+     */
+    public function drain_filtered_rows(array &$rows, array $criteria): \Generator {
+        $filter = $this->normalized_filter($criteria);
+        foreach ($rows as $index => $row) {
+            unset($rows[$index]);
+            if ($this->row_matches_filter($row, $filter)) {
+                yield $row;
             }
-            return true;
-        }));
+        }
     }
 
     public function page(array $rows, int $page, int $page_size): array {
@@ -1071,5 +1090,45 @@ final class Current_Catalog_Report {
 
     private function lower(string $value): string {
         return function_exists('mb_strtolower') ? mb_strtolower($value, 'UTF-8') : strtolower($value);
+    }
+
+    private function normalized_filter(array $criteria): array {
+        $scope = (string) ($criteria['scope'] ?? 'all');
+        $allowed_scopes = array('all', 'matched', 'source_only', 'woo_only', 'ambiguous', 'drift', 'quarantined', 'source_warning');
+        if (!in_array($scope, $allowed_scopes, true)) {
+            $scope = 'all';
+        }
+        return array(
+            'search' => $this->lower(trim((string) ($criteria['search'] ?? ''))),
+            'scope' => $scope,
+            'warning' => (string) ($criteria['warning'] ?? ''),
+        );
+    }
+
+    private function row_matches_filter(array $row, array $filter): bool {
+        if ('all' !== $filter['scope']) {
+            if ('drift' === $filter['scope']) {
+                if (empty(array_filter($row['drift'] ?? array()))) {
+                    return false;
+                }
+            } elseif ('quarantined' === $filter['scope']) {
+                if (empty($row['quarantined'])) {
+                    return false;
+                }
+            } elseif ('source_warning' === $filter['scope']) {
+                if (empty($row['envelope_warnings'])) {
+                    return false;
+                }
+            } elseif ($filter['scope'] !== (string) ($row['kind'] ?? '')) {
+                return false;
+            }
+        }
+        if ('' !== $filter['warning'] && !in_array($filter['warning'], $row['warnings'] ?? array(), true)) {
+            return false;
+        }
+        if ('' !== $filter['search'] && !str_contains((string) ($row['search'] ?? ''), $filter['search'])) {
+            return false;
+        }
+        return true;
     }
 }
